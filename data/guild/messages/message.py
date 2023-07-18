@@ -1,29 +1,38 @@
 from __future__ import annotations
 
-import attrs
+import datetime
+
+
 import asyncio
-from typing import List, Any, Optional
+from typing import List, Any, TYPE_CHECKING
 
-from dispy.data.guild.members.member import GuildMember
-from dispy.data.model import BaseModel
-from dispy.data.gateway.snowflake import Snowflake
+import attrs
+
+if TYPE_CHECKING:
+    from dispy.data.guild.messages.emoji import Emoji
+    from dispy.data.guild.guild_object import Guild
+
 from dispy.data.user import User
+from dispy.data.user import GuildMember
+from dispy.data.model import BaseModel
+from dispy.data.guild.messages.embeds import Embed
+from dispy.utils.attrs_extensions import auto_converter
 
 
-@attrs.define(kw_only=True)
+@attrs.define(kw_only=True, field_transformer=auto_converter)
 class Message(BaseModel):
     type: int = attrs.field(default=None)
-    timestamp: int = attrs.field(default=None)
-    channel_id: int | None = attrs.field(default=None, converter=Snowflake.object_id_from_snowflake)
+    timestamp: datetime.datetime = attrs.field(default=None)
+    channel_id: int | None = attrs.field(default=None)
     position: int | None = attrs.field(default=None)
-    message_id: int | None = attrs.field(alias="id", default=None, converter=Snowflake.object_id_from_snowflake)
-    guild_id: int | None = attrs.field(default=None, converter=Snowflake.object_id_from_snowflake)
+    message_id: int | None = attrs.field(alias="id", default=None)
+    guild_id: int | None = attrs.field(default=None)
     author_as_member: GuildMember | None = attrs.field(alias="member", default=None, converter=GuildMember.from_dict)
     author_as_user: User | None = attrs.field(alias="author", default=None, converter=User.from_dict)
     content: str | None = attrs.field(default=None)
     nonce: str | int | None = attrs.field(default=None)
     tts: bool | None = attrs.field(default=None)
-    embeds: List[dict] | None = attrs.field(default=None)
+    embeds: List[Embed] | None = attrs.field(default=None)
     edited_timestamp: str = attrs.field(default=None)
     mention_everyone: bool | None = attrs.field(default=None)
     mentions: List[User] | None = attrs.field(default=None, converter=User.from_dict_iter)
@@ -36,10 +45,10 @@ class Message(BaseModel):
     flags: int | None = attrs.field(default=None)
     referenced_message: Message | None = attrs.field(default=None)
     pinned: bool = attrs.field(default=False)
-    webhook_id: int | None = attrs.field(default=None, converter=Snowflake.object_id_from_snowflake)
+    webhook_id: int | None = attrs.field(default=None)
     activity: Any | None = attrs.field(default=None)
     application: Any | None = attrs.field(default=None)
-    application_id: int | None = attrs.field(default=None, converter=Snowflake.object_id_from_snowflake)
+    application_id: int | None = attrs.field(default=None)
     interaction: Any | None = attrs.field(default=None)
     thread: Any | None = attrs.field(default=None)
     sticker_items: List[Any] | None = attrs.field(default=None)
@@ -48,3 +57,6 @@ class Message(BaseModel):
     async def delete(self, *, reason: str = None, delete_after: int = 0) -> None:
         await asyncio.sleep(delete_after)
         await self.client.rest.delete_message(self.channel_id, self.message_id, reason)
+
+    async def create_reaction(self, emoji: Emoji) -> None:
+        await self.client.rest.create_reaction(emoji, self.guild_id, self.channel_id, self.message_id)

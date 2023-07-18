@@ -7,5 +7,7 @@ class MessageEvent(BaseEvent):
 
     message: Message
 
-    def build_event(self, **kwargs):
+    def process_event(self, cache_manager, **kwargs):
         self.message = Message(**kwargs)
+
+        cache_manager.add_cache_message(self.message)

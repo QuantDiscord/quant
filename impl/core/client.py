@@ -24,6 +24,7 @@ class Client:
         self.with_mobile_status = with_mobile_status
         self.gateway: Gateway = Gateway(token=token, intents=self.intents, mobile_status=self.with_mobile_status)
         self.rest = DiscordREST(self.gateway.token)
+        self.cache = self.gateway.cache
 
     _Coroutine = Callable[..., Coroutine[Any, Any, Any]]
 
@@ -32,8 +33,8 @@ class Client:
         await self.gateway.connect_ws()
 
     def set_activity(self, activity: ActivityBuilder) -> None:
-        self.gateway.create_presence(
-            activities=activity.activities,
+        self.gateway.set_presence(
+            activity=activity.activity,
             status=activity.status,
             since=activity.since,
             afk=activity.afk

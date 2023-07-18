@@ -29,7 +29,14 @@ DISCORD_WS_URL: Final[Route] = Route(
 # Messages
 CREATE_MESSAGE: Final[str] = ~Route("POST", URI("/channels/{}/messages"))
 DELETE_MESSAGE: Final[str] = ~Route("DELETE", URI("/channels/{channel_id}/messages/{message_id}"))
+CREATE_REACTION: Final[str] = ~Route("PUT", URI("/channels/{channel_id}/messages/{message_id}/reactions/{emoji}/@me"))
+GET_GUILD_EMOJI: Final[str] = ~Route("GET", URI("/guilds/{guild_id}/emojis/{emoji_id}"))
 
 # Webhooks
 CREATE_WEBHOOK: Final[str] = ~Route("POST", URI("/channels/{channel_id}/webhooks"))
 GET_CHANNEL_WEBHOOKS: Final[str] = ~Route("GET", URI("/channels/{channel_id}/webhooks"))
+
+# Guilds
+GET_GUILD: Final[str] = ~Route("GET", URI("/guilds/{guild_id}"))
+CREATE_GUILD: Final[str] = ~Route("POST", URI("/guilds"))
+DELETE_GUILD: Final[str] = ~Route("DELETE", URI("/guilds/{guild_id}"))

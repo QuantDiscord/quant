@@ -7,5 +7,5 @@ class BaseEvent:
     API_EVENT_NAME: str
 
     @abstractmethod
-    def build_event(self, **kwargs):
+    def process_event(self, cache_manager, **kwargs):
         ...

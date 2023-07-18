@@ -15,7 +15,7 @@ class Activity:
 
 @attrs.define
 class ActivityBuilder:
-    activities: List[Activity] | None = attrs.field(default=None)
+    activity: Activity | None = attrs.field(default=None)
     status: ActivityStatus | None = attrs.field(default=None)
     since: int | None = attrs.field(default=None)
     afk: bool = attrs.field(default=False)

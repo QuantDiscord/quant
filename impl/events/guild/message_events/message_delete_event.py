@@ -9,8 +9,10 @@ class MessageDeleteEvent(BaseEvent):
     author: User
     message: Message
 
-    def build_event(self, **kwargs):
-        self.message = Message(**kwargs)
+    def process_event(self, cache_manager, **kwargs):
+        message = cache_manager.get_message(int(kwargs.get("id")))
+        if message is not None:
+            self.message = message
 
     @classmethod
     def set_author(cls, user: User):

@@ -4,7 +4,9 @@ import zlib
 import logging
 from typing import (
     Dict,
-    Callable, List
+    Callable,
+    List,
+    NoReturn
 )
 
 import json
@@ -17,7 +19,6 @@ from dispy.data.route import DISCORD_WS_URL
 from dispy.data.intents import Intents
 from dispy.impl.events.dispatch import dispatch
 from dispy.impl.events.event import BaseEvent
-from dispy.impl.typeutils.hashable_dict import HashableDict
 from dispy.utils.cache_manager import CacheManager
 
 
@@ -27,8 +28,8 @@ class Gateway:
     IDENTIFY = 2
     PRESENCE_UPDATE = 3
     VOICE_STATE_UPDATE = 4
-    RESUME = 5
-    RECONNECT = 6
+    RESUME = 6
+    RECONNECT = 7
     REQUEST_GUILD_MEMBERS = 8
     INVALID_SESSION = 9
     HELLO = 10
@@ -51,7 +52,7 @@ class Gateway:
         self.session_id = None
         self._previous_heartbeat = 0
         self.mobile_status = mobile_status
-        self._events: HashableDict[HashableDict[str, BaseEvent], Callable] = HashableDict()
+        self._events: Dict[Callable, Dict[str, BaseEvent]] = {}
         self.cache = CacheManager()
 
         self.loop = asyncio.get_event_loop()
@@ -88,7 +89,8 @@ class Gateway:
 
     async def error_reconnect(self, code: int):
         if code == 4009:
-            return await self.resume_connection()
+            await self.resume_connection()
+            return
 
         self.ws_connected = False
         await self.connect_ws()
@@ -114,8 +116,9 @@ class Gateway:
         match op:
             case self.DISPATCH:
                 self.sequence = int(sequence)
-
                 received_event_type = received_data["t"]
+
+                self.cache.cache_register(received_event_type, **received_data["d"])
                 await dispatch(self, received_event_type, **received_data["d"])
             case self.INVALID_SESSION:
                 await self.websocket_connection.close(code=4000)
@@ -137,7 +140,7 @@ class Gateway:
                 await self.websocket_connection.close(code=4000)
                 await self.error_reconnect(code=4000)
 
-    async def read_websocket(self):
+    async def read_websocket(self) -> NoReturn:
         while self.ws_connected:
             async for message in self.websocket_connection:
                 match message.type:
@@ -160,15 +163,16 @@ class Gateway:
         if self.websocket_connection.closed:
             return
 
-        await self.send_data(self.create_payload(
-            self.RESUME,
-            {"token": self.token, "session_id": self.session_id, "seq": self.sequence})
-        )
+        payload = self.create_payload(self.RESUME, {
+            "token": self.token,
+            "session_id": self.session_id,
+            "seq": self.sequence
+        })
+        await self.send_data(payload)
 
     async def send_identify(self, resume: bool = False) -> None:
         if resume:
-            await self.resume_connection()
-            return
+            return await self.resume_connection()
 
         await self.send_data(self.create_payload(self.IDENTIFY, self.raw_ws_request))
 
@@ -211,9 +215,9 @@ class Gateway:
 
         return json.dumps(payload)
 
-    def create_presence(
+    def set_presence(
         self,
-        activities: List[Activity] = None,
+        activity: Activity = None,
         status: str = None,
         since: int = None,
         afk: bool = None
@@ -223,14 +227,14 @@ class Gateway:
                 "name": activity.name,
                 "type": activity.type.value,
                 "url": activity.url
-            } for activity in activities],
+            }],
             status=status,
             since=since,
             afk=afk
         )
 
     def add_event(self, event_name, event_type, event_callback) -> None:
-        self._events[HashableDict({event_name: event_type})] = event_callback
+        self._events[event_callback] = {event_name: event_type}
 
-    def event_list(self) -> Dict[Dict[str, BaseEvent], Callable]:
+    def event_list(self) -> Dict[Callable, Dict[str, BaseEvent]]:
         return self._events

@@ -1,4 +1,4 @@
-from .gateway import *
-from .client import *
-from .http_manager import *
+from .gateway import Gateway
+from .client import Client
+from .http_manager import HttpManager
 from .rest import DiscordREST

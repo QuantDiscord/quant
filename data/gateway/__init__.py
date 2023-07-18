@@ -1,2 +1,2 @@
 from .http_codes import *
-from .snowflake import *
+from .snowflake import Snowflake
