@@ -64,3 +64,5 @@ class CacheManager:
                 del self.__cached_guilds[int(data["id"])]
             case 'MESSAGE_REACTION_ADD':
                 print(data['emoji'])
+
+# мама сказала я умный
