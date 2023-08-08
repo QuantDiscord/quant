@@ -10,7 +10,6 @@ import attrs
 
 if TYPE_CHECKING:
     from dispy.data.guild.messages.emoji import Emoji
-    from dispy.data.guild.guild_object import Guild
 
 from dispy.data.user import User
 from dispy.data.user import GuildMember
