@@ -27,6 +27,7 @@ class User(BaseModel):
     flags: int = attrs.field(default=0)
     premium_type: int = attrs.field(default=0)
     public_flags: int = attrs.field(default=0)
+    avatar_decoration_data: Any = attrs.field(default=None)
 
     @classmethod
     def from_dict_iter(cls, data):

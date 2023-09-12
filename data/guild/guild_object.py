@@ -77,6 +77,8 @@ class Guild(BaseModel):
     embed_enabled: bool = attrs.field(default=False)
     embed_channel_id: int = attrs.field(default=0)
     inventory_settings: Any = attrs.field(default=None)
+    soundboard_sounds: List[Any] = attrs.field(default=None)
+    version: int = attrs.field(default=0)
 
     async def delete(self) -> None:
         await self.client.rest.delete_guild(self.guild_id)

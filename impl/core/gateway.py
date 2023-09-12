@@ -42,7 +42,7 @@ class Gateway:
         token: str,
         intents: Intents,
         mobile_status: bool = False,
-        api_version: int = 10,
+        api_version: int = 10
     ) -> None:
         self.token = token
         self.api_version = api_version
@@ -56,6 +56,7 @@ class Gateway:
         self.cache = CacheManager()
 
         self.loop = asyncio.get_event_loop()
+
         self.latency = None
         self.session = None
 
