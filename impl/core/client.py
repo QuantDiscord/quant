@@ -26,6 +26,8 @@ class Client:
         self.rest = DiscordREST(self.gateway.token)
         self.cache = self.gateway.cache
 
+        self._commands = []
+
     _Coroutine = Callable[..., Coroutine[Any, Any, Any]]
 
     async def run(self) -> None:
@@ -48,3 +50,7 @@ class Client:
             raise LibraryException(f"Subclass of event {event} must be BaseEvent")
 
         self.gateway.add_event(event.API_EVENT_NAME, event, coro)
+
+    @property
+    def commands(self) -> List[Any]:
+        return self._commands

@@ -11,7 +11,3 @@ async def dispatch(gateway_client, received_event_type, **kwargs) -> None:
             event_class.process_event(cache_manager, **kwargs)
 
         await event_callback(event_class)
-
-# СУКА Я ЧУТЬ НЕ ПОВЕСИЛСЯ НАХУЙ, ПОКА ПИСАЛ ЭТО
-# Всем любви.
-# Я правда не хотел писать такой код, меня заставили. Правда.
