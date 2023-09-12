@@ -10,19 +10,6 @@ class CacheManager:
     __cached_users: Dict[int, User] = {}
     __cached_messages: Dict[int, Message] = {}
 
-    '''__slots__ = [
-        "add_cache_user",
-        "add_cache_message",
-        "add_cache_guild",
-        "get_user",
-        "get_cache_users",
-        "get_message",
-        "get_cached_messages",
-        "get_guild",
-        "get_cached_guilds",
-        "cache_register"
-    ]'''
-
     def add_cache_user(self, user: User):
         self.__cached_users[user.user_id] = user
 
@@ -50,6 +37,7 @@ class CacheManager:
     def get_cached_guilds(self) -> List[Guild]:
         return list(self.__cached_guilds.values())
 
+    # тут вроде ошибка была или какие-то конфликты, надо будет пересмотреть
     def cache_register(self, event_name, **data):
         match event_name:
             case 'MESSAGE_CREATE':
@@ -65,4 +53,4 @@ class CacheManager:
             case 'MESSAGE_REACTION_ADD':
                 print(data['emoji'])
 
-# мама сказала я умный
+# мама сказала, что я умный

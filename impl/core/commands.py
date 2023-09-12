@@ -4,3 +4,4 @@ class Command:
         self.description = description
 
     def execute_command(self) -> None:
+        ...

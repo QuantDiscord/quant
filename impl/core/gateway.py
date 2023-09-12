@@ -57,7 +57,7 @@ class Gateway:
 
         self.loop = asyncio.get_event_loop()
         self.latency = None
-        self.session = aiohttp.ClientSession()
+        self.session = None
 
         self.raw_ws_request = {
             "token": self.token,
@@ -77,7 +77,9 @@ class Gateway:
         self.logger = logging.getLogger(name="DsPy")
 
     async def connect_ws(self) -> None:
+        self.session = aiohttp.ClientSession()
         self.websocket_connection = await self.session.ws_connect(DISCORD_WS_URL.uri.url_string.format(self.api_version))
+
         self.ws_connected = True
 
         self.zlib_decompressed_object = zlib.decompressobj()

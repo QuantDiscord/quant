@@ -1,5 +1,5 @@
 import inspect
-from typing import Coroutine, Callable, Any
+from typing import Coroutine, Callable, Any, List
 
 from dispy.impl.core.gateway import Gateway
 from dispy.data.intents import Intents
