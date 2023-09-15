@@ -3,5 +3,5 @@ class Command:
         self.name = name
         self.description = description
 
-    def execute_command(self) -> None:
-        ...
+    async def callback(self, bot) -> None:
+        pass

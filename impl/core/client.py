@@ -1,11 +1,14 @@
+import asyncio
 import inspect
-from typing import Coroutine, Callable, Any, List
+from typing import Coroutine, Callable, Any, List, Dict
 
+from dispy.impl.core.exceptions.command_exceptions import CommandNotFoundException
 from dispy.impl.core.gateway import Gateway
 from dispy.data.intents import Intents
 from dispy.impl.core.exceptions.library_exception import LibraryException
 from dispy.impl.core.rest import DiscordREST
 from dispy.impl.events.event import BaseEvent
+from dispy.impl.events.guild.message_events.message_event import MessageEvent
 from dispy.data.model import BaseModel
 from dispy.data.activities.activity import ActivityBuilder
 
@@ -16,17 +19,23 @@ class Client:
         token: str,
         intents: Intents,
         prefix: str = None,
-        with_mobile_status: bool = False,
+        with_mobile_status: bool = False
     ) -> None:
+        self.loop = asyncio.get_event_loop()
         self.token = token
         self.prefix = prefix
         self.intents = intents
         self.with_mobile_status = with_mobile_status
-        self.gateway: Gateway = Gateway(token=token, intents=self.intents, mobile_status=self.with_mobile_status)
+        self.gateway: Gateway = Gateway(
+            token=token,
+            intents=self.intents,
+            mobile_status=self.with_mobile_status
+        )
         self.rest = DiscordREST(self.gateway.token)
         self.cache = self.gateway.cache
 
-        self._commands = []
+        self._commands = {}
+        self.add_listener(MessageEvent, self._on_message_execute_command)
 
     _Coroutine = Callable[..., Coroutine[Any, Any, Any]]
 
@@ -52,5 +61,15 @@ class Client:
         self.gateway.add_event(event.API_EVENT_NAME, event, coro)
 
     @property
-    def commands(self) -> List[Any]:
+    def commands(self) -> Dict[str, _Coroutine]:
         return self._commands
+
+    async def _on_message_execute_command(self, event: MessageEvent) -> None:
+        if event.message.content.startswith(self.prefix):
+            substring_command = event.message.content[1:]
+
+            if substring_command not in self.commands.keys():
+                raise CommandNotFoundException(f"command {substring_command} not found")
+
+            for command in self.commands.values():
+                await command(self)
