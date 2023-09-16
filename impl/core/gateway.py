@@ -20,6 +20,7 @@ from dispy.data.intents import Intents
 from dispy.impl.events.dispatch import dispatch
 from dispy.impl.events.event import BaseEvent
 from dispy.utils.cache_manager import CacheManager
+from dispy.utils.asyncio_utils import get_loop
 
 
 class Gateway:
@@ -55,7 +56,7 @@ class Gateway:
         self._events: Dict[Callable, Dict[str, BaseEvent]] = {}
         self.cache = CacheManager()
 
-        self.loop = asyncio.get_event_loop()
+        self.loop = get_loop()
 
         self.latency = None
         self.session = None

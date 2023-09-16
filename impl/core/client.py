@@ -39,9 +39,9 @@ class Client:
 
     _Coroutine = Callable[..., Coroutine[Any, Any, Any]]
 
-    async def run(self) -> None:
+    def run(self) -> None:
         BaseModel.set_client(self)
-        await self.gateway.connect_ws()
+        self.gateway.loop.run_until_complete(self.gateway.connect_ws())
 
     def set_activity(self, activity: ActivityBuilder) -> None:
         self.gateway.set_presence(
@@ -60,6 +60,9 @@ class Client:
 
         self.gateway.add_event(event.API_EVENT_NAME, event, coro)
 
+    def add_command(self, command_name: str, coro: _Coroutine) -> None:
+        self.commands[command_name] = coro
+
     @property
     def commands(self) -> Dict[str, _Coroutine]:
         return self._commands
@@ -71,5 +74,5 @@ class Client:
             if substring_command not in self.commands.keys():
                 raise CommandNotFoundException(f"command {substring_command} not found")
 
-            for command in self.commands.values():
-                await command(self)
+            for command_callback in self.commands.values():
+                await command_callback(self)
