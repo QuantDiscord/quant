@@ -1,14 +1,14 @@
 import datetime
-from typing import List, Any, TYPE_CHECKING
+from typing import List, Any
 
 import attrs
 
-from dispy.data.user import GuildMember
+from dispy.data.guild.members.member import GuildMember
 from dispy.data.model import BaseModel
-from dispy.utils.attrs_extensions import auto_converter
+from dispy.utils.attrs_extensions import execute_converters
 
 
-@attrs.define(field_transformer=auto_converter)
+@attrs.define(field_transformer=execute_converters)
 class Guild(BaseModel):
     guild_id: int = attrs.field(alias="id")
     name: str = attrs.field()

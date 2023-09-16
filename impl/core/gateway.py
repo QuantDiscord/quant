@@ -122,7 +122,7 @@ class Gateway:
                 self.sequence = int(sequence)
                 received_event_type = received_data["t"]
 
-                self.cache.cache_register(received_event_type, **received_data["d"])
+                self.cache.add_from_event(received_event_type, **received_data["d"])
                 await dispatch(self, received_event_type, **received_data["d"])
             case self.INVALID_SESSION:
                 await self.websocket_connection.close(code=4000)

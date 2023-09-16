@@ -1,9 +1,9 @@
 from ..event import BaseEvent
+from dispy.impl.events.types import EventTypes
 
 
 class ReadyEvent(BaseEvent):
-    API_EVENT_NAME = "READY"
+    API_EVENT_NAME: EventTypes = EventTypes.READY_EVENT
 
-    @staticmethod
-    def build_event(**kwargs):
+    def process_event(self, _, **kwargs):
         ...

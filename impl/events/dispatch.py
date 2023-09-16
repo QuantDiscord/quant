@@ -1,5 +1,9 @@
-async def dispatch(gateway_client, received_event_type, **kwargs) -> None:
-    cache_manager = gateway_client.cache
+from dispy.impl.events.types import EventTypes
+from dispy.utils.cache_manager import CacheManager
+
+
+async def dispatch(gateway_client, received_event_type: EventTypes, **kwargs) -> None:
+    cache_manager: CacheManager = gateway_client.cache
     event_list = gateway_client.event_list()
 
     for event_callback, event_data in event_list.items():

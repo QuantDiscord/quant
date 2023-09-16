@@ -12,13 +12,13 @@ if TYPE_CHECKING:
     from dispy.data.guild.messages.emoji import Emoji
 
 from dispy.data.user import User
-from dispy.data.user import GuildMember
+from dispy.data.guild.members.member import GuildMember
 from dispy.data.model import BaseModel
 from dispy.data.guild.messages.embeds import Embed
-from dispy.utils.attrs_extensions import auto_converter
+from dispy.utils.attrs_extensions import execute_converters
 
 
-@attrs.define(kw_only=True, field_transformer=auto_converter)
+@attrs.define(kw_only=True, field_transformer=execute_converters)
 class Message(BaseModel):
     type: int = attrs.field(default=None)
     timestamp: datetime.datetime = attrs.field(default=None)
