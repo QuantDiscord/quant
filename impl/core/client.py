@@ -61,6 +61,9 @@ class Client:
         self.gateway.add_event(event.API_EVENT_NAME, event, coro)
 
     def add_command(self, command_name: str, coro: _Coroutine) -> None:
+        if inspect.iscoroutine(coro):
+            raise LibraryException("Callback function must be coroutine")
+
         self.commands[command_name] = coro
 
     @property
