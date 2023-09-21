@@ -52,4 +52,4 @@ Coming soon
 
 
 # License:
-DisPy is licensed under the MIT License. See the LICENSE file for more details.
+DisPy is licensed under the MIT License. See the [LICENSE](https://github.com/MagM1go/dispy/LICENSE) file for more details.
