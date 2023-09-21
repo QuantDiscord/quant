@@ -1,0 +1,42 @@
+from typing import Literal, Final, Any
+from dataclasses import dataclass
+
+
+@dataclass
+class URI:
+    _url_string: str
+    auto_format: bool = True
+
+    @property
+    def url_string(self) -> str:
+        if not self.auto_format:
+            return self._url_string
+        return DISCORD_MAIN_API_URL + self._url_string
+
+
+@dataclass
+class Route:
+    method: Literal["GET", "POST", "PUT", "DELETE"]
+    uri: URI
+    api_version: int = 10
+
+
+DISCORD_MAIN_API_URL: Final[str] = "https://discord.com/api/v{}".format(Route.api_version)
+DISCORD_WS_URL: Final[Route] = Route(
+    "GET", URI("wss://gateway.discord.gg/?v={}&encoding=json&compress=zlib-stream".format(Route.api_version), auto_format=False)
+)
+
+# Messages
+CREATE_MESSAGE: Final[Route] = Route("POST", URI("/channels/{}/messages"))
+DELETE_MESSAGE: Final[Route] = Route("DELETE", URI("/channels/{channel_id}/messages/{message_id}"))
+CREATE_REACTION: Final[Route] = Route("PUT", URI("/channels/{channel_id}/messages/{message_id}/reactions/{emoji}/@me"))
+GET_GUILD_EMOJI: Final[Route] = Route("GET", URI("/guilds/{guild_id}/emojis/{emoji_id}"))
+
+# Webhooks
+CREATE_WEBHOOK: Final[Route] = Route("POST", URI("/channels/{channel_id}/webhooks"))
+GET_CHANNEL_WEBHOOKS: Final[Route] = Route("GET", URI("/channels/{channel_id}/webhooks"))
+
+# Guilds
+GET_GUILD: Final[Route] = Route("GET", URI("/guilds/{guild_id}"))
+CREATE_GUILD: Final[Route] = Route("POST", URI("/guilds"))
+DELETE_GUILD: Final[Route] = Route("DELETE", URI("/guilds/{guild_id}"))
