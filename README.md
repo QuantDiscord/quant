@@ -43,11 +43,11 @@ Define callback functions for your commands and events.
 Add commands and event listeners using the appropriate methods provided by the Client class.
 Start the bot using client.run().
 
-Documentation:
+# Documentation:
 Coming soon
 
 
-Contibuting:
+# Contibuting:
 Coming soon
 
 License:
