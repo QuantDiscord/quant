@@ -50,5 +50,6 @@ Coming soon
 # Contibuting:
 Coming soon
 
-License:
+
+# License:
 DisPy is licensed under the MIT License. See the LICENSE file for more details.
