@@ -42,8 +42,10 @@ Create a new instance of Client by providing your Discord bot token and desired 
 Define callback functions for your commands and events.
 Add commands and event listeners using the appropriate methods provided by the Client class.
 Start the bot using client.run().
+
 Documentation:
 Coming soon
+
 
 Contibuting:
 Coming soon
