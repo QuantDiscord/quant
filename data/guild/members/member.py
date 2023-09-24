@@ -5,6 +5,7 @@ import attrs
 
 from dispy.utils.attrs_extensions import execute_converters
 from dispy.data.user import User
+from dispy.data.gateway.snowflake import Snowflake
 
 
 @attrs.define(kw_only=True, field_transformer=execute_converters)

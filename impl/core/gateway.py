@@ -5,7 +5,6 @@ import logging
 from typing import (
     Dict,
     Callable,
-    List,
     NoReturn
 )
 
@@ -76,7 +75,9 @@ class Gateway:
 
         logging.basicConfig(format='%(asctime)s %(message)s')
 
-        self.logger = logging.getLogger(name="DsPy")
+    @property
+    def get_logger(self) -> logging.Logger:
+        return logging.getLogger(__name__)
 
     async def connect_ws(self) -> None:
         self.session = aiohttp.ClientSession()

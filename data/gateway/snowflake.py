@@ -3,26 +3,13 @@ from functools import reduce
 from dispy.impl.core.exceptions.library_exception import LibraryException
 
 
-class Snowflake:
-    DISCORD_EPOCH = 1420070400000
+class Snowflake(int):
+    DISCORD_EPOCH = 14_200_704_000_00
     INCREMENT = 0
 
-    def __init__(self, object_id: int | None = None) -> None:
-        if object_id is not None:
-            object_id = int(object_id)
-            self.timestamp = ((object_id >> 22) + self.DISCORD_EPOCH) / 1000
-            self.object_id = object_id
-
-    @classmethod
-    def to_snowflake(cls, snowflake_id):
-        return cls(object_id=snowflake_id)
-
-    @classmethod
-    def object_id_from_snowflake(cls, obj_id: int) -> int:
-        instance = cls(obj_id)
-
-        if hasattr(instance, "object_id"):
-            return instance.object_id
+    def __init__(self) -> None:
+        self.timestamp = ((self >> 22) + self.DISCORD_EPOCH) / 1000
+        self.object_id = self
 
     def generate_snowflake(
         self,

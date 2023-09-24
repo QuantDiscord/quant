@@ -3,6 +3,7 @@ from typing import Dict, Any
 import attrs
 
 from dispy.data.model import BaseModel
+from dispy.data.gateway.snowflake import Snowflake
 from dispy.utils.attrs_extensions import execute_converters
 
 
@@ -10,7 +11,7 @@ from dispy.utils.attrs_extensions import execute_converters
 class User(BaseModel):
     username: str = attrs.field()
     member: Dict = attrs.field(default=None)
-    user_id: int = attrs.field(alias="id", default=None)
+    user_id: Snowflake = attrs.field(alias="id", default=0)
     discriminator: str | None = attrs.field(default=None)
     display_name: str | None = attrs.field(default=None)
     global_name: str | None = attrs.field(default=None)

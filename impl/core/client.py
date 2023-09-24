@@ -2,6 +2,7 @@ import asyncio
 import inspect
 from typing import Coroutine, Callable, Any, Dict
 
+from dispy.impl.core.commands import MessageCommand
 from dispy.impl.core.exceptions.command_exceptions import CommandNotFoundException, CommandArgumentsNotFound
 from dispy.impl.core.gateway import Gateway
 from dispy.data.intents import Intents
@@ -11,6 +12,7 @@ from dispy.impl.events.event import BaseEvent
 from dispy.impl.events.guild.message_events.message_event import MessageCreateEvent
 from dispy.data.model import BaseModel
 from dispy.data.activities.activity import ActivityBuilder
+from dispy.impl.core.context import MessageCommandContext
 
 
 class Client:
@@ -34,7 +36,7 @@ class Client:
         self.rest = DiscordREST(self.gateway.token)
         self.cache = self.gateway.cache
 
-        self._commands = {}
+        self._commands: Dict[str, MessageCommand] = {}
         self.add_listener(MessageCreateEvent, self._on_message_execute_command)
 
     _Coroutine = Callable[..., Coroutine[Any, Any, Any]]
@@ -60,14 +62,14 @@ class Client:
 
         self.gateway.add_event(event.API_EVENT_NAME, event, coro)
 
-    def add_command(self, command_name: str, coro: _Coroutine) -> None:
-        if inspect.iscoroutine(coro):
+    def add_message_command(self, command: MessageCommand) -> None:
+        if inspect.iscoroutine(command.callback):
             raise LibraryException("Callback function must be coroutine")
 
-        self.commands[command_name] = coro
+        self.message_commands[command.name] = command
 
     @property
-    def commands(self) -> Dict[str, _Coroutine]:
+    def message_commands(self) -> Dict[str, MessageCommand]:
         return self._commands
 
     async def _on_message_execute_command(self, event: MessageCreateEvent) -> None:
@@ -80,11 +82,14 @@ class Client:
             substring_command = content[1:].split()[0]
             arguments = content[len(substring_command) + 1:].split()
 
-            if substring_command not in self.commands.keys():
+            if substring_command not in self.message_commands.keys():
                 raise CommandNotFoundException(f"command {substring_command} not found")
 
-            for command_callback in self.commands.values():
+            for command in self.message_commands.values():
                 try:
-                    await command_callback(self, *arguments)
+                    context = MessageCommandContext(
+                        client=self, message=event.message
+                    )
+                    await command.callback(context, *arguments)
                 except TypeError as e:
                     raise CommandArgumentsNotFound(e)

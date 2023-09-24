@@ -160,7 +160,7 @@ class DiscordREST(RESTAware):
     async def create_message(
         self,
         channel_id: int,
-        content: str = None, *,
+        content: str = None,
         nonce: str | int = None,
         tts: bool = False,
         embed: Embed = None,

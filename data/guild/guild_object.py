@@ -6,13 +6,14 @@ import attrs
 from dispy.data.guild.members.member import GuildMember
 from dispy.data.model import BaseModel
 from dispy.utils.attrs_extensions import execute_converters
+from dispy.data.gateway.snowflake import Snowflake
 
 
 @attrs.define(field_transformer=execute_converters)
 class Guild(BaseModel):
-    guild_id: int = attrs.field(alias="id")
+    guild_id: Snowflake = attrs.field(alias="id")
     name: str = attrs.field()
-    owner_id: int = attrs.field()
+    owner_id: Snowflake = attrs.field()
     verification_level: int = attrs.field()
     explicit_content_filter: int = attrs.field()
     default_message_notifications: int = attrs.field()

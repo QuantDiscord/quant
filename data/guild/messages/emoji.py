@@ -4,15 +4,24 @@ from typing import List, Any
 
 import attrs
 
-from dispy.data.user import User
 from dispy.utils.attrs_extensions import execute_converters
+from dispy.data.guild.members.member import GuildMember
+from dispy.data.gateway.snowflake import Snowflake
 
 
 @attrs.define(field_transformer=execute_converters)
 class Emoji:
-    emoji_id: int = attrs.field(alias="id")
+    emoji: Any = attrs.field()
+    emoji_id: Snowflake = attrs.field(alias="id")
     name: str = attrs.field()
-    user: User = attrs.field(default=None, converter=User.from_dict)
+    emoji_type: str = attrs.field(alias="type")
+    message_author_id: Snowflake = attrs.field(default=0)
+    channel_id: Snowflake = attrs.field(default=0)
+    message_id: Snowflake = attrs.field(default=0)
+    burst: bool = attrs.field(default=False)
+    guild_id: Snowflake = attrs.field(default=0)
+    user_id: Snowflake = attrs.field(default=0)
+    member: GuildMember = attrs.field(default=None, converter=GuildMember.from_dict)
     roles: List[Any] = attrs.field(default=None)
     require_colons: bool = attrs.field(default=False)
     managed: bool = attrs.field(default=False)
