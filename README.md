@@ -33,7 +33,8 @@ Replace `YOUR_DISCORD_BOT_TOKEN` with your actual Discord bot token.
 You can install DisPy using pip:
 
 `pip install dispy`
-Usage:
+
+# Usage:
 
 Create a new instance of Client by providing your Discord bot token and desired options.
 Define callback functions for your commands and events.
