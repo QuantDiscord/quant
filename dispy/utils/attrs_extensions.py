@@ -1,5 +1,7 @@
 from datetime import datetime
 
+from dispy.data.gateway import Snowflake
+
 
 def iso_to_datetime(time: str = None):
     if time is None:
@@ -26,11 +28,8 @@ def execute_converters(cls, fields):
                 lambda argument: iso_to_datetime(argument)
                 if argument is not None else argument
             )
-        elif field.type in {int, 'int'}:
-            converter = (
-                lambda argument: snowflake_to_int(argument)
-                if argument is not None else argument
-            )
+        elif field.type in {int, 'int'} or field.type in {Snowflake, "Snowflake"}:
+            converter = snowflake_to_int
         else:
             converter = None
         results.append(field.evolve(converter=converter))

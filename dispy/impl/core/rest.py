@@ -1,8 +1,11 @@
+import re
+
 import attrs
 
 from typing import List, Any
 
 from dispy.api.core.rest_aware import RESTAware
+from dispy.data.gateway import Snowflake
 from dispy.data.guild.guild_object import Guild
 from dispy.data.guild.messages.emoji import Emoji
 from dispy.data.guild.messages.mentions.allowed_mentions import AllowedMentions
@@ -102,12 +105,19 @@ class DiscordREST(RESTAware):
         )
         return Webhook(**await webhook_data.json())
 
-    async def fetch_emoji(self, guild_id: int, emoji_id: int) -> Emoji:
+    async def fetch_emoji(self, guild_id: int, emoji: str) -> Emoji:
         headers = {self.http.AUTHORIZATION: self.token, 'Content-Type': self.http.APPLICATION_X_WWW_FORM_URLENCODED}
-        url = GET_GUILD_EMOJI.uri.url_string.format(guild_id=guild_id, emoji_id=emoji_id)
-        response = await self.http.send_request(GET_GUILD_EMOJI.method, url=url, headers=headers)
 
-        return Emoji(**await response.json())
+        if re.match(r"<:(\w+):(\w+)>", emoji):
+            emoji_name, emoji_id = (
+                emoji.replace(">", "").replace("<", "")
+            ).split(":")[1:]
+            url = GET_GUILD_EMOJI.uri.url_string.format(guild_id=guild_id, emoji_id=emoji_id)
+            response = await self.http.send_request(GET_GUILD_EMOJI.method, url=url, headers=headers)
+
+            return Emoji(**await response.json())
+
+        return Emoji(name=emoji, id=Snowflake())  # type: ignore
 
     async def create_reaction(
         self,

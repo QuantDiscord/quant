@@ -2,6 +2,7 @@ import asyncio
 import inspect
 from typing import Coroutine, Callable, Any, Dict
 
+from dispy.impl.core import MessageCommandContext
 from dispy.impl.core.commands import MessageCommand
 from dispy.impl.core.exceptions.command_exceptions import CommandNotFoundException, CommandArgumentsNotFound
 from dispy.impl.core.gateway import Gateway
@@ -9,10 +10,9 @@ from dispy.data.intents import Intents
 from dispy.impl.core.exceptions.library_exception import LibraryException
 from dispy.impl.core.rest import DiscordREST
 from dispy.impl.events.event import BaseEvent
-from dispy.impl.events.guild.message_events.message_event import MessageCreateEvent
 from dispy.data.model import BaseModel
 from dispy.data.activities.activity import ActivityBuilder
-from dispy.impl.core.context import MessageCommandContext
+from dispy.impl.events.guild.message_events import MessageCreateEvent
 
 
 class Client:
@@ -21,13 +21,13 @@ class Client:
         token: str,
         intents: Intents,
         prefix: str = None,
-        with_mobile_status: bool = False
+        mobile_status: bool = False
     ) -> None:
         self.loop = asyncio.get_event_loop()
         self.token = token
         self.prefix = prefix
         self.intents = intents
-        self.with_mobile_status = with_mobile_status
+        self.with_mobile_status = mobile_status
         self.gateway: Gateway = Gateway(
             token=token,
             intents=self.intents,
@@ -37,6 +37,7 @@ class Client:
         self.cache = self.gateway.cache
 
         self._commands: Dict[str, MessageCommand] = {}
+
         self.add_listener(MessageCreateEvent, self._on_message_execute_command)
 
     _Coroutine = Callable[..., Coroutine[Any, Any, Any]]
@@ -87,9 +88,7 @@ class Client:
 
             for command in self.message_commands.values():
                 try:
-                    context = MessageCommandContext(
-                        client=self, message=event.message
-                    )
+                    context = MessageCommandContext(client=self, message=event.message)
                     await command.callback(context, *arguments)
                 except TypeError as e:
                     raise CommandArgumentsNotFound(e)

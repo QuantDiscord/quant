@@ -14,12 +14,14 @@ from dispy.impl.events.bot.ready_event import ReadyEvent
 client = Client(
     token="YOUR_DISCORD_BOT_TOKEN",
     intents=Intents.ALL,
-    with_mobile_status=True,
+    mobile_status=True,
     prefix="!"
 )
 
+
 async def on_ready(event: ReadyEvent):
     print('Bot is ready!')
+
 
 client.add_listener(ReadyEvent, on_ready)
 client.run()

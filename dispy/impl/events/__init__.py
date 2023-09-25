@@ -1,3 +1,2 @@
-from .dispatch import *
-from .event import *
-from .types import *
+from .event import BaseEvent
+from .types import EventTypes

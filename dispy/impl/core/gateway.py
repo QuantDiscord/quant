@@ -53,7 +53,7 @@ class Gateway:
         self._previous_heartbeat = 0
         self.mobile_status = mobile_status
         self._events: Dict[Callable, Dict[str, BaseEvent]] = {}
-        self.cache = CacheManager()
+        self.cache: CacheManager = CacheManager()
 
         self.loop = get_loop()
 
@@ -73,7 +73,7 @@ class Gateway:
         self.buffer = bytearray()
         self.zlib_decompressed_object = zlib.decompressobj()
 
-        logging.basicConfig(format='%(asctime)s %(message)s')
+        logging.basicConfig(format='%(levelname)s | %(asctime)s - %(message)s', level=logging.INFO)
 
     @property
     def get_logger(self) -> logging.Logger:
@@ -88,14 +88,14 @@ class Gateway:
         self.zlib_decompressed_object = zlib.decompressobj()
         self.buffer = bytearray()
 
+        self.get_logger.info("WebSocket connected")
         await self.send_identify()
         self.loop.create_task(self.read_websocket())
         await self.keep_alive_check()
 
     async def error_reconnect(self, code: int):
         if code == 4009:
-            await self.resume_connection()
-            return
+            return await self.resume_connection()
 
         self.ws_connected = False
         await self.connect_ws()
@@ -180,6 +180,7 @@ class Gateway:
             return await self.resume_connection()
 
         await self.send_data(self.create_payload(self.IDENTIFY, self.raw_ws_request))
+        self.get_logger.info("Bot identified")
 
     async def close(self, code: int = 4000):
         if not self.websocket_connection:
@@ -194,6 +195,7 @@ class Gateway:
         if self.websocket_connection.closed:
             return
 
+        self.get_logger.info("Heartbeat sent")
         await self.send_data(self.create_payload(self.HEARTBEAT, sequence=self.sequence))
         self._previous_heartbeat = time.perf_counter()
 
@@ -201,6 +203,7 @@ class Gateway:
         self.loop.create_task(self.send_heartbeat(interval))
 
     async def send_hello(self, data: Dict) -> None:
+        self.get_logger.info("Hello sent")
         interval = data["d"]["heartbeat_interval"] / 1000
         await asyncio.sleep((interval - 2000) / 1000)
 
