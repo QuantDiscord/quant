@@ -82,7 +82,7 @@ class Client:
             try:
                 event_type: BaseEvent = list(annotations[1].values())[0]
 
-                if not isinstance(event_type, BaseEvent):
+                if not issubclass(event_type, BaseEvent):
                     raise LibraryException(f"{event_type.__name__} must be subclass of BaseEvent")
 
                 self.gateway.add_event(event_type.API_EVENT_NAME, event_type, coro)
