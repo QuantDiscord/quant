@@ -22,7 +22,7 @@ async def on_ready(event: ReadyEvent):
     print('Bot is ready!')
 
 
-client.add_listener(ReadyEvent, on_ready)
+client.add_listener(on_ready)
 client.run()
 ```
 Replace `YOUR_DISCORD_BOT_TOKEN` with your actual Discord bot token.
