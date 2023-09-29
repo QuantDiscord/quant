@@ -7,9 +7,8 @@ DisPy is a Python framework designed to simplify interaction with the Discord AP
 Here's an example code showcasing how to use DisPy:
 
 ```python
-from dispy.impl.core.client import Client
-from dispy.data.intents import Intents
-from dispy.impl.events.bot.ready_event import ReadyEvent
+from dispy import Client, Intents
+from dispy.events import ReadyEvent
 
 client = Client(
     token="YOUR_DISCORD_BOT_TOKEN",
