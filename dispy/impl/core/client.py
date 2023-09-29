@@ -82,7 +82,8 @@ class Client:
             try:
                 event_type: BaseEvent = list(annotations[1].values())[0]
 
-                if not issubclass(event_type, BaseEvent):
+                # idk why linter warning there
+                if not issubclass(event_type, BaseEvent):  # type: ignore
                     raise LibraryException(f"{event_type.__name__} must be subclass of BaseEvent")
 
                 self.gateway.add_event(event_type.API_EVENT_NAME, event_type, coro)
