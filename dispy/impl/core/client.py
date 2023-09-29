@@ -81,6 +81,10 @@ class Client:
             annotations = inspect.getmembers(coro)[0]
             try:
                 event_type: BaseEvent = list(annotations[1].values())[0]
+
+                if not isinstance(event_type, BaseEvent):
+                    raise LibraryException(f"{event_type.__name__} must be subclass of BaseEvent")
+
                 self.gateway.add_event(event_type.API_EVENT_NAME, event_type, coro)
             except IndexError:
                 raise LibraryException(f"You need provide which event you need in function {coro}")
