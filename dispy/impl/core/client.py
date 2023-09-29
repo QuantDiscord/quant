@@ -1,6 +1,14 @@
 import asyncio
 import inspect
-from typing import Coroutine, Callable, Any, Dict
+from typing import (
+    Coroutine,
+    Callable,
+    Any,
+    List,
+    Dict,
+    overload,
+    TypeVar
+)
 
 from dispy.impl.core import MessageCommand, MessageCommandContext
 from dispy.impl.core.exceptions.command_exceptions import CommandNotFoundException, CommandArgumentsNotFound
@@ -15,6 +23,8 @@ from dispy.impl.events.guild.message_events import MessageCreateEvent
 
 
 class Client:
+    T = TypeVar("T")
+
     def __init__(
         self,
         token: str,
@@ -53,14 +63,36 @@ class Client:
             afk=activity.afk
         )
 
-    def add_listener(self, event, coro: _Coroutine) -> None:
-        if inspect.iscoroutine(coro):
-            raise LibraryException("Callback function must be coroutine")
+    @overload
+    def add_listener(self, event: T, coro: _Coroutine) -> None:
+        ...
 
-        if not issubclass(event, BaseEvent):
-            raise LibraryException(f"Subclass of event {event} must be BaseEvent")
+    @overload
+    def add_listener(self, coro: _Coroutine) -> None:
+        ...
 
-        self.gateway.add_event(event.API_EVENT_NAME, event, coro)
+    def add_listener(self, *args) -> None:
+        if len(args) == 1:
+            coro = args[0]
+
+            if inspect.iscoroutine(coro):
+                raise LibraryException("Callback function must be coroutine")
+
+            annotations = inspect.getmembers(coro)[0]
+            try:
+                event_type: BaseEvent = list(annotations[1].values())[0]
+                self.gateway.add_event(event_type.API_EVENT_NAME, event_type, coro)
+            except IndexError:
+                raise LibraryException(f"You need provide which event you need in function {coro}")
+        else:
+            event, coro = args
+            if inspect.iscoroutine(coro):
+                raise LibraryException("Callback function must be coroutine")
+
+            if not issubclass(event, BaseEvent):
+                raise LibraryException(f"Subclass of event {event} must be BaseEvent")
+
+            self.gateway.add_event(event.API_EVENT_NAME, event, coro)
 
     def add_message_command(self, command: MessageCommand) -> None:
         if inspect.iscoroutine(command.callback):

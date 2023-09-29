@@ -4,3 +4,4 @@ LICENSE
 *.pyc
 est.py
 tests.py
+.env
