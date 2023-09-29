@@ -1,5 +1,3 @@
-from typing import List
-
 import attrs
 
 from dispy.data.activities.acitivity_status import ActivityStatus

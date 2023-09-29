@@ -8,7 +8,7 @@ from dispy.impl.events.types import EventTypes
 
 
 class CacheManager:
-    __cached_guilds: Dict[int, Any] = {}
+    __cached_guilds: Dict[int, Guild] = {}
     __cached_users: Dict[int, User] = {}
     __cached_messages: Dict[int, Message] = {}
     __cached_emojis: Dict[int, Emoji | Reaction] = {}
@@ -52,7 +52,6 @@ class CacheManager:
     def get_emojis(self) -> List[Emoji | Reaction]:
         return list(self.__cached_emojis.values())
 
-    # тут вроде ошибка была или какие-то конфликты, надо будет пересмотреть
     def add_from_event(self, event_name, **data):
         match event_name:
             case EventTypes.MESSAGE_CREATE:

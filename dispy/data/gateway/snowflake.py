@@ -1,6 +1,8 @@
 from functools import reduce
 
-from dispy.impl.core.exceptions.library_exception import LibraryException
+
+class SnowflakeException(Exception):
+    ...
 
 
 class Snowflake(int):
@@ -18,7 +20,7 @@ class Snowflake(int):
         process_id: int = 0
     ) -> int:
         if timestamp <= self.DISCORD_EPOCH:
-            raise LibraryException(f"Timestamp can't be earlier discord epoch ({self.DISCORD_EPOCH})")
+            raise SnowflakeException(f"Timestamp can't be earlier than discord epoch ({self.DISCORD_EPOCH})")
 
         self.INCREMENT += 1
 

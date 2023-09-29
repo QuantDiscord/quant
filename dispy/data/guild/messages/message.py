@@ -4,15 +4,12 @@ import datetime
 
 
 import asyncio
-from typing import List, Any, TYPE_CHECKING
+from typing import List, Any
 
 import attrs
 
-if TYPE_CHECKING:
-    from dispy.data.guild.messages.emoji import Emoji
-
-from dispy.data.user import User
-from dispy.data.guild.members.member import GuildMember
+from dispy.data.guild.messages.emoji import Emoji
+from dispy.data.guild.members.member import GuildMember, User
 from dispy.data.model import BaseModel
 from dispy.data.guild.messages.embeds import Embed
 from dispy.utils.attrs_extensions import execute_converters

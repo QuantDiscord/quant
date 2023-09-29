@@ -7,11 +7,11 @@ from typing import (
     Callable,
     NoReturn
 )
+import asyncio
+from traceback import print_exception
 
 import json
 import aiohttp
-import asyncio
-from traceback import print_exception
 
 from dispy.data.activities.activity import Activity
 from dispy.data.route import DISCORD_WS_URL

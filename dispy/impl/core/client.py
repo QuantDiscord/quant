@@ -2,8 +2,7 @@ import asyncio
 import inspect
 from typing import Coroutine, Callable, Any, Dict
 
-from dispy.impl.core import MessageCommandContext
-from dispy.impl.core.commands import MessageCommand
+from dispy.impl.core import MessageCommand, MessageCommandContext
 from dispy.impl.core.exceptions.command_exceptions import CommandNotFoundException, CommandArgumentsNotFound
 from dispy.impl.core.gateway import Gateway
 from dispy.data.intents import Intents
@@ -27,11 +26,11 @@ class Client:
         self.token = token
         self.prefix = prefix
         self.intents = intents
-        self.with_mobile_status = mobile_status
+        self.mobile_status = mobile_status
         self.gateway: Gateway = Gateway(
             token=token,
             intents=self.intents,
-            mobile_status=self.with_mobile_status
+            mobile_status=self.mobile_status
         )
         self.rest = DiscordREST(self.gateway.token)
         self.cache = self.gateway.cache
@@ -90,5 +89,5 @@ class Client:
                 try:
                     context = MessageCommandContext(client=self, message=event.message)
                     await command.callback(context, *arguments)
-                except TypeError as e:
+                except TypeError as e:  # stupid but ok
                     raise CommandArgumentsNotFound(e)

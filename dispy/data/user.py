@@ -1,8 +1,11 @@
+from __future__ import annotations
+
 from typing import Dict, Any
 
 import attrs
 
 from dispy.data.model import BaseModel
+
 from dispy.data.gateway.snowflake import Snowflake
 from dispy.utils.attrs_extensions import execute_converters
 
@@ -30,7 +33,7 @@ class User(BaseModel):
     avatar_decoration_data: Any = attrs.field(default=None)
 
     @classmethod
-    def from_dict(cls, data):
+    def from_dict(cls, data) -> User | None:
         if data is not None:
             return cls(**data)
 

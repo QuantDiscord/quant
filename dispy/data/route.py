@@ -23,7 +23,8 @@ class Route:
 
 DISCORD_MAIN_API_URL: Final[str] = "https://discord.com/api/v{}".format(Route.api_version)
 DISCORD_WS_URL: Final[Route] = Route(
-    "GET", URI("wss://gateway.discord.gg/?v={}&encoding=json&compress=zlib-stream".format(Route.api_version), auto_format=False)
+    "GET", URI("wss://gateway.discord.gg/?v={}&encoding=json&compress=zlib-stream".format(Route.api_version),
+               auto_format=False)
 )
 
 # Messages

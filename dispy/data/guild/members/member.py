@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import datetime
 from typing import List, Any
 
@@ -5,7 +7,6 @@ import attrs
 
 from dispy.utils.attrs_extensions import execute_converters
 from dispy.data.user import User
-from dispy.data.gateway.snowflake import Snowflake
 
 
 @attrs.define(kw_only=True, field_transformer=execute_converters)
@@ -30,6 +31,6 @@ class GuildMember(User):
             return cls(**data)
 
     @classmethod
-    def from_dict_iter(cls, data):
+    def from_dict_iter(cls, data) -> List[GuildMember] | None:
         if data is not None:
             return [cls(**member) for member in data]

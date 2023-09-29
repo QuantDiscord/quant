@@ -3,10 +3,10 @@ from typing import List, Any
 
 import attrs
 
-from dispy.data.guild.members.member import GuildMember
 from dispy.data.model import BaseModel
-from dispy.utils.attrs_extensions import execute_converters
 from dispy.data.gateway.snowflake import Snowflake
+from dispy.data.guild.members.member import GuildMember
+from dispy.utils.attrs_extensions import execute_converters
 
 
 @attrs.define(field_transformer=execute_converters)

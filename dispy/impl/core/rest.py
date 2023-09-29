@@ -5,10 +5,10 @@ import attrs
 from typing import List, Any
 
 from dispy.api.core.rest_aware import RESTAware
-from dispy.data.gateway import Snowflake
+from dispy.data.gateway.snowflake import Snowflake
 from dispy.data.guild.guild_object import Guild
 from dispy.data.guild.messages.emoji import Emoji
-from dispy.data.guild.messages.mentions.allowed_mentions import AllowedMentions
+from dispy.data.guild.messages.mentions import AllowedMentions
 from dispy.impl.core.http_manager import HttpManager
 from dispy.data.route import (
     CREATE_MESSAGE, DELETE_MESSAGE,
@@ -99,7 +99,7 @@ class DiscordREST(RESTAware):
         payload = {"name": name, "avatar": avatar}
         webhook_data = await self.http.send_request(
             CREATE_WEBHOOK.method,
-            CREATE_WEBHOOK.format(channel_id=channel_id),
+            CREATE_WEBHOOK.uri.url_string.format(channel_id=channel_id),
             headers=headers,
             data=payload
         )
@@ -138,7 +138,7 @@ class DiscordREST(RESTAware):
         headers = {self.http.AUTHORIZATION: self.token, 'Content-Type': self.http.APPLICATION_X_WWW_FORM_URLENCODED}
 
         if isinstance(emoji, Emoji):
-            emoji = str(await self.fetch_emoji(guild_id=guild_id, emoji_id=emoji.emoji_id))
+            emoji = str(await self.fetch_emoji(guild_id=guild_id, emoji=str(emoji)))
 
         if reason is not None:
             headers.update({"X-Audit-Log-Reason": reason})

@@ -3,7 +3,7 @@ from typing import Dict, Any, Final
 
 from aiohttp import ClientSession, ClientResponse
 
-from dispy.data.gateway import HttpCodes
+from dispy.data.gateway.http_codes import HttpCodes
 from dispy.impl.core.exceptions.http_exception import Forbidden
 from dispy.impl.core.exceptions.library_exception import LibraryException
 

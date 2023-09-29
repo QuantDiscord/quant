@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from dispy.data.gateway import Snowflake
+from dispy.data.gateway.snowflake import Snowflake
 
 
 def iso_to_datetime(time: str = None):
