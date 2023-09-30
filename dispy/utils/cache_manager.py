@@ -14,42 +14,54 @@ class CacheManager:
     __cached_emojis: Dict[int, Emoji | Reaction] = {}
 
     def add_user(self, user: User):
+        """Adds user to cache."""
         self.__cached_users[user.user_id] = user
 
     def add_message(self, message: Message):
+        """Adds message to cache."""
         self.__cached_messages[message.message_id] = message
 
     def add_guild(self, guild: Guild):
+        """Adds guild to cache."""
         self.__cached_guilds[guild.guild_id] = guild
 
     def add_emoji(self, emoji: Emoji | Reaction):
+        """Adds emoji to cache."""
         if isinstance(emoji, Emoji):
             self.__cached_emojis[emoji.emoji_id] = emoji
         elif isinstance(emoji, Reaction):
             self.__cached_emojis[emoji.emoji.emoji_id] = emoji
 
     def get_user(self, user_id: int) -> User | None:
+        """Get user from cache."""
         return self.__cached_users.get(user_id)
 
     def get_users(self) -> List[User]:
+        """Get all cached users."""
         return list(self.__cached_users.values())
 
     def get_message(self, message_id: int) -> Message | None:
+        """Get message from cache."""
         return self.__cached_messages.get(message_id)
 
     def get_messages(self) -> List[Message]:
+        """Get all cached message."""
         return list(self.__cached_messages.values())
 
     def get_guild(self, guild_id: int) -> Guild | None:
+        """Get guild from cache."""
         return self.__cached_guilds.get(guild_id)
 
     def get_guilds(self) -> List[Guild]:
+        """Get all cached guilds."""
         return list(self.__cached_guilds.values())
 
     def get_emoji(self, emoji_id: int) -> Emoji | Reaction:
+        """Get emoji from cache."""
         return self.__cached_emojis.get(emoji_id)
 
     def get_emojis(self) -> List[Emoji | Reaction]:
+        """Get all cached emojis"""
         return list(self.__cached_emojis.values())
 
     def add_from_event(self, event_name, **data):

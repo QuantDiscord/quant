@@ -26,15 +26,15 @@ class PartialReaction(BaseModel):
 
 @attrs.define(field_transformer=execute_converters)
 class Reaction(BaseModel):
-    user_id: Snowflake = attrs.field(default=0)
-    reaction_type: int = attrs.field(default=0, alias="type")
-    message_id: Snowflake = attrs.field(default=0)
-    message_author_id: Snowflake = attrs.field(default=0)
+    user_id: Snowflake = attrs.field(default=0, converter=int)
+    reaction_type: int = attrs.field(default=0, alias="type", converter=int)
+    message_id: Snowflake = attrs.field(default=0, converter=int)
+    message_author_id: Snowflake = attrs.field(default=0, converter=int)
     member: GuildMember = attrs.field(default=None, converter=GuildMember.from_dict)
     emoji: PartialReaction = attrs.field(default=None, converter=PartialReaction.from_dict)
-    channel_id: Snowflake = attrs.field(default=0)
+    channel_id: Snowflake = attrs.field(default=0, converter=int)
     burst: bool = attrs.field(default=False)
-    guild_id: Snowflake = attrs.field(default=0)
+    guild_id: Snowflake = attrs.field(default=0, converter=int)
     burst_colors: List[Any] = attrs.field(default=None)
 
     def __str__(self) -> str:

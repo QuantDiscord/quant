@@ -121,7 +121,7 @@ class DiscordREST(RESTAware):
 
     async def create_reaction(
         self,
-        emoji: str | Emoji,
+        emoji: str,
         guild_id: int = None,
         channel_id: int = None,
         message_id: int = None,
@@ -136,9 +136,7 @@ class DiscordREST(RESTAware):
         :return:
         """
         headers = {self.http.AUTHORIZATION: self.token, 'Content-Type': self.http.APPLICATION_X_WWW_FORM_URLENCODED}
-
-        if isinstance(emoji, Emoji):
-            emoji = str(await self.fetch_emoji(guild_id=guild_id, emoji=str(emoji)))
+        emoji = await self.fetch_emoji(guild_id=guild_id, emoji=emoji)
 
         if reason is not None:
             headers.update({"X-Audit-Log-Reason": reason})
@@ -148,7 +146,7 @@ class DiscordREST(RESTAware):
             url=CREATE_REACTION.uri.url_string.format(
                 channel_id=channel_id,
                 message_id=message_id,
-                emoji=emoji
+                emoji=str(emoji).replace("<", "").replace(">", "") if emoji.emoji_id > 0 else emoji
             ),
             headers=headers
         )
