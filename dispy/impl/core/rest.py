@@ -1,19 +1,21 @@
 import re
+from typing import List, Any
 
 import attrs
-
-from typing import List, Any
 
 from dispy.api.core.rest_aware import RESTAware
 from dispy.data.gateway.snowflake import Snowflake
 from dispy.data.guild.guild_object import Guild
 from dispy.data.guild.messages.emoji import Emoji
+from dispy.data.guild.messages.interactions.response.interaction_callback_data import InteractionCallbackData
+from dispy.data.guild.messages.interactions.response.interaction_callback_type import InteractionCallbackType
 from dispy.data.guild.messages.mentions import AllowedMentions
 from dispy.impl.core.http_manager import HttpManager
 from dispy.data.route import (
     CREATE_MESSAGE, DELETE_MESSAGE,
     CREATE_WEBHOOK, GET_GUILD, CREATE_GUILD,
-    DELETE_GUILD, CREATE_REACTION, GET_GUILD_EMOJI
+    DELETE_GUILD, CREATE_REACTION, GET_GUILD_EMOJI,
+    CREATE_INTERACTION_RESPONSE
 )
 from dispy.data.guild.messages.message import Message
 from dispy.data.guild.messages.embeds import Embed
@@ -306,3 +308,23 @@ class DiscordREST(RESTAware):
             data=payload
         )
         return Guild(**await data.json())
+
+    async def create_interaction_response(
+        self, interaction_type: InteractionCallbackType,
+        interaction_data: InteractionCallbackData, interaction_id: int,
+        interaction_token: str
+    ) -> None:
+        payload = {
+            "type": interaction_type.value,
+            "data": attrs.asdict(interaction_data)
+        }
+
+        await self.http.send_request(
+            CREATE_INTERACTION_RESPONSE.method,
+            url=CREATE_INTERACTION_RESPONSE.uri.url_string.format(
+                interaction_id=interaction_id,
+                interaction_token=interaction_token
+            ),
+            headers={"Content-Type": self.http.APPLICATION_JSON},
+            data=payload
+        )

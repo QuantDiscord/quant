@@ -13,6 +13,7 @@ class HttpManager:
     APPLICATION_X_WWW_FORM_URLENCODED: Final[str] = "application/x-www-form-urlencoded"
     MULTIPART_FORM_DATA: Final[str] = "multipart/form-data"
     AUTHORIZATION: Final[str] = "Authorization"
+    TEXT_HTML: Final[str] = "text/html"
 
     @staticmethod
     async def send_request(method: str, url: str,
@@ -24,9 +25,13 @@ class HttpManager:
             else:
                 request = await session.request(method=method, url=url, data=json.dumps(data), headers=headers)
 
+            content_type = request.content_type
             request_text_data = await request.text()
             if request_text_data == "":
                 return
+
+            if content_type == HttpManager.TEXT_HTML:
+                return request
 
             request_json_data = await request.json()
             if 'code' in request_json_data.keys():

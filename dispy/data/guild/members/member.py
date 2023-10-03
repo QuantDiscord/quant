@@ -24,6 +24,7 @@ class GuildMember(User):
     premium_since: int | None = attrs.field(default=0)
     communication_disabled_until: int | None = attrs.field(default=0)
     user: User = attrs.field(default=None, converter=User.from_dict)
+    unusual_dm_activity_until: Any = attrs.field(default=None)
 
     @classmethod
     def from_dict(cls, data):

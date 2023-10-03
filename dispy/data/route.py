@@ -16,7 +16,7 @@ class URI:
 
 @dataclass
 class Route:
-    method: Literal["GET", "POST", "PUT", "DELETE"]
+    method: Literal["GET", "POST", "PUT", "DELETE", "PATCH"]
     uri: URI
     api_version: int = 10
 
@@ -41,3 +41,19 @@ GET_CHANNEL_WEBHOOKS: Final[Route] = Route("GET", URI("/channels/{channel_id}/we
 GET_GUILD: Final[Route] = Route("GET", URI("/guilds/{guild_id}"))
 CREATE_GUILD: Final[Route] = Route("POST", URI("/guilds"))
 DELETE_GUILD: Final[Route] = Route("DELETE", URI("/guilds/{guild_id}"))
+
+# Interactions
+CREATE_INTERACTION_RESPONSE: Final[Route] = Route(
+    "POST", URI("/interactions/{interaction_id}/{interaction_token}/callback")
+)
+GET_ORIGINAL_INTERACTION_RESPONSE: Final[Route] = Route(
+    "GET", URI("/webhooks/{application_id}/{interaction_token}/messages/@original")
+)
+EDIT_ORIGINAL_INTERACTION_RESPONSE: Final[Route] = Route(
+    "PATCH", URI("/webhooks/{application_id}/{interaction_token}/messages/@original")
+)
+DELETE_ORIGINAL_INTERACTION_RESPONSE: Final[Route] = Route(
+    "DELETE", URI("/webhooks/{application_id}/{interaction_token}/messages/@original")
+)
+
+# Followups later

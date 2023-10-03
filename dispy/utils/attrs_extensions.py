@@ -1,4 +1,7 @@
+from typing import List
 from datetime import datetime
+
+import attrs
 
 from dispy.data.gateway.snowflake import Snowflake
 
@@ -17,12 +20,13 @@ def snowflake_to_int(data: str = None) -> int:
     return int(data)
 
 
-def execute_converters(cls, fields):
+def execute_converters(cls, fields: List[attrs.Attribute]):
     results = []
     for field in fields:
         if field.converter is not None:
             results.append(field)
             continue
+
         if field.type in {datetime, 'datetime'}:
             converter = (
                 lambda argument: iso_to_datetime(argument)

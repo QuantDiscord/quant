@@ -80,6 +80,7 @@ class Guild(BaseModel):
     inventory_settings: Any = attrs.field(default=None)
     soundboard_sounds: List[Any] = attrs.field(default=None)
     version: int = attrs.field(default=0, converter=int)
+    locale: str = attrs.field(default=None)
 
     async def delete(self) -> None:
         await self.client.rest.delete_guild(self.guild_id)

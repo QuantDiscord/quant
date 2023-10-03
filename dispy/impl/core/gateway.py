@@ -195,7 +195,6 @@ class Gateway:
         if self.websocket_connection.closed:
             return
 
-        self.get_logger.info("Heartbeat sent")
         await self.send_data(self.create_payload(self.HEARTBEAT, sequence=self.sequence))
         self._previous_heartbeat = time.perf_counter()
 

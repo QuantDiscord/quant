@@ -12,7 +12,7 @@ from dispy.data.guild.messages.emoji import Emoji
 from dispy.data.guild.members.member import GuildMember, User
 from dispy.data.model import BaseModel
 from dispy.data.guild.messages.embeds import Embed
-from dispy.utils.attrs_extensions import execute_converters
+from dispy.utils.attrs_extensions import execute_converters, snowflake_to_int
 from dispy.data.gateway.snowflake import Snowflake
 
 
@@ -23,7 +23,7 @@ class Message(BaseModel):
     channel_id: Snowflake | None = attrs.field(default=None, converter=int)
     position: Snowflake | None = attrs.field(default=None)
     message_id: int | None = attrs.field(alias="id", default=None, converter=int)
-    guild_id: Snowflake | None = attrs.field(default=None, converter=int)
+    guild_id: Snowflake | None = attrs.field(default=None, converter=snowflake_to_int)
     author_as_member: GuildMember | None = attrs.field(alias="member", default=None, converter=GuildMember.from_dict)
     author_as_user: User | None = attrs.field(alias="author", default=None, converter=User.from_dict)
     content: str | None = attrs.field(default=None)
@@ -50,6 +50,7 @@ class Message(BaseModel):
     thread: Any | None = attrs.field(default=None)
     sticker_items: List[Any] | None = attrs.field(default=None)
     role_subscription_data: Any | None = attrs.field(default=None)
+    resolved: bool | None = attrs.field(default=None)
 
     async def delete(self, *, reason: str = None, delete_after: int = 0) -> None:
         await asyncio.sleep(delete_after)
