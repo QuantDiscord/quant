@@ -15,7 +15,7 @@ from dispy.data.route import (
     CREATE_MESSAGE, DELETE_MESSAGE,
     CREATE_WEBHOOK, GET_GUILD, CREATE_GUILD,
     DELETE_GUILD, CREATE_REACTION, GET_GUILD_EMOJI,
-    CREATE_INTERACTION_RESPONSE
+    CREATE_INTERACTION_RESPONSE, GET_MESSAGE
 )
 from dispy.data.guild.messages.message import Message
 from dispy.data.guild.messages.embeds import Embed
@@ -328,3 +328,15 @@ class DiscordREST(RESTAware):
             headers={"Content-Type": self.http.APPLICATION_JSON},
             data=payload
         )
+
+    async def fetch_message(self, channel_id: int, message_id: int) -> Message:
+        raw_message = await self.http.send_request(
+            GET_MESSAGE.method,
+            url=GET_MESSAGE.uri.url_string.format(
+                channel_id=channel_id,
+                message_id=message_id
+            ),
+            headers={self.http.AUTHORIZATION: self.token}
+        )
+
+        return Message(**await raw_message.json())

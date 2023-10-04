@@ -6,7 +6,7 @@ async def dispatch(gateway_client, received_event_type: EventTypes, **kwargs) ->
     cache_manager: CacheManager = gateway_client.cache
     event_list = gateway_client.event_list()
 
-    for event_callback, event_data in event_list.items():
+    for event_callback, event_data in event_list.copy().items():
         if received_event_type not in event_data:
             continue
 

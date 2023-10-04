@@ -33,11 +33,11 @@ class User(BaseModel):
     avatar_decoration_data: Any = attrs.field(default=None)
 
     @classmethod
-    def from_dict(cls, data) -> User | None:
+    def as_dict(cls, data) -> User | None:
         if data is not None:
             return cls(**data)
 
     @classmethod
-    def from_dict_iter(cls, data):
+    def as_dict_iter(cls, data):
         if data is not None:
             return [cls(**user_data) for user_data in data]

@@ -1,5 +1,7 @@
 from typing import List
 
+import attrs
+
 from dispy.data.guild.messages.embeds import Embed
 from dispy.data.guild.messages.mentions import AllowedMentions
 from dispy.data.guild.messages.message import Message
@@ -27,6 +29,14 @@ class BaseContext:
         attachments: List = None,
         flags: int = None
     ) -> None:
+        if len(components) > 0:
+            components = [
+                {
+                    "type": 1,
+                    "components": [component.as_json() for component in components]
+                }
+            ]
+
         await self.client.rest.create_message(
             channel_id=channel_id if channel_id is not None else self.original_message.channel_id,
             content=content,

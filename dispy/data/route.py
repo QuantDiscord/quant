@@ -28,6 +28,7 @@ DISCORD_WS_URL: Final[Route] = Route(
 )
 
 # Messages
+GET_MESSAGE: Final[Route] = Route("GET", URI("/channels/{channel_id}/messages/{message_id}"))
 CREATE_MESSAGE: Final[Route] = Route("POST", URI("/channels/{}/messages"))
 DELETE_MESSAGE: Final[Route] = Route("DELETE", URI("/channels/{channel_id}/messages/{message_id}"))
 CREATE_REACTION: Final[Route] = Route("PUT", URI("/channels/{channel_id}/messages/{message_id}/reactions/{emoji}/@me"))

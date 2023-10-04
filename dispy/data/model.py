@@ -9,5 +9,5 @@ class BaseModel:
         cls.client = client
 
     @classmethod
-    def from_dict(cls, data: dict):
+    def as_dict(cls, data: dict):
         return cls(**data)  # type: ignore

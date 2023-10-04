@@ -23,15 +23,15 @@ class GuildMember(User):
     join_time: datetime.datetime = attrs.field(alias="joined_at", default=0)
     premium_since: int | None = attrs.field(default=0)
     communication_disabled_until: int | None = attrs.field(default=0)
-    user: User = attrs.field(default=None, converter=User.from_dict)
+    user: User = attrs.field(default=None, converter=User.as_dict)
     unusual_dm_activity_until: Any = attrs.field(default=None)
 
     @classmethod
-    def from_dict(cls, data):
+    def as_dict(cls, data):
         if data is not None:
             return cls(**data)
 
     @classmethod
-    def from_dict_iter(cls, data) -> List[GuildMember] | None:
+    def as_dict_iter(cls, data) -> List[GuildMember] | None:
         if data is not None:
             return [cls(**member) for member in data]

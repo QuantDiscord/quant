@@ -1,5 +1,6 @@
 from typing import Dict, Any, List
 
+from dispy.components.component import Component
 from dispy.data.user import User
 from dispy.data.guild.guild_object import Guild
 from dispy.data.guild.messages.emoji import Emoji, Reaction
@@ -12,6 +13,7 @@ class CacheManager:
     __cached_users: Dict[int, User] = {}
     __cached_messages: Dict[int, Message] = {}
     __cached_emojis: Dict[int, Emoji | Reaction] = {}
+    __cached_components: List[Component] = []
 
     def add_user(self, user: User):
         """Adds user to cache."""
@@ -31,6 +33,9 @@ class CacheManager:
             self.__cached_emojis[emoji.emoji_id] = emoji
         elif isinstance(emoji, Reaction):
             self.__cached_emojis[emoji.emoji.emoji_id] = emoji
+
+    def add_component(self, component: Component):
+        self.__cached_components.append(component)
 
     def get_user(self, user_id: int) -> User | None:
         """Get user from cache."""
@@ -64,7 +69,11 @@ class CacheManager:
         """Get all cached emojis"""
         return list(self.__cached_emojis.values())
 
-    def add_from_event(self, event_name, **data):
+    def get_component(self) -> List[Component]:
+        """Get all cached components"""
+        return self.__cached_components
+
+    def add_from_event(self, event_name: EventTypes, **data):
         match event_name:
             case EventTypes.MESSAGE_CREATE:
                 self.add_message(Message(**data))

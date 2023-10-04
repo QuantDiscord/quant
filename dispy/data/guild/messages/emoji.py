@@ -30,8 +30,8 @@ class Reaction(BaseModel):
     reaction_type: int = attrs.field(default=0, alias="type", converter=int)
     message_id: Snowflake = attrs.field(default=0, converter=int)
     message_author_id: Snowflake = attrs.field(default=0, converter=int)
-    member: GuildMember = attrs.field(default=None, converter=GuildMember.from_dict)
-    emoji: PartialReaction = attrs.field(default=None, converter=PartialReaction.from_dict)
+    member: GuildMember = attrs.field(default=None, converter=GuildMember.as_dict)
+    emoji: PartialReaction = attrs.field(default=None, converter=PartialReaction.as_dict)
     channel_id: Snowflake = attrs.field(default=0, converter=int)
     burst: bool = attrs.field(default=False)
     guild_id: Snowflake = attrs.field(default=0, converter=int)
@@ -46,7 +46,7 @@ class Emoji(BaseModel):
     emoji_id: Snowflake = attrs.field(alias="id")
     emoji_name: str = attrs.field(alias="name")
     roles: List[Any] = attrs.field(default=None)
-    user: User = attrs.field(default=None, converter=User.from_dict)
+    user: User = attrs.field(default=None, converter=User.as_dict)
     require_colons: bool = attrs.field(default=False)
     managed: bool = attrs.field(default=False)
     animated: bool = attrs.field(default=False)
@@ -54,7 +54,7 @@ class Emoji(BaseModel):
     _version: int = attrs.field(default=0, alias="version")
 
     @classmethod
-    def from_dict(cls, data):
+    def as_dict(cls, data):
         if data is not None:
             return cls(**data)
 

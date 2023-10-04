@@ -30,7 +30,7 @@ class Guild(BaseModel):
     joined_at: datetime.datetime = attrs.field(default=None)
     member_count: int = attrs.field(default=0, converter=int)
     presences: List[Any] = attrs.field(default=[])
-    members: List[GuildMember] = attrs.field(default=[], converter=GuildMember.from_dict_iter)
+    members: List[GuildMember] = attrs.field(default=[], converter=GuildMember.as_dict_iter)
     large: bool = attrs.field(default=False)
     permissions: str = attrs.field(default=None)
     roles: List[Any] = attrs.field(default=[])

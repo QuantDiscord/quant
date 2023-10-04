@@ -10,6 +10,7 @@ import attrs
 
 from dispy.data.guild.messages.emoji import Emoji
 from dispy.data.guild.members.member import GuildMember, User
+# from dispy.components.component import Component
 from dispy.data.model import BaseModel
 from dispy.data.guild.messages.embeds import Embed
 from dispy.utils.attrs_extensions import execute_converters, snowflake_to_int
@@ -24,19 +25,19 @@ class Message(BaseModel):
     position: Snowflake | None = attrs.field(default=None)
     message_id: int | None = attrs.field(alias="id", default=None, converter=int)
     guild_id: Snowflake | None = attrs.field(default=None, converter=snowflake_to_int)
-    author_as_member: GuildMember | None = attrs.field(alias="member", default=None, converter=GuildMember.from_dict)
-    author_as_user: User | None = attrs.field(alias="author", default=None, converter=User.from_dict)
+    author_as_member: GuildMember | None = attrs.field(alias="member", default=None, converter=GuildMember.as_dict)
+    author_as_user: User | None = attrs.field(alias="author", default=None, converter=User.as_dict)
     content: str | None = attrs.field(default=None)
     nonce: str | int | None = attrs.field(default=None)
     tts: bool | None = attrs.field(default=None)
     embeds: List[Embed] | None = attrs.field(default=None)
     edited_timestamp: str = attrs.field(default=None)
     mention_everyone: bool | None = attrs.field(default=None)
-    mentions: List[User] | None = attrs.field(default=None, converter=User.from_dict_iter)
+    mentions: List[User] | None = attrs.field(default=None, converter=User.as_dict_iter)
     mention_roles: List[Any] | None = attrs.field(default=None)
     mention_channels: List[Any] | None = attrs.field(default=None)
     message_reference: Any | None = attrs.field(default=None)
-    components: Any | None = attrs.field(default=None)
+    components: List[Any] | None = attrs.field(default=None)
     stickers: List[Any] | None = attrs.field(default=None)
     attachments: List[Any] | None = attrs.field(default=None)
     flags: int | None = attrs.field(default=None, converter=int)
