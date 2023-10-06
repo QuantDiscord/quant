@@ -1,7 +1,5 @@
-from typing import Any
-
 from dispy.data.guild.messages.interactions.interaction import Interaction
-from ..event import BaseEvent
+from dispy.impl.events.event import BaseEvent
 from dispy.impl.events.types import EventTypes
 
 

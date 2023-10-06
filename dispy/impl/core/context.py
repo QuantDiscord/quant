@@ -1,7 +1,6 @@
 from typing import List
 
-import attrs
-
+from dispy.components.action_row import ActionRow
 from dispy.data.guild.messages.embeds import Embed
 from dispy.data.guild.messages.mentions import AllowedMentions
 from dispy.data.guild.messages.message import Message
@@ -22,21 +21,13 @@ class BaseContext:
         embeds: List[Embed] = None,
         allowed_mentions: AllowedMentions = None,
         message_reference=None,
-        components: List = None,
+        components: List[ActionRow] = None,
         sticker_ids: List = None,
         files=None,
         payload_json: str = None,
         attachments: List = None,
         flags: int = None
     ) -> None:
-        if len(components) > 0:
-            components = [
-                {
-                    "type": 1,
-                    "components": [component.as_json() for component in components]
-                }
-            ]
-
         await self.client.rest.create_message(
             channel_id=channel_id if channel_id is not None else self.original_message.channel_id,
             content=content,
@@ -46,7 +37,7 @@ class BaseContext:
             embeds=embeds,
             allowed_mentions=allowed_mentions,
             message_reference=message_reference,
-            components=components,
+            components=[component.as_json() for component in components if len(components) > 0],
             sticker_ids=sticker_ids,
             files=files,
             payload_json=payload_json,

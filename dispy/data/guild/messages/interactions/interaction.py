@@ -45,10 +45,13 @@ class Interaction(BaseModel):
         tts: bool = False,
         embeds: List[Embed] | None = None,
         allowed_mentions: AllowedMentions | None = None,
-        flags: MessageFlags = 0,
-        components: List[Any] = None,
+        flags: MessageFlags | int = 0,
+        components: List[Any] = None,  # TODO: Fix circular import when Component class here
         attachments: List[Any] = None
     ) -> None:
+        if components is not None:
+            components = [component.as_json() for component in components]
+
         await self.client.rest.create_interaction_response(
             InteractionCallbackType.CHANNEL_MESSAGE_WITH_SOURCE,
             InteractionCallbackData(
@@ -56,7 +59,7 @@ class Interaction(BaseModel):
                 tts=tts,
                 embeds=embeds,
                 allowed_mentions=allowed_mentions,
-                flags=flags.value,
+                flags=flags if flags <= 0 else flags.value,
                 components=components,
                 attachments=attachments
             ), self.interaction_id, self.interaction_token

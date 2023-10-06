@@ -1,5 +1,5 @@
 import re
-from typing import List, Any
+from typing import List, Any, Dict
 
 import attrs
 
@@ -177,7 +177,7 @@ class DiscordREST(RESTAware):
         embeds: List[Embed] = None,
         allowed_mentions: AllowedMentions = None,
         message_reference=None,
-        components: List = None,
+        components: List[Dict[str, Any]] = None,
         sticker_ids: List = None,
         files=None,
         payload_json: str = None,
@@ -211,7 +211,10 @@ class DiscordREST(RESTAware):
             payload.update({"payload_json": payload_json})
 
         if components is not None:
-            payload.update({"components": components})
+            payload.update({"components": []})
+            for component in components:
+                message_components = payload.get("components")
+                message_components.append(component)  # type: ignore
 
         if flags is not None:
             payload.update({"flags": flags})
