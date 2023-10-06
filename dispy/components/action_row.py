@@ -7,7 +7,7 @@ class ActionRow:
     """Container for components"""
     INTERACTION_TYPE: int = 1
 
-    def __init__(self, components: List[Component]) -> None:
+    def __init__(self, *components: Component) -> None:
         self.components = components
 
     def as_json(self) -> Dict[str, Any]:
