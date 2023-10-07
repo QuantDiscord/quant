@@ -10,6 +10,9 @@ class MessageCreateEvent(BaseEvent):
     message: Message
 
     def process_event(self, cache_manager: CacheManager, **kwargs):
+        if kwargs is None:
+            return
+
         self.message = Message(**kwargs)
 
         cache_manager.add_message(self.message)

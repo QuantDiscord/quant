@@ -10,7 +10,7 @@ import attrs
 
 from dispy.data.guild.messages.emoji import Emoji
 from dispy.data.guild.members.member import GuildMember, User
-# from dispy.components.component import Component
+# from dispy.components.action_row import ActionRow
 from dispy.data.model import BaseModel
 from dispy.data.guild.messages.embeds import Embed
 from dispy.utils.attrs_extensions import execute_converters, snowflake_to_int

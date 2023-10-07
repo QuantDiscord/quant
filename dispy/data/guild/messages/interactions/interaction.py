@@ -11,6 +11,7 @@ from dispy.data.guild.guild_object import Guild
 from dispy.data.guild.members.member import GuildMember
 from dispy.data.guild.messages.interactions.interaction_data import InteractionData
 from dispy.data.guild.messages.interactions.interaction_type import InteractionType
+from dispy.data.guild.messages.interactions.response.modal_response import ModalInteractionCallbackData
 from dispy.data.gateway.snowflake import Snowflake
 from dispy.data.guild.messages.interactions.response.interaction_callback_data import InteractionCallbackData
 from dispy.data.guild.messages.interactions.response.interaction_callback_type import InteractionCallbackType
@@ -22,9 +23,13 @@ from dispy.utils.attrs_extensions import execute_converters, snowflake_to_int
 class Interaction(BaseModel):
     interaction_id: Snowflake = attrs.field(alias="id", default=0, converter=snowflake_to_int)
     application_id: Snowflake = attrs.field(default=0, converter=snowflake_to_int)
-    interaction_type: InteractionType = attrs.field(alias="type", default=InteractionType.PING)
-    interaction_data: InteractionData = attrs.field(alias="data", default=None)
-    guild: Guild = attrs.field(default=None)
+    interaction_type: InteractionType = attrs.field(
+        alias="type",
+        default=InteractionType.PING,
+        converter=InteractionType
+    )
+    interaction_data: InteractionData = attrs.field(alias="data", default=None, converter=InteractionData.as_dict)
+    guild: Guild = attrs.field(default=None, converter=Guild.as_dict)
     guild_id: Snowflake = attrs.field(default=0, converter=snowflake_to_int)
     channel: Any = attrs.field(default=None)
     channel_id: Snowflake = attrs.field(default=0, converter=snowflake_to_int)
@@ -63,4 +68,16 @@ class Interaction(BaseModel):
                 components=components,
                 attachments=attachments
             ), self.interaction_id, self.interaction_token
+        )
+
+    async def respond_modal(self, modal):
+        # I don't give a fuck, wait for normal modals implementation
+        await self.client.rest.create_interaction_response(
+            InteractionCallbackType.MODAL,
+            ModalInteractionCallbackData(
+                custom_id=modal.get("custom_id"),
+                title=modal.get('title'),
+                components=modal.get("components")
+            ),
+            self.interaction_id, self.interaction_token
         )

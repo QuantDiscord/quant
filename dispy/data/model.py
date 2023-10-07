@@ -10,4 +10,5 @@ class BaseModel:
 
     @classmethod
     def as_dict(cls, data: dict):
-        return cls(**data)  # type: ignore
+        if data is not None:
+            return cls(**data)  # type: ignore

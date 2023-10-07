@@ -5,7 +5,7 @@ from typing import List, Any
 
 import attrs
 
-from dispy.utils.attrs_extensions import execute_converters
+from dispy.utils.attrs_extensions import execute_converters, iso_to_datetime
 from dispy.data.user import User
 
 
@@ -20,7 +20,7 @@ class GuildMember(User):
     nick: str | None = attrs.field(default=None)
     avatar: str | None = attrs.field(default=None)
     roles: List[Any] | None = attrs.field(default=None)
-    join_time: datetime.datetime = attrs.field(alias="joined_at", default=0)
+    join_time: datetime.datetime = attrs.field(alias="joined_at", default=0, converter=iso_to_datetime)
     premium_since: int | None = attrs.field(default=0)
     communication_disabled_until: int | None = attrs.field(default=0)
     user: User = attrs.field(default=None, converter=User.as_dict)
