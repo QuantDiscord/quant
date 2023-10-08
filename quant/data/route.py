@@ -1,8 +1,9 @@
 from typing import Literal, Final, Any
-from dataclasses import dataclass
+
+import attrs
 
 
-@dataclass
+@attrs.define
 class URI:
     _url_string: str
     auto_format: bool = True
@@ -14,7 +15,7 @@ class URI:
         return DISCORD_MAIN_API_URL + self._url_string
 
 
-@dataclass
+@attrs.define
 class Route:
     method: Literal["GET", "POST", "PUT", "DELETE", "PATCH"]
     uri: URI
@@ -58,3 +59,6 @@ DELETE_ORIGINAL_INTERACTION_RESPONSE: Final[Route] = Route(
 )
 
 # Followups later
+
+# Channels
+GET_CHANNEL_MESSAGES: Final[Route] = Route("GET", URI("/channels/{channel_id}/messages"))

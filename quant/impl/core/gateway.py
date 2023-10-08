@@ -9,6 +9,7 @@ from typing import (
 )
 import asyncio
 from traceback import print_exception
+from contextlib import suppress
 
 import json
 import aiohttp
@@ -94,6 +95,8 @@ class Gateway:
         await self.keep_alive_check()
 
     async def error_reconnect(self, code: int):
+        self.get_logger.info("Reconnecting")
+
         if code == 4009:
             return await self.resume_connection()
 
@@ -140,7 +143,6 @@ class Gateway:
             await asyncio.sleep(20)
 
             one_minute = float(60)
-
             if (self._previous_heartbeat + one_minute) < time.perf_counter():
                 await self.websocket_connection.close(code=4000)
                 await self.error_reconnect(code=4000)
@@ -159,12 +161,14 @@ class Gateway:
 
             close_code = self.websocket_connection.close_code
             if close_code is not None:
-                ...
+                self.get_logger.warning(f"Gateway received close code: {close_code}")
 
     async def send_data(self, data) -> None:
         await self.websocket_connection.send_str(data)
 
     async def resume_connection(self):
+        self.get_logger.info("Connection resumed")
+
         if self.websocket_connection.closed:
             return
 
@@ -183,6 +187,8 @@ class Gateway:
         self.get_logger.info("Bot identified")
 
     async def close(self, code: int = 4000):
+        self.get_logger.info("Connection closing")
+
         if not self.websocket_connection:
             return
 
