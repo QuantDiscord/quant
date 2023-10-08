@@ -161,7 +161,8 @@ class Gateway:
 
             close_code = self.websocket_connection.close_code
             if close_code is not None:
-                self.get_logger.warning(f"Gateway received close code: {close_code}")
+                # self.get_logger.warning(f"Gateway received close code: {close_code}")
+                ...
 
     async def send_data(self, data) -> None:
         await self.websocket_connection.send_str(data)
