@@ -1,9 +1,8 @@
+from dataclasses import dataclass
 from typing import Literal, Final, Any
 
-import attrs
 
-
-@attrs.define
+@dataclass
 class URI:
     _url_string: str
     auto_format: bool = True
@@ -15,7 +14,7 @@ class URI:
         return DISCORD_MAIN_API_URL + self._url_string
 
 
-@attrs.define
+@dataclass
 class Route:
     method: Literal["GET", "POST", "PUT", "DELETE", "PATCH"]
     uri: URI
