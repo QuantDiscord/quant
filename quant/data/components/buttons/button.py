@@ -1,8 +1,8 @@
 from typing import Callable, Coroutine, Any, Dict
 
-from quant.components.component import Component
+from quant.data.components.component import Component
 from quant.data.guild.messages.emoji import Emoji
-from quant.components.buttons.button_style import ButtonStyle
+from quant.data.components.buttons.button_style import ButtonStyle
 from quant.data.guild.messages.interactions.interaction import Interaction
 
 

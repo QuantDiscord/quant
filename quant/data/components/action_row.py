@@ -1,6 +1,6 @@
-from typing import List, Dict, Any
+from typing import Dict, Any
 
-from quant.components.component import Component
+from quant.data.components.component import Component
 
 
 class ActionRow:

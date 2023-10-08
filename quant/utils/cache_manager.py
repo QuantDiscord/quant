@@ -1,6 +1,6 @@
-from typing import Dict, Any, List
+from typing import Dict, List
 
-from quant.components.component import Component
+from quant.data.components import Component
 from quant.data.user import User
 from quant.data.guild.guild_object import Guild
 from quant.data.guild.messages.emoji import Emoji, Reaction

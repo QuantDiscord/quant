@@ -27,6 +27,8 @@ client.run()
 ```
 Replace `YOUR_DISCORD_BOT_TOKEN` with your actual Discord bot token.
 
+# [Official support server](https://discord.gg/MnECK7DJ6n)
+
 # Getting Started
 ## Installation:
 You can install quant using pip:

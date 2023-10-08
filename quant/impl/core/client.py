@@ -125,6 +125,6 @@ class Client:
             for command in self.message_commands.values():
                 try:
                     context = MessageCommandContext(client=self, message=event.message)
-                    await command.callback(context, *arguments)
+                    await command.callback_func(context, *arguments)
                 except TypeError as e:  # stupid but ok
                     raise CommandArgumentsNotFound(e)

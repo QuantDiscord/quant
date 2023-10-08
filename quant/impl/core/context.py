@@ -1,6 +1,6 @@
 from typing import List
 
-from quant.components.action_row import ActionRow
+from quant.data.components.action_row import ActionRow
 from quant.data.guild.messages.embeds import Embed
 from quant.data.guild.messages.mentions import AllowedMentions
 from quant.data.guild.messages.message import Message

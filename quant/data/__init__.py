@@ -7,3 +7,4 @@ from .guild.members import *
 from .guild.webhooks import *
 from .gateway import *
 from .activities import *
+from .components import *
