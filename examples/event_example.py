@@ -1,10 +1,10 @@
-import dispy
+import quant
 
 
-client = dispy.Client(token="...", intents=dispy.Intents.ALL)
+client = quant.Client(token="...", intents=quant.Intents.ALL)
 
 
-async def on_ready(event: dispy.ReadyEvent):
+async def on_ready(event: quant.ReadyEvent):
     print("Bot is ready.")
 
 
@@ -15,5 +15,5 @@ client.add_listener(on_ready)
 async def on_ready(event):
     print("Bot is ready.")
 
-client.add_listener(dispy.ReadyEvent, on_ready)
+client.add_listener(quant.ReadyEvent, on_ready)
 client.run()

@@ -1,8 +1,9 @@
-from dispy.impl.core.context import MessageCommandContext
-from dispy.impl.core.commands import MessageCommand
-from dispy.data.guild.messages.mentions.allowed_mentions import AllowedMentions
-from dispy.data.guild.messages.mentions.allowed_mentions_types import AllowedMentionsTypes
-from dispy.impl.core.client import Client, Intents
+from quant.impl.core.context import MessageCommandContext
+from quant.impl.core.commands import MessageCommand
+from quant.data.guild.messages.mentions.allowed_mentions import AllowedMentions
+from quant.data.guild.messages.mentions.allowed_mentions_types import AllowedMentionsTypes
+from quant.impl.core.client import Client
+from quant.data.intents import Intents
 
 
 client = Client(prefix="!", intents=Intents.ALL_UNPRIVILEGED, token="...")

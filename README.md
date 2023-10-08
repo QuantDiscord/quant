@@ -1,14 +1,14 @@
-# DisPy - Discord API Framework
+# quant - Discord API Framework
 
-DisPy is a Python framework designed to simplify interaction with the Discord API and facilitate the development of Discord bots.
+quant is a Python framework designed to simplify interaction with the Discord API and facilitate the development of Discord bots.
 
 ## Example Usage
 
-Here's an example code showcasing how to use DisPy:
+Here's an example code showcasing how to use quant:
 
 ```python
-from dispy import Client, Intents
-from dispy.events import ReadyEvent
+from quant import Client, Intents
+from quant.events import ReadyEvent
 
 client = Client(
     token="YOUR_DISCORD_BOT_TOKEN",
@@ -29,9 +29,9 @@ Replace `YOUR_DISCORD_BOT_TOKEN` with your actual Discord bot token.
 
 # Getting Started
 ## Installation:
-You can install DisPy using pip:
+You can install quant using pip:
 
-`pip install dispy`
+`pip install quant`
 
 # Usage:
 
@@ -49,4 +49,4 @@ Coming soon
 
 
 # License:
-DisPy is licensed under the MIT License. See the [LICENSE](https://github.com/MagM1go/dispy/blob/main/LICENSE) file for more details.
+quant is licensed under the MIT License. See the [LICENSE](https://github.com/MagM1go/quant/blob/main/LICENSE) file for more details.

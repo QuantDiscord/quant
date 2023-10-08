@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "dispy"
+name = "quant"
 version = "0.1.0"
 description = ""
 authors = ["MagM1go <magmigo2@inbox.ru>"]
