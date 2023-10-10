@@ -1,8 +1,9 @@
-from dataclasses import dataclass
 from typing import Literal, Final, Any
 
+import attrs
 
-@dataclass
+
+@attrs.define
 class URI:
     _url_string: str
     auto_format: bool = True
@@ -14,16 +15,17 @@ class URI:
         return DISCORD_MAIN_API_URL + self._url_string
 
 
-@dataclass
+@attrs.define
 class Route:
     method: Literal["GET", "POST", "PUT", "DELETE", "PATCH"]
     uri: URI
     api_version: int = 10
 
 
-DISCORD_MAIN_API_URL: Final[str] = "https://discord.com/api/v{}".format(Route.api_version)
+_ROUTE_FIELDS = attrs.fields(Route)
+DISCORD_MAIN_API_URL: Final[str] = "https://discord.com/api/v{}".format(_ROUTE_FIELDS.api_version.default)
 DISCORD_WS_URL: Final[Route] = Route(
-    "GET", URI("wss://gateway.discord.gg/?v={}&encoding=json&compress=zlib-stream".format(Route.api_version),
+    "GET", URI("wss://gateway.discord.gg/?v={}&encoding=json&compress=zlib-stream".format(_ROUTE_FIELDS.api_version.default),
                auto_format=False)
 )
 

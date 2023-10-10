@@ -1,6 +1,7 @@
 from typing import Dict, List
 
 from quant.data.components import Component
+from quant.data.guild.voice.voice_state_update import VoiceState
 from quant.data.user import User
 from quant.data.guild.guild_object import Guild
 from quant.data.guild.messages.emoji import Emoji, Reaction
@@ -89,5 +90,15 @@ class CacheManager:
                     self.add_emoji(Emoji(**emoji))
             case EventTypes.GUILD_DELETE:
                 del self.__cached_guilds[int(data["id"])]
+            case EventTypes.VOICE_STATE_UPDATE:
+                guild = self.__cached_guilds[int(data['guild_id'])]
+                state = VoiceState(**data)
+
+                if len(guild.voice_states) == 0:
+                    guild.voice_states.append(state)
+
+                for count, voice_state in enumerate(guild.voice_states):
+                    if voice_state.user_id == state.user_id:
+                        guild.voice_states[count] = state
 
 # мама сказала, что я умный

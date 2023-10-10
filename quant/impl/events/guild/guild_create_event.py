@@ -12,4 +12,5 @@ class GuildCreateEvent(BaseEvent):
     def process_event(self, cache_manager: CacheManager, **kwargs):
         self.guild = Guild(**kwargs)
 
+        print(self.guild.channels)
         cache_manager.add_guild(self.guild)

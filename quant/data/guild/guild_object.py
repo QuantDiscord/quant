@@ -3,6 +3,7 @@ from typing import List, Any
 
 import attrs
 
+from quant.data.guild.voice.voice_state_update import VoiceState
 from quant.data.model import BaseModel
 from quant.data.gateway.snowflake import Snowflake
 from quant.data.guild.members.member import GuildMember
@@ -68,7 +69,7 @@ class Guild(BaseModel):
     stickers: List[Any] = attrs.field(default=[])
     premium_progress_bar_enabled: bool = attrs.field(default=False)
     safety_alerts_channel_id: int = attrs.field(default=0)
-    voice_states: List[Any] = attrs.field(default=None)
+    voice_states: List[VoiceState] = attrs.field(default=None, converter=VoiceState.as_dict_iter)
     home_header: str = attrs.field(default=None)
     discovery_splash: str = attrs.field(default=None)
     hub_type: int = attrs.field(default=0)

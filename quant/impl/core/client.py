@@ -99,11 +99,12 @@ class Client:
 
             self.gateway.add_event(event.API_EVENT_NAME, event, coro)
 
-    def add_message_command(self, command: MessageCommand) -> None:
-        if inspect.iscoroutine(command.callback):
-            raise LibraryException("Callback function must be coroutine")
+    def add_message_command(self, *commands: MessageCommand) -> None:
+        for command in commands:
+            if inspect.iscoroutine(command.callback):
+                raise LibraryException("Callback function must be coroutine")
 
-        self.message_commands[command.name] = command
+            self.message_commands[command.name] = command
 
     @property
     def message_commands(self) -> Dict[str, MessageCommand]:

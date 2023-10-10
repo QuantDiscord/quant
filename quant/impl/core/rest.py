@@ -239,8 +239,12 @@ class DiscordREST(RESTAware):
 
     async def fetch_guild(self, guild_id: int, with_counts: bool = False) -> Guild:
         headers = {self.http.AUTHORIZATION: self.token, "Content-Type": self.http.APPLICATION_JSON}
-        get_guild_url = GET_GUILD.uri.url_string.format(guild_id=guild_id) \
-            if not with_counts else GET_GUILD.uri.url_string.format(guild_id=guild_id) + "?with_counts=true"
+        url_with_guild_id = GET_GUILD.uri.url_string.format(guild_id=guild_id)
+        get_guild_url = (
+            url_with_guild_id
+            if not with_counts
+            else url_with_guild_id + "?with_counts=true"
+        )
         data = await self.http.send_request(
             GET_GUILD.method, get_guild_url,
             headers=headers
