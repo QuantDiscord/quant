@@ -13,7 +13,7 @@ from quant.data.guild.members.member import GuildMember, User
 # from quant.components.action_row import ActionRow
 from quant.data.model import BaseModel
 from quant.data.guild.messages.embeds import Embed
-from quant.utils.attrs_extensions import execute_converters, snowflake_to_int
+from quant.utils.attrs_extensions import execute_converters, int_converter
 from quant.data.gateway.snowflake import Snowflake
 
 
@@ -21,10 +21,10 @@ from quant.data.gateway.snowflake import Snowflake
 class Message(BaseModel):
     type: int = attrs.field(default=None)
     timestamp: datetime.datetime = attrs.field(default=None)
-    channel_id: Snowflake | None = attrs.field(default=None, converter=int)
+    channel_id: Snowflake | None = attrs.field(default=None, converter=int_converter)
     position: Snowflake | None = attrs.field(default=None)
-    message_id: int | None = attrs.field(alias="id", default=None, converter=int)
-    guild_id: Snowflake | None = attrs.field(default=None, converter=snowflake_to_int)
+    message_id: int | None = attrs.field(alias="id", default=None, converter=int_converter)
+    guild_id: Snowflake | None = attrs.field(default=None, converter=int_converter)
     author_as_member: GuildMember | None = attrs.field(alias="member", default=None, converter=GuildMember.as_dict)
     author_as_user: User | None = attrs.field(alias="author", default=None, converter=User.as_dict)
     content: str | None = attrs.field(default=None)
@@ -40,7 +40,7 @@ class Message(BaseModel):
     components: List[Any] | None = attrs.field(default=None)
     stickers: List[Any] | None = attrs.field(default=None)
     attachments: List[Any] | None = attrs.field(default=None)
-    flags: int | None = attrs.field(default=None, converter=int)
+    flags: int | None = attrs.field(default=None, converter=int_converter)
     referenced_message: Message | None = attrs.field(default=None)
     pinned: bool = attrs.field(default=False)
     webhook_id: Snowflake | None = attrs.field(default=None)

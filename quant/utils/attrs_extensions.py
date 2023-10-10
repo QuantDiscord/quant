@@ -13,7 +13,7 @@ def iso_to_datetime(time: str = None):
     return datetime.fromisoformat(time)
 
 
-def snowflake_to_int(data: str = None) -> int:
+def int_converter(data: str = None) -> int:
     if data is None or not isinstance(data, (str, bytes, int)):
         return 0
 
@@ -33,7 +33,7 @@ def execute_converters(cls, fields: List[attrs.Attribute]):
                 if argument is not None else argument
             )
         elif field.type in {int, 'int'} or field.type in {Snowflake, "Snowflake"}:
-            converter = snowflake_to_int
+            converter = int_converter
         else:
             converter = None
         results.append(field.evolve(converter=converter))

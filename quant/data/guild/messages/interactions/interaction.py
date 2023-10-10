@@ -16,13 +16,13 @@ from quant.data.gateway.snowflake import Snowflake
 from quant.data.guild.messages.interactions.response.interaction_callback_data import InteractionCallbackData
 from quant.data.guild.messages.interactions.response.interaction_callback_type import InteractionCallbackType
 from quant.data.model import BaseModel
-from quant.utils.attrs_extensions import execute_converters, snowflake_to_int
+from quant.utils.attrs_extensions import execute_converters, int_converter
 
 
 @attrs.define(kw_only=True, field_transformer=execute_converters)
 class Interaction(BaseModel):
-    interaction_id: Snowflake = attrs.field(alias="id", default=0, converter=snowflake_to_int)
-    application_id: Snowflake = attrs.field(default=0, converter=snowflake_to_int)
+    interaction_id: Snowflake = attrs.field(alias="id", default=0, converter=int_converter)
+    application_id: Snowflake = attrs.field(default=0, converter=int_converter)
     interaction_type: InteractionType = attrs.field(
         alias="type",
         default=InteractionType.PING,
@@ -30,13 +30,13 @@ class Interaction(BaseModel):
     )
     interaction_data: InteractionData = attrs.field(alias="data", default=None, converter=InteractionData.as_dict)
     guild: Guild = attrs.field(default=None, converter=Guild.as_dict)
-    guild_id: Snowflake = attrs.field(default=0, converter=snowflake_to_int)
+    guild_id: Snowflake = attrs.field(default=0, converter=int_converter)
     channel: Any = attrs.field(default=None)
-    channel_id: Snowflake = attrs.field(default=0, converter=snowflake_to_int)
+    channel_id: Snowflake = attrs.field(default=0, converter=int_converter)
     member: GuildMember | None = attrs.field(default=None, converter=GuildMember.as_dict)
     user: User | None = attrs.field(default=None, converter=User.as_dict)
     interaction_token: str = attrs.field(default=None, alias="token")
-    version: int = attrs.field(default=-1, converter=int)
+    version: int = attrs.field(default=-1, converter=int_converter)
     message: Message = attrs.field(default=None, converter=Message.as_dict)
     app_permissions: str = attrs.field(default=None)
     locale: str = attrs.field(default=None)
