@@ -215,6 +215,23 @@ class Gateway:
 
         self.loop.create_task(self.send_heartbeat(interval))
 
+    async def connect_voice(
+        self,
+        guild_id: int,
+        channel_id: int,
+        self_mute: bool = False,
+        self_deaf: bool = False
+    ) -> None:
+        await self.send_data(self.create_payload(
+            op=4,
+            data={
+                "guild_id": guild_id,
+                "channel_id": channel_id,
+                "self_mute": self_mute,
+                "self_deaf": self_deaf
+            }
+        ))
+
     def create_payload(
         self, op: int,
         data=None, sequence: int = None,
