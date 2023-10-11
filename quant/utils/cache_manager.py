@@ -24,6 +24,9 @@ class CacheManager:
         """Adds message to cache."""
         self.__cached_messages[message.message_id] = message
 
+    def add_voice_state(self, user_id: int, state: VoiceState):
+        self.__cached_voice_states[user_id] = state
+
     def add_guild(self, guild: Guild):
         """Adds guild to cache."""
         self.__cached_guilds[guild.guild_id] = guild
@@ -91,14 +94,10 @@ class CacheManager:
             case EventTypes.GUILD_DELETE:
                 del self.__cached_guilds[int(data["id"])]
             case EventTypes.VOICE_STATE_UPDATE:
-                guild = self.__cached_guilds[int(data['guild_id'])]
+                guild = self.get_guild(int(data['guild_id']))
                 state = VoiceState(**data)
 
                 if len(guild.voice_states) == 0:
                     guild.voice_states.append(state)
-
-                for count, voice_state in enumerate(guild.voice_states):
-                    if voice_state.user_id == state.user_id:
-                        guild.voice_states[count] = state
 
 # мама сказала, что я умный
