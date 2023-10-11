@@ -125,6 +125,8 @@ class Client:
 
             for command in self.message_commands.values():
                 try:
+                    if not command.name == substring_command:
+                        continue
                     context = MessageCommandContext(client=self, message=event.message)
                     await command.callback_func(context, *arguments)
                 except TypeError as e:  # stupid but ok

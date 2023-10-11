@@ -218,7 +218,7 @@ class Gateway:
     async def connect_voice(
         self,
         guild_id: int,
-        channel_id: int,
+        channel_id: int = None,
         self_mute: bool = False,
         self_deaf: bool = False
     ) -> None:
