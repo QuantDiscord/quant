@@ -23,10 +23,6 @@ client = quant.Client(
 client.lavalink: lavasnek_rs.Lavalink | None = None  # type: ignore
 
 
-def get_user_channel(guild: quant.Guild, user_id: int) -> Snowflake:
-    return [state.channel_id for state in guild.voice_states if state.user_id == user_id][0]
-
-
 async def on_voice_state_update(event: quant.VoiceStateUpdateEvent) -> None:
     client.lavalink.raw_handle_event_voice_state_update(
         event.state.guild_id,
