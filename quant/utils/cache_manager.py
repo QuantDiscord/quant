@@ -77,6 +77,12 @@ class CacheManager:
         """Get all cached components"""
         return self.__cached_components
 
+    def get_voice_state(self, guild_id: int, user_id: int) -> VoiceState:
+        guild = self.get_guild(guild_id)
+
+        return [state for state in guild.voice_states
+                if state.guild_id == state.guild_id and state.user_id == user_id][0]
+
     def add_from_event(self, event_name: EventTypes, **data):
         match event_name:
             case EventTypes.MESSAGE_CREATE:

@@ -28,6 +28,9 @@ class BaseContext:
         attachments: List = None,
         flags: int = None
     ) -> None:
+        if components is not None:
+            components = [component.as_json() for component in components]
+
         await self.client.rest.create_message(
             channel_id=channel_id if channel_id is not None else self.original_message.channel_id,
             content=content,
@@ -37,7 +40,7 @@ class BaseContext:
             embeds=embeds,
             allowed_mentions=allowed_mentions,
             message_reference=message_reference,
-            components=[component.as_json() for component in components if len(components) > 0],
+            components=components,
             sticker_ids=sticker_ids,
             files=files,
             payload_json=payload_json,

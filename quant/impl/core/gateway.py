@@ -9,7 +9,6 @@ from typing import (
 )
 import asyncio
 from traceback import print_exception
-from contextlib import suppress
 
 import json
 import aiohttp

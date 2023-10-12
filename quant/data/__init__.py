@@ -1,5 +1,6 @@
 from .intents import Intents
 from .user import User
+from .guild.guild_object import Guild
 from .guild.messages import *
 from .guild.messages.mentions import *
 from .guild.messages.interactions import *
