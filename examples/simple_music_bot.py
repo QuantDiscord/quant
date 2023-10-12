@@ -4,8 +4,6 @@ import quant
 import lavasnek_rs
 from dotenv import load_dotenv
 
-from quant.data.gateway.snowflake import Snowflake
-
 load_dotenv()
 
 
