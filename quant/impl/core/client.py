@@ -28,7 +28,7 @@ class Client:
     def __init__(
         self,
         token: str,
-        intents: Intents,
+        intents: Intents = Intents.ALL_UNPRIVILEGED,
         prefix: str = None,
         mobile_status: bool = False
     ) -> None:
