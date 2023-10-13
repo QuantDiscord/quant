@@ -4,12 +4,18 @@ from typing import (
     Coroutine,
     Callable,
     Any,
-    List,
     Dict,
     overload,
     TypeVar
 )
 
+from quant.data.gateway.snowflake import Snowflake
+from quant.data.user import User
+from quant.impl.events.bot.ready_event import ReadyEvent
+from quant.data.guild.messages.interactions.interaction_type import InteractionType
+from quant.impl.core.commands import SlashCommand
+from quant.impl.core.context import SlashCommandContext
+from quant.impl.events.bot.interaction_create_event import InteractionCreateEvent
 from quant.impl.core import MessageCommand, MessageCommandContext
 from quant.impl.core.exceptions.command_exceptions import CommandNotFoundException, CommandArgumentsNotFound
 from quant.impl.core.gateway import Gateway
@@ -32,6 +38,7 @@ class Client:
         prefix: str = None,
         mobile_status: bool = False
     ) -> None:
+        self.my_user: User | None = None
         self.loop = asyncio.get_event_loop()
         self.token = token
         self.prefix = prefix
@@ -46,8 +53,11 @@ class Client:
         self.cache = self.gateway.cache
 
         self._commands: Dict[str, MessageCommand] = {}
+        self._slash_commands: Dict[str, SlashCommand] = {}
 
-        self.add_listener(MessageCreateEvent, self._on_message_execute_command)
+        self.add_listener(MessageCreateEvent, self._handle_message_commands)
+        self.add_listener(InteractionCreateEvent, self._handle_interactions)
+        self.add_listener(ReadyEvent, self._set_client_user)
 
     _Coroutine = Callable[..., Coroutine[Any, Any, Any]]
 
@@ -106,11 +116,37 @@ class Client:
 
             self.message_commands[command.name] = command
 
+    async def add_slash_command(self, *commands: SlashCommand, app_id: Snowflake | int) -> None:
+        for command in commands:
+            if inspect.iscoroutine(command.callback):
+                raise LibraryException("Callback function must be coroutine")
+
+            self.slash_commands[command.name] = command
+            await self.rest.create_application_command(
+                application_id=app_id,
+                name=command.name,
+                description=command.description,
+                custom_id=command.custom_id
+            )
+
     @property
     def message_commands(self) -> Dict[str, MessageCommand]:
         return self._commands
 
-    async def _on_message_execute_command(self, event: MessageCreateEvent) -> None:
+    @property
+    def slash_commands(self) -> Dict[str, SlashCommand]:
+        return self._slash_commands
+
+    async def _handle_interactions(self, event: InteractionCreateEvent):
+        interaction_type = event.interaction.interaction_type
+        match interaction_type:
+            case InteractionType.APPLICATION_COMMAND:
+                context = SlashCommandContext(self, event.interaction)
+                for command in self.slash_commands.values():
+                    if command.name == event.interaction.interaction_data.name:
+                        await command.callback_func(context)
+
+    async def _handle_message_commands(self, event: MessageCreateEvent) -> None:
         content = event.message.content
 
         if content is None or self.prefix is None:
@@ -131,3 +167,6 @@ class Client:
                     await command.callback_func(context, *arguments)
                 except TypeError as e:  # stupid but ok
                     raise CommandArgumentsNotFound(e)
+
+    async def _set_client_user(self, _: ReadyEvent) -> None:
+        self.my_user = self.cache.get_users()[0]

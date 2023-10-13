@@ -85,6 +85,8 @@ class CacheManager:
 
     def add_from_event(self, event_name: EventTypes, **data):
         match event_name:
+            case EventTypes.READY_EVENT:
+                self.add_user(User(**data["user"]))
             case EventTypes.MESSAGE_CREATE:
                 self.add_message(Message(**data))
             case EventTypes.GUILD_CREATE:

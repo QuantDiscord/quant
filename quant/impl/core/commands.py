@@ -22,6 +22,6 @@ class MessageCommand(Command):
 
 
 class SlashCommand(Command):
-    def __init__(self, options: Dict[str, Type], **kwargs) -> None:
+    def __init__(self, custom_id: str, options: Dict[str, Type] | None = None, **kwargs) -> None:
         super().__init__(kwargs.get("name"), kwargs.get("description"))
         self.options = options

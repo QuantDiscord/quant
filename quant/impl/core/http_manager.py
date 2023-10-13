@@ -18,8 +18,12 @@ class HttpManager:
     @staticmethod
     async def send_request(method: str, url: str,
                            data: Dict[str, Any] = None,
-                           headers: Dict[str, str] = None) -> ClientResponse | None:
+                           headers: Dict[str, str] = None,
+                           content_type: str = None) -> ClientResponse | None:
         async with ClientSession(headers=headers) as session:
+            if content_type is not None:
+                headers.update({"Content-Type": content_type})
+
             if data is None:
                 request = await session.request(method=method, url=url, headers=headers)
             else:

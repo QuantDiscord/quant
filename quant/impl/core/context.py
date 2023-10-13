@@ -1,5 +1,6 @@
 from typing import List
 
+from quant.data.guild.messages.interactions.interaction import Interaction
 from quant.data.components.action_row import ActionRow
 from quant.data.guild.messages.embeds import Embed
 from quant.data.guild.messages.mentions import AllowedMentions
@@ -50,4 +51,14 @@ class BaseContext:
 
 
 class MessageCommandContext(BaseContext):
+    ...
+
+
+class InteractionContext:
+    def __init__(self, client, interaction: Interaction) -> None:
+        self.client = client
+        self.interaction = interaction
+
+
+class SlashCommandContext(InteractionContext):
     ...

@@ -15,7 +15,8 @@ from quant.data.route import (
     CREATE_MESSAGE, DELETE_MESSAGE,
     CREATE_WEBHOOK, GET_GUILD, CREATE_GUILD,
     DELETE_GUILD, CREATE_REACTION, GET_GUILD_EMOJI,
-    CREATE_INTERACTION_RESPONSE, GET_MESSAGE
+    CREATE_INTERACTION_RESPONSE, GET_MESSAGE,
+    CREATE_APPLICATION_COMMAND
 )
 from quant.data.guild.messages.message import Message
 from quant.data.guild.messages.embeds import Embed
@@ -347,3 +348,38 @@ class DiscordREST(RESTAware):
         )
 
         return Message(**await raw_message.json())
+
+    async def create_application_command(
+        self,
+        application_id: int,
+        name: str,
+        description: str,
+        default_permissions: bool = False,
+        dm_permissions: bool = False,
+        default_member_permissions: str = None,
+        guild_id: int | None = None,
+        choices: List[Any] = None,
+        required: bool = False,
+        options: List[Any] = None,
+        channel_types: List[Any] = None
+    ) -> None:
+        payload = {"name": name, "description": description, "required": required}
+
+        if choices is not None:
+            payload.update({"choices": choices})
+
+        if options is not None:
+            payload.update({"options": options})
+
+        if channel_types is not None:
+            payload.update({"channel_types": channel_types})
+
+        await self.http.send_request(
+            CREATE_APPLICATION_COMMAND.method,
+            url=CREATE_APPLICATION_COMMAND.uri.url_string.format(application_id=application_id),
+            data=payload,
+            headers={
+                self.http.AUTHORIZATION: self.token
+            },
+            content_type=self.http.APPLICATION_JSON
+        )

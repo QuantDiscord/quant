@@ -31,6 +31,8 @@ class User(BaseModel):
     premium_type: int = attrs.field(default=0)
     public_flags: int = attrs.field(default=0)
     avatar_decoration_data: Any = attrs.field(default=None)
+    verified: bool = attrs.field(default=False)
+    _email: str = attrs.field(default=None, alias="email")
 
     @classmethod
     def as_dict(cls, data) -> User | None:

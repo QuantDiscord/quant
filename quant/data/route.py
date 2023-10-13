@@ -58,6 +58,7 @@ EDIT_ORIGINAL_INTERACTION_RESPONSE: Final[Route] = Route(
 DELETE_ORIGINAL_INTERACTION_RESPONSE: Final[Route] = Route(
     "DELETE", URI("/webhooks/{application_id}/{interaction_token}/messages/@original")
 )
+CREATE_APPLICATION_COMMAND: Final[Route] = Route("POST", URI("/applications/{application_id}/commands"))
 
 # Followups later
 
