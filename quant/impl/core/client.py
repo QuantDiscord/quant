@@ -1,5 +1,6 @@
 import asyncio
 import inspect
+from base64 import b64decode
 from typing import (
     Coroutine,
     Callable,
@@ -50,6 +51,7 @@ class Client:
         )
         self.rest = DiscordREST(self.gateway.token)
         self.cache = self.gateway.cache
+        self.client_id: int = self._decode_token_to_id()
 
         self._commands: Dict[str, MessageCommand] = {}
         self._slash_commands: Dict[str, SlashCommand] = {}
@@ -59,6 +61,13 @@ class Client:
         self.add_listener(ReadyEvent, self._set_client_user)
 
     _Coroutine = Callable[..., Coroutine[Any, Any, Any]]
+
+    def _decode_token_to_id(self) -> int:
+        first_token_part = self.token.split('.')[0]
+        token = first_token_part[4:] \
+            if first_token_part.startswith('Bot') \
+            else first_token_part
+        return int(b64decode(token).decode('utf8'))
 
     def run(self, loop: asyncio.AbstractEventLoop = None) -> None:
         BaseModel.set_client(self)

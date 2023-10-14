@@ -12,7 +12,6 @@ class LavalinkEventHandler:
         print(f"Track started {event.track}")
 
 
-YOUR_BOT_ID = 12344509234324
 client = quant.Client(
     prefix="!",
     token=f"Bot {os.getenv('TOKEN')}",
@@ -41,7 +40,7 @@ async def on_voice_server_update(event: quant.VoiceServerUpdateEvent) -> None:
 async def on_ready_callback(_: quant.ReadyEvent) -> None:
     builder = (
         lavasnek_rs.LavalinkBuilder(
-            YOUR_BOT_ID, os.getenv("TOKEN")
+            client.my_user.user_id, os.getenv("TOKEN")
         )
         .set_host("127.0.0.1")
         .set_port(8081)
