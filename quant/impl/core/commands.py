@@ -1,5 +1,6 @@
-from typing import Dict, Type
+from typing import Dict, Any, List
 
+from quant.data.guild.messages.interactions.slashes.slash_option import SlashOption
 from quant.impl.core.context import MessageCommandContext
 
 
@@ -22,6 +23,7 @@ class MessageCommand(Command):
 
 
 class SlashCommand(Command):
-    def __init__(self, custom_id: str, options: Dict[str, Type] | None = None, **kwargs) -> None:
+    def __init__(self, custom_id: str, options: List[SlashOption] = None, **kwargs) -> None:
         super().__init__(kwargs.get("name"), kwargs.get("description"))
+        self.custom_id = custom_id
         self.options = options

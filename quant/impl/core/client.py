@@ -39,7 +39,6 @@ class Client:
         mobile_status: bool = False
     ) -> None:
         self.my_user: User | None = None
-        self.loop = asyncio.get_event_loop()
         self.token = token
         self.prefix = prefix
         self.intents = intents
@@ -61,8 +60,12 @@ class Client:
 
     _Coroutine = Callable[..., Coroutine[Any, Any, Any]]
 
-    def run(self) -> None:
+    def run(self, loop: asyncio.AbstractEventLoop = None) -> None:
         BaseModel.set_client(self)
+
+        if loop is not None:
+            self.gateway.loop = loop
+
         self.gateway.loop.run_until_complete(self.gateway.connect_ws())
 
     def set_activity(self, activity: ActivityBuilder) -> None:
@@ -122,11 +125,15 @@ class Client:
                 raise LibraryException("Callback function must be coroutine")
 
             self.slash_commands[command.name] = command
+
+            if command.options is not None:
+                command.options = [option.as_json() for option in command.options]
+
             await self.rest.create_application_command(
                 application_id=app_id,
                 name=command.name,
                 description=command.description,
-                custom_id=command.custom_id
+                options=command.options
             )
 
     @property

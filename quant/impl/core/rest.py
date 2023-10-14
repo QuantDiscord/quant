@@ -358,21 +358,28 @@ class DiscordREST(RESTAware):
         dm_permissions: bool = False,
         default_member_permissions: str = None,
         guild_id: int | None = None,
-        choices: List[Any] = None,
-        required: bool = False,
         options: List[Any] = None,
-        channel_types: List[Any] = None
+        nsfw: bool = False
     ) -> None:
-        payload = {"name": name, "description": description, "required": required}
+        payload = {"name": name, "description": description}
 
-        if choices is not None:
-            payload.update({"choices": choices})
+        if default_permissions:
+            payload.update({"default_permissions": default_permissions})
+
+        if dm_permissions:
+            payload.update({"dm_permissions": dm_permissions})
+
+        if default_member_permissions is not None:
+            payload.update({"default_member_permissions": default_member_permissions})
+
+        if guild_id is not None:
+            payload.update({"guild_id": guild_id})
 
         if options is not None:
             payload.update({"options": options})
 
-        if channel_types is not None:
-            payload.update({"channel_types": channel_types})
+        if nsfw:
+            payload.update({"nsfw": nsfw})
 
         await self.http.send_request(
             CREATE_APPLICATION_COMMAND.method,
