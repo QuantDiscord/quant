@@ -23,7 +23,6 @@ class MessageCommand(Command):
 
 
 class SlashCommand(Command):
-    def __init__(self, custom_id: str, options: List[SlashOption] = None, **kwargs) -> None:
+    def __init__(self, options: List[SlashOption] = None, **kwargs) -> None:
         super().__init__(kwargs.get("name"), kwargs.get("description"))
-        self.custom_id = custom_id
         self.options = options

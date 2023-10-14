@@ -12,8 +12,6 @@ from quant.events import ReadyEvent
 
 client = Client(
     token="YOUR_DISCORD_BOT_TOKEN",
-    intents=Intents.ALL,
-    mobile_status=True,
     prefix="!"
 )
 
@@ -26,6 +24,36 @@ client.add_listener(on_ready)
 client.run()
 ```
 Replace `YOUR_DISCORD_BOT_TOKEN` with your actual Discord bot token.
+
+# Slash Commands
+```python
+from quant import (
+    Client, 
+    SlashCommand,
+    SlashOption,
+    SlashCommandContext
+)
+
+client = Client(token="Bot YOUR_DISCORD_BOT_TOKEN")
+
+
+# Echo bot
+async def slash_command_callback(context: SlashCommandContext) -> None:
+    value = context.interaction.interaction_data.options[0].value
+    await context.interaction.respond(content=value)
+
+
+command = SlashCommand(
+    name="say", 
+    description="Say something", 
+    options=[
+        SlashOption(name="text", description="your text", required=True)
+    ]
+)
+command.set_callback(slash_command_callback)
+
+client.run()
+```
 
 # [Official support server](https://discord.gg/MnECK7DJ6n)
 
