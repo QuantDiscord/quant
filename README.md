@@ -11,7 +11,9 @@ from quant import Client, Intents
 from quant.events import ReadyEvent
 
 client = Client(
-    token="YOUR_DISCORD_BOT_TOKEN",
+    token="Bot YOUR_DISCORD_BOT_TOKEN",
+    intents=Intents.ALL,
+    mobile_status=True,
     prefix="!"
 )
 
