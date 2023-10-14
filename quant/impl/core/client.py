@@ -128,7 +128,7 @@ class Client:
 
             self.message_commands[command.name] = command
 
-    async def add_slash_command(self, *commands: SlashCommand, app_id: Snowflake | int) -> None:
+    async def add_slash_command(self, *commands: SlashCommand, app_id: Snowflake | int = None) -> None:
         for command in commands:
             if inspect.iscoroutine(command.callback):
                 raise LibraryException("Callback function must be coroutine")
@@ -139,7 +139,7 @@ class Client:
                 command.options = [option.as_json() for option in command.options]
 
             await self.rest.create_application_command(
-                application_id=app_id,
+                application_id=self.client_id if app_id is None else app_id,
                 name=command.name,
                 description=command.description,
                 options=command.options
