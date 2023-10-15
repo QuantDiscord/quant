@@ -3,6 +3,7 @@ from typing import List, Any, Dict
 
 import attrs
 
+from quant.data.guild.messages.interactions.slashes.slash_option import SlashOption
 from quant.api.core.rest_aware import RESTAware
 from quant.data.gateway.snowflake import Snowflake
 from quant.data.guild.guild_object import Guild
@@ -358,7 +359,7 @@ class DiscordREST(RESTAware):
         dm_permissions: bool = False,
         default_member_permissions: str = None,
         guild_id: int | None = None,
-        options: List[Any] = None,
+        options: List[SlashOption] = None,
         nsfw: bool = False
     ) -> None:
         payload = {"name": name, "description": description}
@@ -376,7 +377,7 @@ class DiscordREST(RESTAware):
             payload.update({"guild_id": guild_id})
 
         if options is not None:
-            payload.update({"options": options})
+            payload.update({"options": [option.as_json() for option in options]})
 
         if nsfw:
             payload.update({"nsfw": nsfw})

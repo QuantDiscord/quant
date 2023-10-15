@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from typing import List, Any, Dict
 
+from quant.data.guild.messages.interactions.response.choice_response import ChoiceResponse
 from quant.data.guild.messages.interactions.slashes.slash_option_type import SlashOptionType
 
 
@@ -35,7 +36,7 @@ class SlashOption:
         self.option_type = option_type
 
     def as_json(self) -> Dict:
-        return {
+        payload = {
             'name': self.name.lower(),
             'description': self.description,
             'min_value': self.min_value,
@@ -44,8 +45,12 @@ class SlashOption:
             'max_length': self.max_length,
             'autocomplete': self.autocomplete,
             'channel_types': self.channel_types,
-            'options': self.options,
             'choices': self.choices,
             'required': self.required,
             'type': self.option_type.value
         }
+
+        if self.options is not None:
+            payload.update({"options": [option.as_json() for option in self.options]})
+
+        return payload

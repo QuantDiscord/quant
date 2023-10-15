@@ -20,6 +20,12 @@ def int_converter(data: str = None) -> int:
     return int(data)
 
 
+def to_snowflake(data: str = None) -> int | Snowflake:
+    snowflake = Snowflake()
+    snowflake.object_id = data
+    return snowflake
+
+
 def execute_converters(cls, fields: List[attrs.Attribute]):
     results = []
     for field in fields:

@@ -1,20 +1,19 @@
 from __future__ import annotations
 
-from typing import Dict, Any
+from typing import Any
 
 import attrs
 
 from quant.data.model import BaseModel
 
 from quant.data.gateway.snowflake import Snowflake
-from quant.utils.attrs_extensions import execute_converters
+from quant.utils.attrs_extensions import execute_converters, int_converter
 
 
 @attrs.define(field_transformer=execute_converters)
 class User(BaseModel):
     username: str = attrs.field()
-    member: Dict = attrs.field(default=None)
-    user_id: Snowflake = attrs.field(alias="id", default=0)
+    user_id: Snowflake = attrs.field(alias="id", default=0, converter=int_converter)
     discriminator: str | None = attrs.field(default=None)
     display_name: str | None = attrs.field(default=None)
     global_name: str | None = attrs.field(default=None)
@@ -33,6 +32,7 @@ class User(BaseModel):
     avatar_decoration_data: Any = attrs.field(default=None)
     verified: bool = attrs.field(default=False)
     _email: str = attrs.field(default=None, alias="email")
+    _member: Any = attrs.field(alias="member", default=None)
 
     @classmethod
     def as_dict(cls, data) -> User | None:

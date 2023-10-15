@@ -48,6 +48,7 @@ class Interaction(BaseModel):
         self,
         content: str | None = None,
         tts: bool = False,
+        embed: Embed | None = None,
         embeds: List[Embed] | None = None,
         allowed_mentions: AllowedMentions | None = None,
         flags: MessageFlags | int = 0,
@@ -56,6 +57,9 @@ class Interaction(BaseModel):
     ) -> None:
         if components is not None:
             components = [component.as_json() for component in components]
+
+        if embed is not None:
+            embeds = [embed]
 
         await self.client.rest.create_interaction_response(
             InteractionCallbackType.CHANNEL_MESSAGE_WITH_SOURCE,

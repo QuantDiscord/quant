@@ -85,3 +85,6 @@ class Guild(BaseModel):
 
     async def delete(self) -> None:
         await self.client.rest.delete_guild(self.guild_id)
+
+    def get_member(self, member_id: Snowflake | int) -> GuildMember:
+        return [i for i in self.members if i.user.user_id == member_id][0]

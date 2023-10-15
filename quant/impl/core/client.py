@@ -135,9 +135,6 @@ class Client:
 
             self.slash_commands[command.name] = command
 
-            if command.options is not None:
-                command.options = [option.as_json() for option in command.options]
-
             await self.rest.create_application_command(
                 application_id=self.client_id if app_id is None else app_id,
                 name=command.name,

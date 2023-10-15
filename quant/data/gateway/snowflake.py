@@ -10,8 +10,16 @@ class Snowflake(int):
     INCREMENT = 0
 
     def __init__(self) -> None:
-        self.timestamp = ((self >> 22) + self.DISCORD_EPOCH) / 1000
-        self.object_id = self
+        self._object_id = self
+        self.timestamp = ((self.object_id >> 22) + self.DISCORD_EPOCH) / 1000
+
+    @property
+    def object_id(self):
+        return self._object_id
+
+    @object_id.setter
+    def object_id(self, data):
+        self._object_id = data
 
     def generate_snowflake(
         self,
