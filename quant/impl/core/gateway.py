@@ -76,12 +76,37 @@ class Gateway:
         logging.basicConfig(format='%(levelname)s | %(asctime)s - %(message)s', level=logging.INFO)
 
     @property
+    def identify_payload(self):
+        return self.raw_ws_request
+
+    async def send_presence(self, activity: Activity = None, status: int = None, since: int = None, afk: bool = False):
+        presence = {
+            'activities': [
+                {
+                    'name': activity.name,
+                    'type': activity.type,
+                    'url': activity.url
+                }
+            ],
+            'status': status,
+            'since': since,
+            'afk': afk
+        }
+
+        await self.send_data(self.create_payload(
+            op=self.PRESENCE_UPDATE,
+            data=presence
+        ))
+
+    @property
     def get_logger(self) -> logging.Logger:
         return logging.getLogger(__name__)
 
     async def connect_ws(self) -> None:
         self.session = aiohttp.ClientSession()
-        self.websocket_connection = await self.session.ws_connect(DISCORD_WS_URL.uri.url_string.format(self.api_version))
+        self.websocket_connection = await self.session.ws_connect(
+            DISCORD_WS_URL.uri.url_string.format(self.api_version)
+        )
 
         self.ws_connected = True
 
@@ -183,7 +208,7 @@ class Gateway:
         if resume:
             return await self.resume_connection()
 
-        await self.send_data(self.create_payload(self.IDENTIFY, self.raw_ws_request))
+        await self.send_data(self.create_payload(self.IDENTIFY, self.identify_payload))
         self.get_logger.info("Bot identified")
 
     async def close(self, code: int = 4000):
@@ -244,24 +269,6 @@ class Gateway:
             payload.update({"s": sequence, "t": event_name})
 
         return json.dumps(payload)
-
-    def set_presence(
-        self,
-        activity: Activity = None,
-        status: str = None,
-        since: int = None,
-        afk: bool = None
-    ):
-        self.raw_ws_request["presence"] = dict(
-            activities=[{
-                "name": activity.name,
-                "type": activity.type.value,
-                "url": activity.url
-            }],
-            status=status,
-            since=since,
-            afk=afk
-        )
 
     def add_event(self, event_name, event_type, event_callback) -> None:
         self._events[event_callback] = {event_name: event_type}

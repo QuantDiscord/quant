@@ -1,4 +1,4 @@
-from typing import List, Any
+from typing import List, Any, Dict
 
 import attrs
 
@@ -21,4 +21,4 @@ class InteractionData(BaseModel):
     options: List[ChoiceResponse] = attrs.field(default=None, converter=ChoiceResponse.as_dict_iter)
     focused: bool = attrs.field(default=False)
     components: List[Any] = attrs.field(default=None)
-    resolved: bool = attrs.field(default=False)
+    resolved: Dict = attrs.field(default=None)
