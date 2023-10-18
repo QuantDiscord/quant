@@ -91,11 +91,11 @@ class DiscordREST(RESTAware):
             CREATE_WEBHOOK.method,
             webhook_url,
             data=payload,
-            headers={"Content-Type": self.http.APPLICATION_JSON}
+            headers={}
         )
 
     async def create_webhook(self, channel_id: int, name: str, avatar: str = None, reason: str = None) -> Webhook:
-        headers = {self.http.AUTHORIZATION: self.token, "Content-Type": self.http.APPLICATION_JSON}
+        headers = {self.http.AUTHORIZATION: self.token, }
 
         if reason is not None:
             headers.update({"X-Audit-Log-Reason": reason})
@@ -233,14 +233,14 @@ class DiscordREST(RESTAware):
         data = await self.http.send_request(
             CREATE_MESSAGE.method, CREATE_MESSAGE.uri.url_string.format(channel_id),
             data=payload, headers={
-                self.http.AUTHORIZATION: self.token, "Content-Type": self.http.APPLICATION_JSON
+                self.http.AUTHORIZATION: self.token,
             }
         )
         message_json = await data.json()
         return Message(**message_json)
 
     async def fetch_guild(self, guild_id: int, with_counts: bool = False) -> Guild:
-        headers = {self.http.AUTHORIZATION: self.token, "Content-Type": self.http.APPLICATION_JSON}
+        headers = {self.http.AUTHORIZATION: self.token, }
         url_with_guild_id = GET_GUILD.uri.url_string.format(guild_id=guild_id)
         get_guild_url = (
             url_with_guild_id
@@ -255,7 +255,7 @@ class DiscordREST(RESTAware):
         return Guild(**guild_data)
 
     async def delete_guild(self, guild_id: int) -> None:
-        headers = {self.http.AUTHORIZATION: self.token, "Content-Type": self.http.APPLICATION_JSON}
+        headers = {self.http.AUTHORIZATION: self.token, }
         await self.http.send_request(
             DELETE_GUILD.method,
             url=DELETE_GUILD.uri.url_string.format(guild_id=guild_id),
@@ -278,7 +278,7 @@ class DiscordREST(RESTAware):
         system_channel_flags: int = 0
     ) -> Guild:
         payload = {'name': name, 'system_channel_flags': system_channel_flags}
-        headers = {self.http.AUTHORIZATION: self.token, "Content-Type": self.http.APPLICATION_JSON}
+        headers = {self.http.AUTHORIZATION: self.token, }
 
         if region is not None:
             payload.update({"region": region})
@@ -334,7 +334,7 @@ class DiscordREST(RESTAware):
                 interaction_id=interaction_id,
                 interaction_token=interaction_token
             ),
-            headers={"Content-Type": self.http.APPLICATION_JSON},
+            headers={},
             data=payload
         )
 
@@ -388,6 +388,5 @@ class DiscordREST(RESTAware):
             data=payload,
             headers={
                 self.http.AUTHORIZATION: self.token
-            },
-            content_type=self.http.APPLICATION_JSON
+            }
         )

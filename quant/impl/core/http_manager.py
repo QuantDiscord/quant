@@ -23,6 +23,8 @@ class HttpManager:
         async with ClientSession(headers=headers) as session:
             if content_type is not None:
                 headers.update({"Content-Type": content_type})
+            if content_type is None:
+                headers.update({"Content-Type": HttpManager.APPLICATION_JSON})
 
             if data is None:
                 request = await session.request(method=method, url=url, headers=headers)
