@@ -77,8 +77,8 @@ class Client:
 
         self.gateway.loop.run_until_complete(self.gateway.connect_ws())
 
-    def set_activity(self, activity: ActivityBuilder) -> None:
-        self.gateway.set_presence(
+    async def set_activity(self, activity: ActivityBuilder) -> None:
+        await self.gateway.send_presence(
             activity=activity.activity,
             status=activity.status,
             since=activity.since,
@@ -95,31 +95,35 @@ class Client:
 
     def add_listener(self, *args) -> None:
         if len(args) == 1:
-            coro = args[0]
-
-            if inspect.iscoroutine(coro):
-                raise LibraryException("Callback function must be coroutine")
-
-            annotations = inspect.getmembers(coro)[0]
-            try:
-                event_type: BaseEvent = list(annotations[1].values())[0]
-
-                # idk why linter warning there
-                if not issubclass(event_type, BaseEvent):  # type: ignore
-                    raise LibraryException(f"{event_type.__name__} must be subclass of BaseEvent")
-
-                self.gateway.add_event(event_type.API_EVENT_NAME, event_type, coro)
-            except IndexError:
-                raise LibraryException(f"You need provide which event you need in function {coro}")
+            self._add_listener_from_coro(args[0])
         else:
             event, coro = args
-            if inspect.iscoroutine(coro):
-                raise LibraryException("Callback function must be coroutine")
+            self._add_listener_from_event_and_coro(event, coro)
 
-            if not issubclass(event, BaseEvent):
-                raise LibraryException(f"Subclass of event {event} must be BaseEvent")
+    def _add_listener_from_event_and_coro(self, event: T, coro: _Coroutine) -> None:
+        if inspect.iscoroutine(coro):
+            raise LibraryException("Callback function must be coroutine")
 
-            self.gateway.add_event(event.API_EVENT_NAME, event, coro)
+        if not issubclass(event, BaseEvent):
+            raise LibraryException(f"Subclass of event {event} must be BaseEvent")
+
+        self.gateway.add_event(event.API_EVENT_NAME, event, coro)
+
+    def _add_listener_from_coro(self, coro: _Coroutine) -> None:
+        if inspect.iscoroutine(coro):
+            raise LibraryException("Callback function must be coroutine")
+
+        annotations = inspect.getmembers(coro)[0]
+        try:
+            event_type: BaseEvent = list(annotations[1].values())[0]
+
+            # idk why linter warning there
+            if not issubclass(event_type, BaseEvent):  # type: ignore
+                raise LibraryException(f"{event_type.__name__} must be subclass of BaseEvent")
+
+            self.gateway.add_event(event_type.API_EVENT_NAME, event_type, coro)
+        except IndexError:
+            raise LibraryException(f"You need provide which event you need in function {coro}")
 
     def add_message_command(self, *commands: MessageCommand) -> None:
         for command in commands:
@@ -183,3 +187,10 @@ class Client:
 
     async def _set_client_user(self, _: ReadyEvent) -> None:
         self.my_user = self.cache.get_users()[0]
+
+    @staticmethod
+    def create_new_loop() -> asyncio.AbstractEventLoop:
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+
+        return loop

@@ -8,18 +8,18 @@ import attrs
 
 from quant.data.guild.messages.emoji import Emoji
 from quant.data.guild.members.member import GuildMember, User
-# from quant.data.guild.messages.interactions.interaction import Interaction
+from quant.data.guild.messages.interactions.interaction import Interaction
 # from quant.data.components.action_row import ActionRow
 from quant.data.model import BaseModel
 from quant.data.guild.messages.embeds import Embed
-from quant.utils.attrs_extensions import execute_converters, int_converter
+from quant.utils.attrs_extensions import execute_converters, int_converter, iso_to_datetime
 from quant.data.gateway.snowflake import Snowflake
 
 
 @attrs.define(kw_only=True, field_transformer=execute_converters)
 class Message(BaseModel):
     type: int = attrs.field(default=None)
-    timestamp: datetime.datetime = attrs.field(default=None)
+    timestamp: datetime.datetime = attrs.field(default=None, converter=iso_to_datetime)
     channel_id: Snowflake | None = attrs.field(default=None, converter=int_converter)
     position: Snowflake | None = attrs.field(default=None)
     message_id: int | None = attrs.field(alias="id", default=None, converter=int_converter)
@@ -46,7 +46,7 @@ class Message(BaseModel):
     activity: Any | None = attrs.field(default=None)
     application: Any | None = attrs.field(default=None)
     application_id: Snowflake | None = attrs.field(default=None)
-    interaction: Any | None = attrs.field(default=None)
+    interaction: Interaction | None = attrs.field(default=None, converter=Interaction.as_dict)
     thread: Any | None = attrs.field(default=None)
     sticker_items: List[Any] | None = attrs.field(default=None)
     role_subscription_data: Any | None = attrs.field(default=None)

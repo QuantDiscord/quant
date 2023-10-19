@@ -79,6 +79,10 @@ class Gateway:
     def identify_payload(self):
         return self.raw_ws_request
 
+    @identify_payload.setter
+    def identify_payload(self, data: Dict):
+        self.raw_ws_request = data
+
     async def send_presence(self, activity: Activity = None, status: int = None, since: int = None, afk: bool = False):
         presence = {
             'activities': [
@@ -185,8 +189,7 @@ class Gateway:
 
             close_code = self.websocket_connection.close_code
             if close_code is not None:
-                # self.get_logger.warning(f"Gateway received close code: {close_code}")
-                ...
+                self.get_logger.error(f"Gateway received close code: {close_code}")
 
     async def send_data(self, data) -> None:
         await self.websocket_connection.send_str(data)

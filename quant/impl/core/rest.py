@@ -1,6 +1,7 @@
 import re
 from typing import List, Any, Dict
 
+import aiohttp
 import attrs
 
 from quant.data.guild.messages.interactions.slashes.slash_option import SlashOption
@@ -11,13 +12,13 @@ from quant.data.guild.messages.emoji import Emoji
 from quant.data.guild.messages.interactions.response.interaction_callback_data import InteractionCallbackData
 from quant.data.guild.messages.interactions.response.interaction_callback_type import InteractionCallbackType
 from quant.data.guild.messages.mentions import AllowedMentions
-from quant.impl.core.http_manager import HttpManager
+from quant.impl.core.http_manager import HttpManagerImpl
 from quant.data.route import (
     CREATE_MESSAGE, DELETE_MESSAGE,
     CREATE_WEBHOOK, GET_GUILD, CREATE_GUILD,
     DELETE_GUILD, CREATE_REACTION, GET_GUILD_EMOJI,
     CREATE_INTERACTION_RESPONSE, GET_MESSAGE,
-    CREATE_APPLICATION_COMMAND
+    CREATE_APPLICATION_COMMAND, GET_ORIGINAL_INTERACTION_RESPONSE
 )
 from quant.data.guild.messages.message import Message
 from quant.data.guild.messages.embeds import Embed
@@ -26,7 +27,7 @@ from quant.data.guild.webhooks.webhook import Webhook
 
 class DiscordREST(RESTAware):
     def __init__(self, token: str) -> None:
-        self.http = HttpManager()
+        self.http = HttpManagerImpl()
         self.token = token
 
     async def execute_webhook(
@@ -90,12 +91,11 @@ class DiscordREST(RESTAware):
         await self.http.send_request(
             CREATE_WEBHOOK.method,
             webhook_url,
-            data=payload,
-            headers={}
+            data=payload
         )
 
     async def create_webhook(self, channel_id: int, name: str, avatar: str = None, reason: str = None) -> Webhook:
-        headers = {self.http.AUTHORIZATION: self.token, }
+        headers = {self.http.AUTHORIZATION: self.token}
 
         if reason is not None:
             headers.update({"X-Audit-Log-Reason": reason})
@@ -110,14 +110,19 @@ class DiscordREST(RESTAware):
         return Webhook(**await webhook_data.json())
 
     async def fetch_emoji(self, guild_id: int, emoji: str) -> Emoji:
-        headers = {self.http.AUTHORIZATION: self.token, 'Content-Type': self.http.APPLICATION_X_WWW_FORM_URLENCODED}
+        headers = {self.http.AUTHORIZATION: self.token}
 
         if re.match(r"<:(\w+):(\w+)>", emoji):
             emoji_name, emoji_id = (
                 emoji.replace(">", "").replace("<", "")
             ).split(":")[1:]
             url = GET_GUILD_EMOJI.uri.url_string.format(guild_id=guild_id, emoji_id=emoji_id)
-            response = await self.http.send_request(GET_GUILD_EMOJI.method, url=url, headers=headers)
+            response = await self.http.send_request(
+                GET_GUILD_EMOJI.method,
+                url=url,
+                headers=headers,
+                content_type=self.http.APPLICATION_X_WWW_FORM_URLENCODED
+            )
 
             return Emoji(**await response.json())
 
@@ -139,7 +144,7 @@ class DiscordREST(RESTAware):
         :param reason:
         :return:
         """
-        headers = {self.http.AUTHORIZATION: self.token, 'Content-Type': self.http.APPLICATION_X_WWW_FORM_URLENCODED}
+        headers = {self.http.AUTHORIZATION: self.token}
         emoji = await self.fetch_emoji(guild_id=guild_id, emoji=emoji)
 
         if reason is not None:
@@ -152,7 +157,8 @@ class DiscordREST(RESTAware):
                 message_id=message_id,
                 emoji=str(emoji).replace("<", "").replace(">", "") if emoji.emoji_id > 0 else emoji
             ),
-            headers=headers
+            headers=headers,
+            content_type=self.http.APPLICATION_X_WWW_FORM_URLENCODED
         )
 
         return emoji
@@ -222,6 +228,8 @@ class DiscordREST(RESTAware):
             payload.update({"flags": flags})
 
         if attachments is not None:
+            form_data = aiohttp.FormData()
+            form_data.add_field("payload_json", )
             payload.update({"attachments": attachments})
 
         if allowed_mentions is not None:
@@ -278,7 +286,7 @@ class DiscordREST(RESTAware):
         system_channel_flags: int = 0
     ) -> Guild:
         payload = {'name': name, 'system_channel_flags': system_channel_flags}
-        headers = {self.http.AUTHORIZATION: self.token, }
+        headers = {self.http.AUTHORIZATION: self.token}
 
         if region is not None:
             payload.update({"region": region})
@@ -334,7 +342,6 @@ class DiscordREST(RESTAware):
                 interaction_id=interaction_id,
                 interaction_token=interaction_token
             ),
-            headers={},
             data=payload
         )
 
@@ -390,3 +397,19 @@ class DiscordREST(RESTAware):
                 self.http.AUTHORIZATION: self.token
             }
         )
+
+    async def fetch_initial_interaction_response(self, application_id: int, interaction_token: str) -> Message:
+        headers = {self.http.AUTHORIZATION: self.token}
+        url = GET_ORIGINAL_INTERACTION_RESPONSE.uri.url_string.format(
+            application_id=application_id,
+            interaction_token=interaction_token
+        )
+        print(url)
+        response = await self.http.send_request(
+            GET_ORIGINAL_INTERACTION_RESPONSE.method,
+            url=url,
+            headers=headers
+        )
+        print('Raw', await response.json())
+
+        return Message(**await response.json())

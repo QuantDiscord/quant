@@ -1,30 +1,28 @@
 import json
-from typing import Dict, Any, Final
+from typing import Dict, Any
 
 from aiohttp import ClientSession, ClientResponse
 
+from quant.api.core.http_manager_abc import HttpManager
 from quant.data.gateway.http_codes import HttpCodes
-from quant.impl.core.exceptions.http_exception import Forbidden
+from quant.impl.core.exceptions.http_exception import Forbidden, InternalServerError
 from quant.impl.core.exceptions.library_exception import LibraryException
 
 
-class HttpManager:
-    APPLICATION_JSON: Final[str] = "application/json"
-    APPLICATION_X_WWW_FORM_URLENCODED: Final[str] = "application/x-www-form-urlencoded"
-    MULTIPART_FORM_DATA: Final[str] = "multipart/form-data"
-    AUTHORIZATION: Final[str] = "Authorization"
-    TEXT_HTML: Final[str] = "text/html"
-
+class HttpManagerImpl(HttpManager):
     @staticmethod
     async def send_request(method: str, url: str,
                            data: Dict[str, Any] = None,
                            headers: Dict[str, str] = None,
                            content_type: str = None) -> ClientResponse | None:
         async with ClientSession(headers=headers) as session:
+            if headers is None:
+                headers = {}
+
             if content_type is not None:
                 headers.update({"Content-Type": content_type})
             if content_type is None:
-                headers.update({"Content-Type": HttpManager.APPLICATION_JSON})
+                headers.update({"Content-Type": HttpManagerImpl.APPLICATION_JSON})
 
             if data is None:
                 request = await session.request(method=method, url=url, headers=headers)
@@ -36,7 +34,7 @@ class HttpManager:
             if request_text_data == "":
                 return
 
-            if content_type == HttpManager.TEXT_HTML:
+            if content_type == HttpManagerImpl.TEXT_HTML:
                 return request
 
             request_json_data = await request.json()
@@ -46,6 +44,8 @@ class HttpManager:
             match request.status:
                 case HttpCodes.FORBIDDEN:
                     raise Forbidden("Not enough permissions")
+                case HttpCodes.INTERNAL_SERVER_ERROR:
+                    raise InternalServerError(f"Something went wrong on the server\n{request_text_data}")
 
             if request.ok or request_json_data['code'] != 50006:
                 return request

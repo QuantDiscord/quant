@@ -3,7 +3,6 @@ from typing import Any, List
 import attrs
 
 from quant.data.user import User
-from quant.data.guild.messages.message import Message
 from quant.data.guild.messages.embeds import Embed
 from quant.data.guild.messages.mentions.allowed_mentions import AllowedMentions
 from quant.data.guild.messages.message_flags import MessageFlags
@@ -21,6 +20,7 @@ from quant.utils.attrs_extensions import execute_converters, int_converter
 
 @attrs.define(kw_only=True, field_transformer=execute_converters)
 class Interaction(BaseModel):
+    interaction_name: str = attrs.field(alias="name", default=None)
     interaction_id: Snowflake = attrs.field(alias="id", default=0, converter=int_converter)
     application_id: Snowflake = attrs.field(default=0, converter=int_converter)
     interaction_type: InteractionType = attrs.field(
@@ -37,7 +37,6 @@ class Interaction(BaseModel):
     user: User | None = attrs.field(default=None, converter=User.as_dict)
     interaction_token: str = attrs.field(default=None, alias="token")
     version: int = attrs.field(default=-1, converter=int_converter)
-    message: Message = attrs.field(default=None, converter=Message.as_dict)
     app_permissions: str = attrs.field(default=None)
     locale: str = attrs.field(default=None)
     guild_locale: str = attrs.field(default=None)
@@ -84,4 +83,9 @@ class Interaction(BaseModel):
                 components=modal.get("components")
             ),
             self.interaction_id, self.interaction_token
+        )
+
+    async def fetch_initial_response(self):
+        return await self.client.rest.fetch_initial_interaction_response(
+            self.client.client_id, self.interaction_token
         )

@@ -28,9 +28,10 @@ client.run()
 Replace `YOUR_DISCORD_BOT_TOKEN` with your actual Discord bot token.
 
 # Slash Commands
+
 ```python
 from quant import (
-    Client, 
+    Client,
     SlashCommand,
     SlashOption,
     SlashCommandContext
@@ -46,8 +47,8 @@ async def slash_command_callback(context: SlashCommandContext) -> None:
 
 
 command = SlashCommand(
-    name="say", 
-    description="Say something", 
+    name="say",
+    description="Say something",
     options=[
         SlashOption(name="text", description="your text", required=True)
     ]

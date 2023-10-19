@@ -1,4 +1,5 @@
 from abc import ABCMeta, abstractmethod
+from typing import Generic, TypeVar
 
 from quant.utils.cache_manager import CacheManager
 from quant.impl.events.types import EventTypes
