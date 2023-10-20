@@ -1,6 +1,0 @@
-class CommandNotFoundException(Exception):
-    ...
-
-
-class CommandArgumentsNotFound(Exception):
-    ...

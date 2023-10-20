@@ -1,1 +1,0 @@
-from .guild_create_event import GuildCreateEvent
