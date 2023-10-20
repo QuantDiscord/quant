@@ -1,22 +1,22 @@
-from typing import Any
+من كتابة استيراد أي
 
-import attrs
+استيراد أترس
 
-from quant.data.user import User
-from quant.data.gateway.snowflake import Snowflake
+من كوانت.البيانات.المستخدم استيراد المستخدم
+من كوانت.البيانات.بوابة.ندفة الثلج استيراد ندفة الثلج
 
 
-@attrs.define
-class Webhook:
-    webhook_url: str = attrs.field(alias="url")
-    webhook_token: str = attrs.field(alias="token")
-    webhook_avatar: str = attrs.field(alias="avatar")
-    webhook_name: str = attrs.field(alias="name")
-    webhook_id: Snowflake = attrs.field(alias="id")
-    webhook_type: int = attrs.field(alias="type")
-    guild_id: Snowflake | None = attrs.field(default=None)
-    channel_id: Snowflake | None = attrs.field(default=None)
-    user: User | None = attrs.field(default=None)
-    application_id: Snowflake | None = attrs.field(default=None)
-    source_guild: Any | None = attrs.field(default=None)
-    source_channel: Any | None = attrs.field(default=None)
+تضمين التغريدة.تعريف
+صف ويب هوك:
+    <url>.حقل (الاسم المستعار= "ورل")
+    <url>.الحقل (الاسم المستعار= "الرمز المميز")
+    <url>.حقل (الاسم المستعار= "الصورة الرمزية")
+    <url>.حقل (الاسم المستعار= "الاسم")
+    دليل الويب: ندفة الثلج = أترس.حقل (الاسم المستعار= "معرف")
+    النوع: إنت = أترس.الحقل (الاسم المستعار= "النوع")
+    النقابة: ندفة الثلج / لا شيء = أترس.حقل (افتراضي=لا شيء)
+    معرف القناة: ندفة الثلج | لا شيء = أترس.حقل (افتراضي=لا شيء)
+    المستخدم: المستخدم / لا شيء = أترس.حقل (افتراضي=لا شيء)
+    التطبيق: ندفة الثلج / لا شيء = أترس.حقل (افتراضي=لا شيء)
+    المصدر: أي | لا شيء = أترس.حقل (افتراضي=لا شيء)
+    قناة المصدر: أي / لا شيء = أترس.حقل (افتراضي=لا شيء)

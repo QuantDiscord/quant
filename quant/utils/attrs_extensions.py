@@ -1,47 +1,47 @@
-from typing import List
-from datetime import datetime
+من كتابة قائمة الاستيراد
+من التاريخ والوقت استيراد التاريخ والوقت
 
-import attrs
+استيراد أترس
 
-from quant.data.gateway.snowflake import Snowflake
-
-
-def iso_to_datetime(time: str = None):
-    if time is None:
-        return
-
-    return datetime.fromisoformat(time)
+من كوانت.البيانات.بوابة.ندفة الثلج استيراد ندفة الثلج
 
 
-def int_converter(data: str = None) -> int:
-    if data is None or not isinstance(data, (str, bytes, int)):
-        return 0
+ديف إيسو_إلى داتيتيمي (الوقت: ستر = لا شيء):
+    إذا كان الوقت لا شيء:
+        العودة
 
-    return int(data)
-
-
-def to_snowflake(data: str = None) -> int | Snowflake:
-    snowflake = Snowflake()
-    snowflake.object_id = data
-    return snowflake
+    عودة التاريخ والوقت.فرومتنسيق (الوقت)
 
 
-def execute_converters(cls, fields: List[attrs.Attribute]):
-    results = []
-    for field in fields:
-        if field.converter is not None:
-            results.append(field)
-            continue
+ديف إنتكونفرتر (البيانات: ستر = لا شيء) - > إنت:
+    إذا كانت البيانات لا شيء أو لا إيسينستانس (البيانات ، (ستر ، بايت ، إنت)):
+        العودة 0
 
-        if field.type in {datetime, 'datetime'}:
-            converter = (
-                lambda argument: iso_to_datetime(argument)
-                if argument is not None else argument
+    عودة كثافة العمليات (البيانات)
+
+
+مواطنه ل_سنوفليك (البيانات: شارع = لا شيء) - > كثافة العمليات / ندفة الثلج:
+    ندفة الثلج = ندفة الثلج()
+    ندفة الثلج.معرف الكائن = البيانات
+    عودة ندفة الثلج
+
+
+إذا كنت ترغب في ذلك ، يرجى الاتصال بنا.السمة]):
+    النتائج = []
+    للحقل في الحقول:
+        إذا الحقل.المحول ليس لا شيء:
+            النتائج.إلحاق (حقل)
+            تابع
+
+        إذا الحقل.اكتب في {التاريخ والوقت ، 'التاريخ والوقت'}:
+            محول = (
+                حجة لامدا: إيسو_إلى داتيتيمي (وسيطة)
+                إذا كانت الحجة ليست حجة أخرى
             )
-        elif field.type in {int, 'int'} or field.type in {Snowflake, "Snowflake"}:
-            converter = int_converter
-        else:
-            converter = None
-        results.append(field.evolve(converter=converter))
+        حقل أليف.اكتب في {كثافة العمليات ، 'كثافة العمليات'} أو الحقل.اكتب في {ندفة الثلج ، "ندفة الثلج"}:
+            المحول = المحول الداخلي
+        آخر:
+            المحول = لا شيء
+        النتائج.إلحاق (حقل.تتطور (محول = محول))
 
-    return results
+    عودة النتائج

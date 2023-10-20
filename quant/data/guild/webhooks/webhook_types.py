@@ -1,7 +1,7 @@
-import enum
+استيراد التعداد
 
 
-class WebhookTypes(enum.Enum):
-    INCOMING = 1
-    CHANNEL_FOLLOWER = 2
-    APPLICATION = 3
+فئة أنواع هوك ويب (التعداد.التعداد):
+    واردة = 1
+    قناة_أتبع = 2
+    التطبيق = 3

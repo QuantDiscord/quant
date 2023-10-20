@@ -1,111 +1,42 @@
-from typing import Dict, List
-
-from quant.data.components import Component
-from quant.data.guild.voice.voice_state_update import VoiceState
-from quant.data.user import User
-from quant.data.guild.guild_object import Guild
-from quant.data.guild.messages.emoji import Emoji, Reaction
-from quant.data.guild.messages.message import Message
-from quant.impl.events.types import EventTypes
-
-
-class CacheManager:
-    __cached_guilds: Dict[int, Guild] = {}
-    __cached_users: Dict[int, User] = {}
-    __cached_messages: Dict[int, Message] = {}
-    __cached_emojis: Dict[int, Emoji | Reaction] = {}
-    __cached_components: List[Component] = []
-
-    def add_user(self, user: User):
-        """Adds user to cache."""
-        self.__cached_users[user.user_id] = user
-
-    def add_message(self, message: Message):
-        """Adds message to cache."""
-        self.__cached_messages[message.message_id] = message
-
-    def add_voice_state(self, user_id: int, state: VoiceState):
-        self.__cached_voice_states[user_id] = state
-
-    def add_guild(self, guild: Guild):
-        """Adds guild to cache."""
-        self.__cached_guilds[guild.guild_id] = guild
-
-    def add_emoji(self, emoji: Emoji | Reaction):
-        """Adds emoji to cache."""
-        if isinstance(emoji, Emoji):
-            self.__cached_emojis[emoji.emoji_id] = emoji
-        elif isinstance(emoji, Reaction):
-            self.__cached_emojis[emoji.emoji.emoji_id] = emoji
-
-    def add_component(self, component: Component):
-        self.__cached_components.append(component)
-
-    def get_user(self, user_id: int) -> User | None:
-        """Get user from cache."""
-        return self.__cached_users.get(user_id)
-
-    def get_users(self) -> List[User]:
-        """Get all cached users."""
-        return list(self.__cached_users.values())
-
-    def get_message(self, message_id: int) -> Message | None:
-        """Get message from cache."""
-        return self.__cached_messages.get(message_id)
-
-    def get_messages(self) -> List[Message]:
-        """Get all cached message."""
-        return list(self.__cached_messages.values())
-
-    def get_guild(self, guild_id: int) -> Guild | None:
-        """Get guild from cache."""
-        return self.__cached_guilds.get(guild_id)
-
-    def get_guilds(self) -> List[Guild]:
-        """Get all cached guilds."""
-        return list(self.__cached_guilds.values())
-
-    def get_emoji(self, emoji_id: int) -> Emoji | Reaction:
-        """Get emoji from cache."""
-        return self.__cached_emojis.get(emoji_id)
-
-    def get_emojis(self) -> List[Emoji | Reaction]:
-        """Get all cached emojis"""
-        return list(self.__cached_emojis.values())
-
-    def get_component(self) -> List[Component]:
-        """Get all cached components"""
-        return self.__cached_components
-
-    def get_voice_state(self, guild_id: int, user_id: int) -> VoiceState:
-        guild = self.get_guild(guild_id)
-
-        return [state for state in guild.voice_states
-                if state.guild_id == state.guild_id and state.user_id == user_id][0]
-
-    def add_from_event(self, event_name: EventTypes, **data):
-        match event_name:
-            case EventTypes.READY_EVENT:
-                self.add_user(User(**data["user"]))
-            case EventTypes.MESSAGE_CREATE:
-                self.add_message(Message(**data))
-            case EventTypes.GUILD_CREATE:
-                guild_object = Guild(**data)
-                self.add_guild(guild_object)
-
-                if guild_object.member_count <= 2000:
-                    for member in guild_object.members:
-                        self.add_user(member.user)
-
-                for emoji in guild_object.emojis:
-                    self.add_emoji(Emoji(**emoji))
-            case EventTypes.GUILD_DELETE:
-                del self.__cached_guilds[int(data["id"])]
-            case EventTypes.VOICE_STATE_UPDATE:
-                guild = self.get_guild(int(data['guild_id']))
-                state = VoiceState(**data)
-
-                if len(guild.voice_states) == 0:
-                    guild.voice_states.append(state)
-
-# мама сказала, что я умный
+من كتابة استيراد ديكت ، قائمة
+من كوانت.البيانات.مكونات استيراد المكونات
+من كوانت.البيانات.نقابة.صوت.صوت_حالة_تحديث استيراد صوتالدولة
+من كوانت.البيانات.المستخدم استيراد المستخدم
+من كوانت.البيانات.نقابة.نقابة استيراد الكائنات
+من كوانت.البيانات.نقابة.الرسائل.رمز تعبيري استيراد رمز تعبيري ، رد فعل
+من كوانت.البيانات.نقابة.الرسائل.رسالة استيراد رسالة
+من كوانت.إمبل.الأحداث.أنواع استيراد أنواع الأحداث
+فئة كاشيماناجر:
+        ____المخبأ _ المبرمجون={} ؛ _ _ المخبأ _ المستخدمون={} ؛ _ _ المخبأ _ الرسائل = {}؛_ _ المخبأ _ الرموز التعبيرية = {} ؛ _ _ المخبأ _ المكونات=[]
+        إضافة مستخدم (أ ، مستخدم): 'يضيف المستخدم إلى ذاكرة التخزين المؤقت.'; أ._ _ مؤقتا _ المستخدمين [المستخدم.معرف المستخدم] = المستخدم
+        إضافة رسالة (ب ، رسالة):'يضيف رسالة إلى ذاكرة التخزين المؤقت.'؛أ=رسالة ؛ ب._ _ الرسائل المخزنة مؤقتا [أ. معرف الرسالة] = أ
+        الحالة (أ ، معرف المستخدم ، الحالة): أ.__مخبأ _ صوت _ الدول [معرف المستخدم] = الدولة
+        (ب ، النقابة): 'يضيف النقابة إلى ذاكرة التخزين المؤقت.'؛أ=النقابة ؛ ب. _ _ مخبأ _ النقابات [أ. معرف النقابة] = أ
+        ديف أد-إيموجي (ب ، إيموجي):
+                'يضيف الرموز التعبيرية إلى ذاكرة التخزين المؤقت.'؛أ=رمز تعبيري
+                إذا كان الأمر كذلك (أ ، رمز تعبيري): ب. _ _ مخبأ _ رموز تعبيرية [أ. إيموجي] = أ
+                إليف إيسينستانس (أ ، رد فعل): ب. _ _ مؤقتا _ إموجيس [أ. إموجيس.إيموجي] = أ
+        المكونات الإضافية (أ ، المكون): أ. _ _ المكونات المخزنة مؤقتا.إلحاق (مكون)
+        الحصول على المستخدم (أ ، معرف المستخدم):'الحصول على المستخدم من ذاكرة التخزين المؤقت.'; إرجاع أ._ _ مؤقتا _ المستخدمين.الحصول على (معرف المستخدم)
+        الحصول على المستخدمين (أ): 'الحصول على جميع المستخدمين المخبأة.'; قائمة العودة (أ._ _ مؤقتا _ المستخدمين.القيم())
+        الحصول على رسالة (أ ، معرف الرسالة):'الحصول على رسالة من ذاكرة التخزين المؤقت.'؛إرجاع أ. _ _ الرسائل المخزنة مؤقتا.الحصول على (رسالة_معرف)
+        الحصول على جميع الرسائل (أ):'الحصول على جميع الرسائل المخزنة مؤقتا.'؛قائمة الإرجاع (أ. _ _ الرسائل المخزنة مؤقتا.القيم())
+        الحصول على النقابة من ذاكرة التخزين المؤقت.'؛العودة أ._ _ مؤقتا _ النقابات.احصل على (معرف النقابة)
+        الحصول على جميع النقابات المخزنة مؤقتا.'; قائمة العودة (أ._ _ مؤقتا _ النقابات.القيم())
+        الحصول على رمز تعبيري من ذاكرة التخزين المؤقت.'; إرجاع أ. _ _ مؤقتا _ الرموز التعبيرية.الحصول على (إيموجييد)
+        الحصول على جميع الرموز التعبيرية المخزنة مؤقتا ؛ قائمة الإرجاع (أ._ _ مؤقتا _ الرموز التعبيرية.القيم())
+        الحصول على المكونات (أ):'الحصول على جميع المكونات المخزنة مؤقتا' ؛ إرجاع المكونات المخزنة مؤقتا
+        (أ ، معرف النقابة ، معرف المستخدم): ب = أ. احصل على (معرف النقابة) ؛ العودة [أ لـ في ب. صوت_الحالات إذا أ. معرف النقابة = = أ. معرف النقابة و أ. معرف المستخدم= = معرف المستخدم] [0]
+        من الحدث (أ ، اسم الحدث، * * ب):
+                مباراة الحدث_الاسم:
+                        أنواع أحداث الحالة.حدث جاهز: أ. إضافة مستخدم (مستخدم (**ب ['مستخدم']))
+                        أنواع أحداث الحالة.إنشاء رسالة: أ. إضافة رسالة (رسالة (**ب))
+                        أنواع أحداث الحالة.النقابة:
+                                ج = النقابة (**ب) ؛ أ. إضافة (ج)
+                                إذا ج. عدد الأعضاء<=2000:
+                                        للأعضاء: أ. إضافة مستخدم (مستخدم إلكتروني)
+                                ل و في ج. إموجيس: أ. إضافة إيموجي (رموز تعبيرية (**و))
+                        أنواع أحداث الحالة.النقابة _ حذف: ديل أ. _ _ مؤقتا _ النقابات [كثافة العمليات (ب ['معرف'])]
+                        أنواع أحداث الحالة.صوت_حديث_تحديث:
+                                د = أ. الحصول على (إنت (ب ['غيلد_يد'])) ؛ ز = فويسستات (**ب)
+                                إذا لين (د. الدول الصوتية) = = 0: د. الدول الصوتية.تذييل(ز)

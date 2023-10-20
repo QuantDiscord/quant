@@ -1,19 +1,19 @@
-import asyncio
-import warnings
-from asyncio import AbstractEventLoop
-from contextlib import suppress
+استيراد أسينسيو
+تحذيرات الاستيراد
+من أسينسيو استيراد أبستراكتفينتلوب
+من كونتيكستليب استيراد قمع
 
 
 # https://github.com/hikari-py/hikari/blob/4eda2eef15681143ca7957f6f5cec1df1461fd39/hikari/internal/aio.py#L195
-def get_loop() -> AbstractEventLoop:
-    with suppress(RuntimeError):
-        with warnings.catch_warnings():
-            warnings.simplefilter("ignore", DeprecationWarning)
-            loop = asyncio.get_event_loop_policy().get_event_loop()
+ديف جيت_لوب () - > أبستراكتفينتلوب:
+    مع قمع (خطأ وقت التشغيل):
+        مع التحذيرات.تحذيرات الصيد():
+            تحذيرات.مرشح بسيط ("تجاهل" ، تحذير من الإهمال)
+            حلقة = أسينسيو.احصل على سياسة الحدث().الحصول على_فعل_حلقة()
 
-        if not loop.is_closed():
-            return loop
+        إذا لم تكن حلقة.مغلق():
+            عودة حلقة
 
-    loop = asyncio.new_event_loop()
-    asyncio.set_event_loop(loop)
-    return loop
+    حلقة = أسينسيو.جديد_فعل_حلقة()
+    أسينسيو.تعيين _ الحدث_حلقة (حلقة)
+    عودة حلقة
