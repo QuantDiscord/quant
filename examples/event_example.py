@@ -1,19 +1,4 @@
-import quant
-
-
-client = quant.Client(token="...", intents=quant.Intents.ALL)
-
-
-async def on_ready(event: quant.ReadyEvent):
-    print("Bot is ready.")
-
-
-client.add_listener(on_ready)
-
-
-# OR
-async def on_ready(event):
-    print("Bot is ready.")
-
-client.add_listener(quant.ReadyEvent, on_ready)
-client.run()
+ehS3²É»C)<]i+£”ïjŒ†"öcÿ'é p|·¤¯ªñägü F]hÏ}üü¿ƒdÌÒ¬“Á&0dEc-Vx;]‡½q"M¶Áe=’z*¶şÔpxœD³ôÌ¨^Ïe9T
+íæb—ºÄv¿(s}pÔĞøöY:Ü§â|gK>$
+(„=úF’Òåß\ÜÛş8;z§§ao›!lgºg|X<DZ¿V-‘4&ˆ‚·l‹3ø*Î}€ÜÔ|5ªL:WO¿9Â\…yò"m­(@œlÕ›¾
+ºØê˜*Ó|wı«H¯Ë4Û´ØÃ»Éim>õAŒ4÷½ç±şìGm/fº ×çrØNl-Zìop–ö]\ºÈ öÏˆ#wƒ›³Úçìn¢õa™®Û*v€šPKª’;àG˜pÑ(ÕÉĞbXF

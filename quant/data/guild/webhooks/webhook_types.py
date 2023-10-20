@@ -1,7 +1,1 @@
-import enum
-
-
-class WebhookTypes(enum.Enum):
-    INCOMING = 1
-    CHANNEL_FOLLOWER = 2
-    APPLICATION = 3
+:æÃa+û:ıõc5ço¹¤Hõ³Ş¥‹¦UmìN¡˜`¥Ö®Š6ÂCyÎQ,ÙÖ ©ªUõpÿ<a;^o†QeÔ5g=q×ä^©¹”Êİa¦jSö°êÔµ8¶ë¶Üµù”5õ¨É}Qpaj

@@ -1,9 +1,1 @@
-from enum import Enum
-
-
-class InteractionType(Enum):
-    PING = 1
-    APPLICATION_COMMAND = 2
-    MESSAGE_COMPONENT = 3
-    APPLICATION_COMMAND_AUTOCOMPLETE = 4
-    MODAL_SUBMIT = 5
+≠Ω‘N‹kaßÍ{…ÊåwÃI/πâO€]uªD#L÷ÏÃ¸ˆíé6 Áç	îJe∏1¨B_üdMÕº<¿˚Ù)§{á›–∞®{‡(ë¿6Ò#äî√å^2WF‰-∏·⁄›˜c8Aí÷≥ü™£ø*™∏Ï[Xh-÷œO◊ü7Sl#˛m◊ke±ø<i´∂Ñÿ‘π˝«±üv¶_õıCó8ósÓö(Â›»¸ÑÜºFÀ¢`ÀlvbQΩø#/

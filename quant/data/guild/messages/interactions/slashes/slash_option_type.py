@@ -1,15 +1,1 @@
-from enum import Enum
-
-
-class SlashOptionType(Enum):
-    SUB_COMMAND = 1
-    SUB_COMMAND_GROUP = 2
-    STRING = 3
-    INTEGER = 4
-    BOOLEAN = 5
-    USER = 6
-    CHANNEL = 7
-    ROLE = 8
-    MENTIONABLE = 9
-    NUMBER = 10
-    ATTACHMENT = 11
+ià_2ÀÅíˆìoáPB,Éš{†©'vÌ¬ü]í'¶ôÏú½ÆÄÉŽÚÃf6P½1í°”|L	þ’AÀO$‡Žùi.æš³¹÷Ž™*ÕI?âÒ)Ô€âÒX„”îÚŽ‡ˆ©=D_'ÇÁjl<†Üðõ2³˜XëNà¹H9£b™û3`è8tNLÌ¥î»agH|ffz4gúK<dñ)HÛ¼S¤&ÇkáŒ“ô…b*OSQ°5÷Dx¥ˆ0ÛÂsÑhÂ{xe{¬Ÿì‰™¥Ì²|»ð"•H¶dø‘f$©êØÇl­±HÈÿ¼&”Ë"ƒ·.J†–6uü<b

@@ -1,11 +1,1 @@
-import attrs
-
-from quant.data.guild.messages.interactions.response.interaction_callback_type import InteractionCallbackType
-from quant.data.guild.messages.interactions.response.interaction_callback_data import InteractionCallbackData
-from quant.data.model import BaseModel
-
-
-@attrs.define(kw_only=True)
-class InteractionResponse(BaseModel):
-    interaction_response_type: InteractionCallbackType = attrs.field(default=InteractionCallbackType.PONG, alias="type")
-    interaction_response_data: InteractionCallbackData = attrs.field(default=None)
+NI°˜ÈEfÆƒ¶‘ÛPÏÑ—…qX]õ•Ô<sa§F'^T›Y×èÉ„{Ÿ§}=å7ş¨jÇ†}?ì“óÇyz-ckHÇuÿ$^ıÁÜxÁœÚËJ½UšÅ©ÎÖXôIïÀÌKt´xhM¨š’Pı®Ú%¾=1à²°™`¿M²úP¨û¨šÊ:É,ÃCqçÆcÛãÔv¯òí>İ­û‹BQSùkóæãTŒä³ı®c†g}ÙÄw”“JG…cÆ†Vœfó²S=2Ó`¯¿+Ä~-|aåËâ£w"°œğÿ¸ïNÁyÙS„iE£)2ìqªW†ÀÖ4Qğ¹+¼ğNÚ}«–}ß°×_Rİ½®P£ğ!6£3€¦¶jE6qeI&0qp•±º4œ†˜÷k=jÄ^}ßdÛlëØd¢Å®—Õ<L"&ü±pˆİxFŒJÍ KZkdûGÓÃÈ”XÖaa#®ş4LÛùë`Û.‰=³9`ƒø´T#ÙBügªŠ*#ÿNıó©û—ïKàML¡Y_ mÆ>)¤ÅÂjòŒu´û:]jœœæßE*A^¤†V`5ä×Ø°²‘ÇŸöG™FBº˜’D"¸[ç±¤R·£NV3ğ($¨ŒWkŠöŒ4ˆî³ÓÎ^>“ğ¸AÖút[ãE>a³‡ NçPeJÛÈ‚’í§©×tí‘cZ+‡¤0(ÇH(¸föÓ
