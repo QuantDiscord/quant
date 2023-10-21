@@ -34,14 +34,14 @@ from quant import (
     Client,
     SlashCommand,
     SlashOption,
-    SlashCommandContext
+    InteractionContext
 )
 
 client = Client(token="Bot YOUR_DISCORD_BOT_TOKEN")
 
 
 # Echo bot
-async def slash_command_callback(context: SlashCommandContext) -> None:
+async def slash_command_callback(context: InteractionContext) -> None:
     value = context.interaction.interaction_data.options[0].value
     await context.interaction.respond(content=value)
 

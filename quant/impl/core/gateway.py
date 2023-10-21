@@ -5,7 +5,8 @@ import logging
 from typing import (
     Dict,
     Callable,
-    NoReturn
+    NoReturn,
+    List
 )
 import asyncio
 from traceback import print_exception
@@ -14,6 +15,7 @@ import json
 import aiohttp
 
 from quant.data.activities.activity import Activity
+from quant.data.gateway.snowflake import Snowflake
 from quant.data.route import DISCORD_WS_URL
 from quant.data.intents import Intents
 from quant.impl.events.dispatch import dispatch
@@ -67,7 +69,8 @@ class Gateway:
                 "browser": "Discord iOS" if self.mobile_status else "quant",
                 "device": "quant"
             },
-            "intents": intents.value
+            "intents": intents.value,
+            "large_threshold": 250
         }
 
         self.buffer = bytearray()
@@ -101,6 +104,28 @@ class Gateway:
             op=self.PRESENCE_UPDATE,
             data=presence
         ))
+
+    async def request_guild_members(
+        self,
+        guild_id: Snowflake,
+        query: str = None,
+        limit: int = None,
+        presences: bool = False,
+        user_ids: Snowflake | List[Snowflake] = None,
+        nonce: bool = False
+    ):
+        payload = self.create_payload(
+            op=self.REQUEST_GUILD_MEMBERS,
+            data={
+                'guild_id': guild_id,
+                'query': query,
+                'limit': limit,
+                'presences': presences,
+                'user_ids': user_ids,
+                'nonce': nonce
+            }
+        )
+        await self.send_data(payload)
 
     @property
     def get_logger(self) -> logging.Logger:
@@ -215,7 +240,7 @@ class Gateway:
         self.get_logger.info("Bot identified")
 
     async def close(self, code: int = 4000):
-        self.get_logger.info("Connection closing")
+        self.get_logger.info(f"Connection closing, code: {code}")
 
         if not self.websocket_connection:
             return
@@ -249,7 +274,7 @@ class Gateway:
         self_mute: bool = False,
         self_deaf: bool = False
     ) -> None:
-        await self.send_data(self.create_payload(
+        payload = self.create_payload(
             op=4,
             data={
                 "guild_id": guild_id,
@@ -257,17 +282,15 @@ class Gateway:
                 "self_mute": self_mute,
                 "self_deaf": self_deaf
             }
-        ))
+        )
+        await self.send_data(payload)
 
     def create_payload(
         self, op: int,
         data=None, sequence: int = None,
         event_name: str = None
     ) -> str:
-        payload = {}
-
-        payload.update({"op": op, "d": data})
-
+        payload = {"op": op, "d": data}
         if op == self.DISPATCH:
             payload.update({"s": sequence, "t": event_name})
 

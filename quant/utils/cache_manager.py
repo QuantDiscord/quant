@@ -24,9 +24,6 @@ class CacheManager:
         """Adds message to cache."""
         self.__cached_messages[message.message_id] = message
 
-    def add_voice_state(self, user_id: int, state: VoiceState):
-        self.__cached_voice_states[user_id] = state
-
     def add_guild(self, guild: Guild):
         """Adds guild to cache."""
         self.__cached_guilds[guild.guild_id] = guild
@@ -78,6 +75,7 @@ class CacheManager:
         return self.__cached_components
 
     def get_voice_state(self, guild_id: int, user_id: int) -> VoiceState:
+        """Getting voice state where user in"""
         guild = self.get_guild(guild_id)
 
         return [state for state in guild.voice_states
@@ -93,16 +91,13 @@ class CacheManager:
                 guild_object = Guild(**data)
                 self.add_guild(guild_object)
 
-                if guild_object.member_count <= 2000:
-                    for member in guild_object.members:
-                        self.add_user(member.user)
-
                 for emoji in guild_object.emojis:
                     self.add_emoji(Emoji(**emoji))
             case EventTypes.GUILD_DELETE:
                 del self.__cached_guilds[int(data["id"])]
             case EventTypes.VOICE_STATE_UPDATE:
-                guild = self.get_guild(int(data['guild_id']))
+                guild_id = data.get('guild_id')
+                guild = self.get_guild(int(guild_id))
                 state = VoiceState(**data)
 
                 if len(guild.voice_states) == 0:

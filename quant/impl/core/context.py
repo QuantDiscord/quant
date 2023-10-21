@@ -1,4 +1,7 @@
-from typing import List
+from typing import List, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from quant.impl.core.client import Client
 
 from quant.data.guild.messages.interactions.interaction import Interaction
 from quant.data.components.action_row import ActionRow
@@ -10,7 +13,7 @@ from quant.data.guild.messages.message import Message
 class BaseContext:
     def __init__(self, client, message: Message) -> None:
         self.original_message = message
-        self.client = client
+        self.client: Client = client
 
     async def send_message(
         self,
@@ -56,9 +59,5 @@ class MessageCommandContext(BaseContext):
 
 class InteractionContext:
     def __init__(self, client, interaction: Interaction) -> None:
-        self.client = client
+        self.client: Client = client
         self.interaction = interaction
-
-
-class SlashCommandContext(InteractionContext):
-    ...

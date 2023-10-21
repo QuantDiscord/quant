@@ -1,5 +1,5 @@
-from .context import MessageCommandContext, SlashCommandContext
+from .context import MessageCommandContext, InteractionContext
 from .commands import MessageCommand, SlashCommand
-from .client import Client, Token, TokenType
+from .client import Client
 from .rest import DiscordREST
 from .gateway import Gateway

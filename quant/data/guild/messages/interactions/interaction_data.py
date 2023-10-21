@@ -2,6 +2,7 @@ from typing import List, Any, Dict
 
 import attrs
 
+from quant.data.components.action_row import ActionRow
 from quant.data.guild.messages.interactions.response.choice_response import ChoiceResponse
 from quant.data.model import BaseModel
 from quant.utils.attrs_extensions import int_converter
@@ -20,5 +21,5 @@ class InteractionData(BaseModel):
     value: str | int | bool = attrs.field(default=None)
     options: List[ChoiceResponse] = attrs.field(default=None, converter=ChoiceResponse.as_dict_iter)
     focused: bool = attrs.field(default=False)
-    components: List[Any] = attrs.field(default=None)
+    components: List[ActionRow] = attrs.field(default=None, converter=ActionRow.as_dict_iter)
     resolved: Dict = attrs.field(default=None)

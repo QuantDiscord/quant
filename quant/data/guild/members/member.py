@@ -10,7 +10,7 @@ from quant.data.user import User
 
 
 @attrs.define(kw_only=True, field_transformer=execute_converters)
-class GuildMember(User):
+class GuildMember:
     username: str = attrs.field(default=None)
     deaf: bool = attrs.field(default=False)
     mute: bool = attrs.field(default=False)
@@ -20,7 +20,7 @@ class GuildMember(User):
     nick: str | None = attrs.field(default=None)
     avatar: str | None = attrs.field(default=None)
     roles: List[Any] | None = attrs.field(default=None)
-    join_time: datetime.datetime = attrs.field(alias="joined_at", default=0, converter=iso_to_datetime)
+    joined_at: datetime.datetime = attrs.field(default=0, converter=iso_to_datetime)
     premium_since: int | None = attrs.field(default=0)
     communication_disabled_until: int | None = attrs.field(default=0)
     user: User = attrs.field(default=None, converter=User.as_dict)

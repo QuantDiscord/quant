@@ -9,7 +9,7 @@ import attrs
 from quant.data.guild.messages.emoji import Emoji
 from quant.data.guild.members.member import GuildMember, User
 from quant.data.guild.messages.interactions.interaction import Interaction
-# from quant.data.components.action_row import ActionRow
+from quant.data.components.action_row import ActionRow
 from quant.data.model import BaseModel
 from quant.data.guild.messages.embeds import Embed
 from quant.utils.attrs_extensions import execute_converters, int_converter, iso_to_datetime
@@ -36,7 +36,7 @@ class Message(BaseModel):
     mention_roles: List[Any] | None = attrs.field(default=None)
     mention_channels: List[Any] | None = attrs.field(default=None)
     message_reference: Any | None = attrs.field(default=None)
-    components: List[Any] | None = attrs.field(default=None)
+    components: List[ActionRow] | None = attrs.field(default=None)
     stickers: List[Any] | None = attrs.field(default=None)
     attachments: List[Any] | None = attrs.field(default=None)
     flags: int | None = attrs.field(default=None, converter=int_converter)

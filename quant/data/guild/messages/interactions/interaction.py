@@ -3,6 +3,7 @@ from typing import Any, List
 import attrs
 
 from quant.data.user import User
+from quant.data.guild.messages.interactions.modals.modal import Modal
 from quant.data.guild.messages.embeds import Embed
 from quant.data.guild.messages.mentions.allowed_mentions import AllowedMentions
 from quant.data.guild.messages.message_flags import MessageFlags
@@ -73,14 +74,13 @@ class Interaction(BaseModel):
             ), self.interaction_id, self.interaction_token
         )
 
-    async def respond_modal(self, modal):
-        # I don't give a fuck, wait for normal modals implementation
+    async def respond_modal(self, modal: Modal):
         await self.client.rest.create_interaction_response(
             InteractionCallbackType.MODAL,
             ModalInteractionCallbackData(
-                custom_id=modal.get("custom_id"),
-                title=modal.get('title'),
-                components=modal.get("components")
+                custom_id=modal.custom_id,
+                title=modal.title,
+                components=[component.as_json() for component in modal.components]
             ),
             self.interaction_id, self.interaction_token
         )

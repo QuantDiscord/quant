@@ -31,8 +31,8 @@ class User(BaseModel):
     public_flags: int = attrs.field(default=0)
     avatar_decoration_data: Any = attrs.field(default=None)
     verified: bool = attrs.field(default=False)
-    _email: str = attrs.field(default=None, alias="email")
-    _member: Any = attrs.field(alias="member", default=None)
+    _email: str = attrs.field(default=None, alias="email", repr=False)
+    _member: Any = attrs.field(alias="member", default=None, repr=False)
 
     @classmethod
     def as_dict(cls, data) -> User | None:

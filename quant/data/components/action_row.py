@@ -1,4 +1,4 @@
-from typing import Dict, Any
+from typing import Dict, Any, List, Tuple
 
 from quant.data.components.component import Component
 
@@ -15,3 +15,7 @@ class ActionRow:
             "type": self.INTERACTION_TYPE,
             "components": [component.as_json() for component in self.components]
         }
+
+    def as_dict_iter(self) -> tuple[Component, ...]:
+        if self is not None:
+            return self.components

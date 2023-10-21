@@ -15,7 +15,7 @@ from quant.data.user import User
 from quant.impl.events.bot.ready_event import ReadyEvent
 from quant.data.guild.messages.interactions.interaction_type import InteractionType
 from quant.impl.core.commands import SlashCommand
-from quant.impl.core.context import SlashCommandContext
+from quant.impl.core.context import InteractionContext
 from quant.impl.events.bot.interaction_create_event import InteractionCreateEvent
 from quant.impl.core import MessageCommand, MessageCommandContext
 from quant.impl.core.exceptions.command_exceptions import CommandNotFoundException, CommandArgumentsNotFound
@@ -158,7 +158,7 @@ class Client:
         interaction_type = event.interaction.interaction_type
         match interaction_type:
             case InteractionType.APPLICATION_COMMAND:
-                context = SlashCommandContext(self, event.interaction)
+                context = InteractionContext(self, event.interaction)
                 for command in self.slash_commands.values():
                     if command.name == event.interaction.interaction_data.name:
                         await command.callback_func(context)

@@ -228,8 +228,8 @@ class DiscordREST(RESTAware):
             payload.update({"flags": flags})
 
         if attachments is not None:
-            form_data = aiohttp.FormData()
-            form_data.add_field("payload_json", )
+            # form_data = aiohttp.FormData()
+            # form_data.add_field("payload_json", )
             payload.update({"attachments": attachments})
 
         if allowed_mentions is not None:
@@ -250,13 +250,13 @@ class DiscordREST(RESTAware):
     async def fetch_guild(self, guild_id: int, with_counts: bool = False) -> Guild:
         headers = {self.http.AUTHORIZATION: self.token, }
         url_with_guild_id = GET_GUILD.uri.url_string.format(guild_id=guild_id)
-        get_guild_url = (
+        build_guild_url = (
             url_with_guild_id
             if not with_counts
             else url_with_guild_id + "?with_counts=true"
         )
         data = await self.http.send_request(
-            GET_GUILD.method, get_guild_url,
+            GET_GUILD.method, build_guild_url,
             headers=headers
         )
         guild_data = await data.json()
