@@ -74,11 +74,11 @@ Add commands and event listeners using the appropriate methods provided by the C
 Start the bot using client.run().
 
 # Documentation:
-Coming soon
+Coming soon.
 
 
 # Contibuting:
-Coming soon
+Coming soon.
 
 
 # License:
