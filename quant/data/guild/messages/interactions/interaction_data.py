@@ -21,5 +21,5 @@ class InteractionData(BaseModel):
     value: str | int | bool = attrs.field(default=None)
     options: List[ChoiceResponse] = attrs.field(default=None, converter=ChoiceResponse.as_dict_iter)
     focused: bool = attrs.field(default=False)
-    components: List[ActionRow] = attrs.field(default=None, converter=ActionRow.as_dict_iter)
+    components: ActionRow = attrs.field(default=None, converter=ActionRow)
     resolved: Dict = attrs.field(default=None)

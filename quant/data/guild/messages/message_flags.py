@@ -2,6 +2,7 @@ from enum import Enum
 
 
 class MessageFlags(Enum):
+    NONE = 0
     CROSSPOSTED = 1 << 0
     IS_CROSSPOST = 1 << 1
     SUPPRESS_EMBEDS = 1 << 2

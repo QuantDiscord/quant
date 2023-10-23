@@ -1,9 +1,9 @@
 import re
 from typing import List, Any, Dict
 
-import aiohttp
 import attrs
 
+from quant.data.components.action_row import ActionRow
 from quant.data.guild.messages.interactions.slashes.slash_option import SlashOption
 from quant.api.core.rest_aware import RESTAware
 from quant.data.gateway.snowflake import Snowflake
@@ -17,7 +17,7 @@ from quant.data.route import (
     CREATE_MESSAGE, DELETE_MESSAGE,
     CREATE_WEBHOOK, GET_GUILD, CREATE_GUILD,
     DELETE_GUILD, CREATE_REACTION, GET_GUILD_EMOJI,
-    CREATE_INTERACTION_RESPONSE, GET_MESSAGE,
+    CREATE_INTERACTION_RESPONSE, GET_MESSAGE, EDIT_MESSAGE,
     CREATE_APPLICATION_COMMAND, GET_ORIGINAL_INTERACTION_RESPONSE
 )
 from quant.data.guild.messages.message import Message
@@ -191,7 +191,7 @@ class DiscordREST(RESTAware):
         payload_json: str = None,
         attachments: List = None,
         flags: int = None
-    ):
+    ) -> Message:
         payload = {}
 
         if content is not None:
@@ -404,12 +404,53 @@ class DiscordREST(RESTAware):
             application_id=application_id,
             interaction_token=interaction_token
         )
-        print(url)
         response = await self.http.send_request(
             GET_ORIGINAL_INTERACTION_RESPONSE.method,
             url=url,
             headers=headers
         )
-        print('Raw', await response.json())
+
+        return Message(**await response.json())
+
+    async def edit_message(
+        self,
+        channel_id: Snowflake | int,
+        message_id: Snowflake | int,
+        content: str = None,
+        embeds: List[Embed] = None,
+        flags: int = None,
+        allowed_mentions: AllowedMentions = None,
+        components: ActionRow = None,
+    ) -> Message:  # TODO: File uploading later
+        payload = {}
+        headers = {self.http.AUTHORIZATION: self.token}
+
+        if content is not None:
+            payload.update({"content": content})
+
+        if embeds is not None:
+            payload.update({"embeds": embeds})
+
+        if flags is not None:
+            payload.update({"flags": flags})
+
+        if allowed_mentions is not None:
+            payload.update({"allowed_mentions": attrs.asdict(allowed_mentions)})
+
+        if components is not None:
+            payload.update({"components": []})
+            for component in components.components:
+                message_components = payload.get("components")
+                message_components.append(component)  # type: ignore
+
+        url = EDIT_MESSAGE.uri.url_string.format(
+            channel_id=channel_id, message_id=message_id
+        )
+        response = await self.http.send_request(
+            EDIT_MESSAGE.method,
+            url=url,
+            data=payload,
+            headers=headers
+        )
 
         return Message(**await response.json())

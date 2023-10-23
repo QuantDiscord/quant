@@ -7,7 +7,8 @@ from typing import (
     Any,
     Dict,
     overload,
-    TypeVar
+    TypeVar,
+    List
 )
 
 from quant.data.gateway.snowflake import Snowflake
@@ -37,7 +38,8 @@ class Client:
         token: str,
         intents: Intents = Intents.ALL_UNPRIVILEGED,
         prefix: str = None,
-        mobile_status: bool = False
+        mobile_status: bool = False,
+        shards: List[int] = None
     ) -> None:
         self.my_user: User | None = None
         self.token = token
@@ -47,7 +49,8 @@ class Client:
         self.gateway: Gateway = Gateway(
             token=token,
             intents=self.intents,
-            mobile_status=self.mobile_status
+            mobile_status=self.mobile_status,
+            shards=shards
         )
         self.rest = DiscordREST(self.gateway.token)
         self.cache = self.gateway.cache

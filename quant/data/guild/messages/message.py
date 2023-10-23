@@ -6,6 +6,8 @@ from typing import List, Any
 
 import attrs
 
+from quant.data.guild.messages.mentions.allowed_mentions import AllowedMentions
+from quant.data.guild.messages.message_flags import MessageFlags
 from quant.data.guild.messages.emoji import Emoji
 from quant.data.guild.members.member import GuildMember, User
 from quant.data.guild.messages.interactions.interaction import Interaction
@@ -58,3 +60,21 @@ class Message(BaseModel):
 
     async def create_reaction(self, emoji: Emoji) -> None:
         await self.client.rest.create_reaction(emoji, self.guild_id, self.channel_id, self.message_id)
+
+    async def edit_message(
+        self,
+        content: str = None,
+        embeds: List[Embed] = None,
+        flags: MessageFlags = MessageFlags.NONE,
+        allowed_mentions: AllowedMentions = None,
+        components: ActionRow = None
+    ) -> Message:
+        return await self.client.rest.edit_message(
+            channel_id=self.channel_id,
+            message_id=self.message_id,
+            content=content,
+            embeds=embeds,
+            flags=flags.value,
+            allowed_mentions=allowed_mentions,
+            components=components
+        )

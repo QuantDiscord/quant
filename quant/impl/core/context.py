@@ -31,11 +31,11 @@ class BaseContext:
         payload_json: str = None,
         attachments: List = None,
         flags: int = None
-    ) -> None:
+    ) -> Message:
         if components is not None:
             components = [component.as_json() for component in components]
 
-        await self.client.rest.create_message(
+        return await self.client.rest.create_message(
             channel_id=channel_id if channel_id is not None else self.original_message.channel_id,
             content=content,
             nonce=nonce,

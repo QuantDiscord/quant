@@ -44,7 +44,8 @@ class Gateway:
         token: str,
         intents: Intents,
         mobile_status: bool = False,
-        api_version: int = 10
+        api_version: int = 10,
+        shards: List[int] = None
     ) -> None:
         self.token = token
         self.api_version = api_version
@@ -72,6 +73,9 @@ class Gateway:
             "intents": intents.value,
             "large_threshold": 250
         }
+
+        if shards is not None:
+            self.raw_ws_request["shard"] = shards
 
         self.buffer = bytearray()
         self.zlib_decompressed_object = zlib.decompressobj()

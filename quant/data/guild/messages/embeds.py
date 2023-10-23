@@ -51,7 +51,7 @@ class Embed(dict):
             image=image,
             thumbnail=thumbnail,
             author=asdict(author) if author is not None else None,
-            fields=[asdict(i) for i in fields]
+            fields=[asdict(i) for i in fields] if fields is not None else None
         )
 
         self.title = title
