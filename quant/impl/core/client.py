@@ -15,6 +15,7 @@ from quant.data.gateway.snowflake import Snowflake
 from quant.data.user import User
 from quant.impl.events.bot.ready_event import ReadyEvent
 from quant.data.guild.messages.interactions.interaction_type import InteractionType
+from quant.data.components.modals.modal import Modal
 from quant.impl.core.commands import SlashCommand
 from quant.impl.core.context import InteractionContext
 from quant.impl.events.bot.interaction_create_event import InteractionCreateEvent
@@ -58,6 +59,7 @@ class Client:
 
         self._commands: Dict[str, MessageCommand] = {}
         self._slash_commands: Dict[str, SlashCommand] = {}
+        self._modals: Dict[str, Modal] = {}
 
         self.add_listener(MessageCreateEvent, self._handle_message_commands)
         self.add_listener(InteractionCreateEvent, self._handle_interactions)
@@ -149,6 +151,13 @@ class Client:
                 options=command.options
             )
 
+    def add_modal(self, *modals: Modal) -> None:
+        for modal in modals:
+            if inspect.iscoroutine(modal):
+                raise LibraryException("Callback function must be coroutine")
+
+            self.modals[str(modal.custom_id)] = modal
+
     @property
     def message_commands(self) -> Dict[str, MessageCommand]:
         return self._commands
@@ -157,14 +166,24 @@ class Client:
     def slash_commands(self) -> Dict[str, SlashCommand]:
         return self._slash_commands
 
+    @property
+    def modals(self) -> Dict[str, Modal]:
+        return self._modals
+
     async def _handle_interactions(self, event: InteractionCreateEvent):
         interaction_type = event.interaction.interaction_type
+
         match interaction_type:
             case InteractionType.APPLICATION_COMMAND:
-                context = InteractionContext(self, event.interaction)
                 for command in self.slash_commands.values():
                     if command.name == event.interaction.interaction_data.name:
+                        context = InteractionContext(self, event.interaction)
                         await command.callback_func(context)
+            case InteractionType.MODAL_SUBMIT:
+                for modal in self.modals.values():
+                    if modal.custom_id == event.interaction.interaction_data.custom_id:
+                        context = InteractionContext(self, event.interaction)
+                        await modal.callback_func(context)
 
     async def _handle_message_commands(self, event: MessageCreateEvent) -> None:
         content = event.message.content

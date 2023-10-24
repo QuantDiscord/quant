@@ -1,14 +1,27 @@
-from typing import List
+from typing import List, TYPE_CHECKING
 
 import attrs
 
+if TYPE_CHECKING:
+    from quant.impl.core.context import InteractionContext
+
 from quant.data.components.component import Component
 from quant.data.components.action_row import ActionRow
-from quant.data.guild.messages.interactions.modals.text_input_style import TextInputStyle
+from quant.data.components.modals.text_input_style import TextInputStyle
+
+
+class ModalBackend:
+    async def callback(self, context):
+        pass
+
+    callback_func = callback
+
+    def set_callback(self, coro):
+        self.callback_func = coro
 
 
 @attrs.define(kw_only=True)
-class Modal:
+class Modal(ModalBackend):
     title: str = attrs.field(default="Modal")
     custom_id: str = attrs.field()
     components: List[ActionRow] = attrs.field()

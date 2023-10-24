@@ -3,7 +3,7 @@ from typing import Any, List
 import attrs
 
 from quant.data.user import User
-from quant.data.guild.messages.interactions.modals.modal import Modal
+from quant.data.components.modals.modal import Modal
 from quant.data.guild.messages.embeds import Embed
 from quant.data.guild.messages.mentions.allowed_mentions import AllowedMentions
 from quant.data.guild.messages.message_flags import MessageFlags

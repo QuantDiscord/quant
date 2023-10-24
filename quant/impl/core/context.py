@@ -2,17 +2,17 @@ from typing import List, TYPE_CHECKING
 
 if TYPE_CHECKING:
     from quant.impl.core.client import Client
+    from quant.data.guild.messages.interactions.interaction import Interaction
+    from quant.data.guild.messages.message import Message
 
-from quant.data.guild.messages.interactions.interaction import Interaction
 from quant.data.components.action_row import ActionRow
 from quant.data.guild.messages.embeds import Embed
 from quant.data.guild.messages.mentions import AllowedMentions
-from quant.data.guild.messages.message import Message
 
 
 class BaseContext:
-    def __init__(self, client, message: Message) -> None:
-        self.original_message = message
+    def __init__(self, client, message) -> None:
+        self.original_message: Message = message
         self.client: Client = client
 
     async def send_message(
@@ -31,7 +31,7 @@ class BaseContext:
         payload_json: str = None,
         attachments: List = None,
         flags: int = None
-    ) -> Message:
+    ):
         if components is not None:
             components = [component.as_json() for component in components]
 
@@ -58,6 +58,6 @@ class MessageCommandContext(BaseContext):
 
 
 class InteractionContext:
-    def __init__(self, client, interaction: Interaction) -> None:
+    def __init__(self, client, interaction) -> None:
         self.client: Client = client
-        self.interaction = interaction
+        self.interaction: Interaction = interaction
