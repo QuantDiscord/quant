@@ -61,3 +61,7 @@ class InteractionContext:
     def __init__(self, client, interaction) -> None:
         self.client: Client = client
         self.interaction: Interaction = interaction
+
+
+class CombineContext(InteractionContext, MessageCommandContext):
+    ...

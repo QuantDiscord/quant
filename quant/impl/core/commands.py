@@ -26,3 +26,7 @@ class SlashCommand(Command):
     def __init__(self, options: List[SlashOption] = None, **kwargs) -> None:
         super().__init__(kwargs.get("name"), kwargs.get("description"))
         self.options = options
+
+
+class CombineCommand(MessageCommand, SlashCommand):
+    ...
