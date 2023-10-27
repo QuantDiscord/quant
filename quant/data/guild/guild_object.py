@@ -3,6 +3,7 @@ from typing import List, Any
 
 import attrs
 
+from quant.data.guild.channel_object import Channel
 from quant.data.guild.voice.voice_state_update import VoiceState
 from quant.data.model import BaseModel
 from quant.data.gateway.snowflake import Snowflake
@@ -23,7 +24,7 @@ class Guild(BaseModel):
     stage_instances: List[Any] = attrs.field(default=[])
     embedded_activities: List[Any] = attrs.field(default=[])
     unavailable: bool = attrs.field(default=False)
-    channels: List[Any] = attrs.field(default=[])
+    channels: List[Channel] = attrs.field(default=None, converter=Channel.as_dict_iter)
     guild_scheduled_events: List[Any] = attrs.field(default=[])
     guild_hashes: List[Any] = attrs.field(default=[])
     lazy: bool = attrs.field(default=False)

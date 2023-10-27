@@ -7,7 +7,6 @@ from quant.data.components.modals.modal import Modal
 from quant.data.guild.messages.embeds import Embed
 from quant.data.guild.messages.mentions.allowed_mentions import AllowedMentions
 from quant.data.guild.messages.message_flags import MessageFlags
-from quant.data.guild.guild_object import Guild
 from quant.data.guild.members.member import GuildMember
 from quant.data.guild.messages.interactions.interaction_data import InteractionData
 from quant.data.guild.messages.interactions.interaction_type import InteractionType
@@ -30,7 +29,6 @@ class Interaction(BaseModel):
         converter=InteractionType
     )
     interaction_data: InteractionData = attrs.field(alias="data", default=None, converter=InteractionData.as_dict)
-    guild: Guild = attrs.field(default=None, converter=Guild.as_dict)
     guild_id: Snowflake = attrs.field(default=0, converter=int_converter)
     channel: Any = attrs.field(default=None)
     channel_id: Snowflake = attrs.field(default=0, converter=int_converter)
@@ -43,6 +41,7 @@ class Interaction(BaseModel):
     guild_locale: str = attrs.field(default=None)
     entitlements: List[Any] = attrs.field(default=None)
     entitlement_sku_ids: Any = attrs.field(default=None)
+    _guild: Any = attrs.field(default=None, repr=False, alias="guild")
 
     async def respond(
         self,
@@ -68,7 +67,7 @@ class Interaction(BaseModel):
                 tts=tts,
                 embeds=embeds,
                 allowed_mentions=allowed_mentions,
-                flags=flags if flags <= 0 else flags.value,
+                flags=flags if flags is None or flags <= 0 else flags.value,
                 components=components,
                 attachments=attachments
             ), self.interaction_id, self.interaction_token

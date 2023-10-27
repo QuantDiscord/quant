@@ -6,6 +6,7 @@ from quant.data.user import User
 from quant.data.guild.guild_object import Guild
 from quant.data.guild.messages.emoji import Emoji, Reaction
 from quant.data.guild.messages.message import Message
+from quant.data.guild.channel_object import Channel
 from quant.impl.events.types import EventTypes
 
 
@@ -15,6 +16,7 @@ class CacheManager:
     __cached_messages: Dict[int, Message] = {}
     __cached_emojis: Dict[int, Emoji | Reaction] = {}
     __cached_components: List[Component] = []
+    __cached_channels: Dict[int, Channel] = {}
 
     def add_user(self, user: User):
         """Adds user to cache."""
@@ -37,6 +39,9 @@ class CacheManager:
 
     def add_component(self, component: Component):
         self.__cached_components.append(component)
+
+    def add_channel(self, channel: Channel):
+        self.__cached_channels[channel.channel_id] = channel
 
     def get_user(self, user_id: int) -> User | None:
         """Get user from cache."""
@@ -66,6 +71,10 @@ class CacheManager:
         """Get emoji from cache."""
         return self.__cached_emojis.get(emoji_id)
 
+    def get_channel(self, channel_id: int) -> Channel:
+        """Get channel from cache"""
+        return self.__cached_channels.get(channel_id)
+
     def get_emojis(self) -> List[Emoji | Reaction]:
         """Get all cached emojis"""
         return list(self.__cached_emojis.values())
@@ -91,6 +100,9 @@ class CacheManager:
                 guild_object = Guild(**data)
                 self.add_guild(guild_object)
 
+                for channel in guild_object.channels:
+                    self.add_channel(channel)
+
                 for emoji in guild_object.emojis:
                     self.add_emoji(Emoji(**emoji))
             case EventTypes.GUILD_DELETE:
@@ -102,5 +114,7 @@ class CacheManager:
 
                 if len(guild.voice_states) == 0:
                     guild.voice_states.append(state)
+            case EventTypes.CHANNEL_CREATE:
+                self.add_channel(Channel(**data))
 
 # мама сказала, что я умный

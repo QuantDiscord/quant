@@ -8,9 +8,9 @@ from typing import (
     Dict,
     overload,
     TypeVar,
-    List,
-    cast
+    List
 )
+import warnings
 
 from quant.data.gateway.snowflake import Snowflake
 from quant.data.user import User
@@ -18,13 +18,13 @@ from quant.impl.events.bot.ready_event import ReadyEvent
 from quant.data.guild.messages.interactions.interaction_type import InteractionType
 from quant.data.components.modals.modal import Modal
 from quant.impl.core.commands import SlashCommand, CombineCommand
-from quant.impl.core.context import InteractionContext
+from quant.impl.core.context import InteractionContext, CombineContext
 from quant.impl.events.bot.interaction_create_event import InteractionCreateEvent
 from quant.impl.core import MessageCommand, MessageCommandContext
 from quant.impl.core.exceptions.command_exceptions import CommandNotFoundException, CommandArgumentsNotFound
 from quant.impl.core.gateway import Gateway
 from quant.data.intents import Intents
-from quant.impl.core.exceptions.library_exception import LibraryException
+from quant.impl.core.exceptions.library_exception import LibraryException, ExperimentalFutureWarning
 from quant.impl.core.rest import DiscordREST
 from quant.impl.events.event import BaseEvent
 from quant.data.model import BaseModel
@@ -60,6 +60,7 @@ class Client:
 
         self._commands: Dict[str, MessageCommand] = {}
         self._slash_commands: Dict[str, SlashCommand] = {}
+        self._combined_commands: Dict[str, CombineCommand] = {}
         self._modals: Dict[str, Modal] = {}
 
         self.add_listener(MessageCreateEvent, self._handle_message_commands)
@@ -132,12 +133,15 @@ class Client:
             raise LibraryException(f"You need provide which event you need in function {coro}")
 
     async def add_combine_command(self, *commands: CombineCommand):
+        warnings.warn(
+            "Combine commands is experimental feature and can be removed in future",
+            category=ExperimentalFutureWarning
+        )
         for command in commands:
             if inspect.iscoroutine(command.callback):
                 raise LibraryException("Callback function must be coroutine")
 
-            self.add_message_command(command)
-            await self.add_slash_command(command)
+            self.combined_commands[command.name] = command
 
     def add_message_command(self, *commands: MessageCommand) -> None:
         for command in commands:
@@ -150,6 +154,9 @@ class Client:
         for command in commands:
             if inspect.iscoroutine(command.callback):
                 raise LibraryException("Callback function must be coroutine")
+
+            if len(self.slash_commands) == 100:
+                raise LibraryException("You can't create more than 100 slash commands.")
 
             self.slash_commands[command.name] = command
 
@@ -179,14 +186,22 @@ class Client:
     def modals(self) -> Dict[str, Modal]:
         return self._modals
 
+    @property
+    def combined_commands(self) -> Dict[str, CombineCommand]:
+        return self._combined_commands
+
     async def _handle_interactions(self, event: InteractionCreateEvent):
         interaction_type = event.interaction.interaction_type
         context = InteractionContext(self, event.interaction)
 
         match interaction_type:
             case InteractionType.APPLICATION_COMMAND:
-                for command in self.slash_commands.values():
-                    if command.name == event.interaction.interaction_data.name:
+                slash_commands = self.slash_commands.values()
+                combined_commands = self.combined_commands.values()
+                for command in list(slash_commands) + list(combined_commands):
+                    if isinstance(command, CombineCommand) and command.name == event.interaction.interaction_data.name:
+                        await command.callback_func(CombineContext(self, None, event.interaction))
+                    elif command.name == event.interaction.interaction_data.name:
                         await command.callback_func(context)
             case InteractionType.MODAL_SUBMIT:
                 for modal in self.modals.values():
@@ -206,12 +221,18 @@ class Client:
             if substring_command not in self.message_commands.keys():
                 raise CommandNotFoundException(f"command {substring_command} not found")
 
-            for command in self.message_commands.values():
+            message_commands = self.message_commands.values()
+            combined_commands = self.combined_commands.values()
+            for command in list(message_commands) + list(combined_commands):
                 try:
                     if not command.name == substring_command:
                         continue
                     context = MessageCommandContext(client=self, message=event.message)
-                    await command.callback_func(context, *arguments)
+
+                    if isinstance(command, CombineCommand):
+                        await command.callback_func(CombineContext(self, event.message, None), *arguments)
+                    else:
+                        await command.callback_func(context, *arguments)
                 except TypeError as e:  # stupid but ok
                     raise CommandArgumentsNotFound(e)
 
