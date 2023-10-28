@@ -25,19 +25,20 @@ from quant.utils.asyncio_utils import get_loop
 
 
 class Gateway:
-    DISPATCH = 0
-    HEARTBEAT = 1
-    IDENTIFY = 2
-    PRESENCE_UPDATE = 3
-    VOICE_STATE_UPDATE = 4
-    RESUME = 6
-    RECONNECT = 7
-    REQUEST_GUILD_MEMBERS = 8
-    INVALID_SESSION = 9
-    HELLO = 10
-    HEARTBEAT_ACK = 11
+    _DISPATCH = 0
+    _HEARTBEAT = 1
+    _IDENTIFY = 2
+    _PRESENCE_UPDATE = 3
+    _VOICE_STATE_UPDATE = 4
+    _RESUME = 6
 
-    ZLIB_SUFFIX = b'\x00\x00\xff\xff'
+    _RECONNECT = 7
+    _REQUEST_GUILD_MEMBERS = 8
+    _INVALID_SESSION = 9
+    _HELLO = 10
+    _HEARTBEAT_ACK = 11
+
+    _ZLIB_SUFFIX = b'\x00\x00\xff\xff'
 
     def __init__(
         self,
@@ -105,7 +106,7 @@ class Gateway:
         }
 
         await self.send_data(self.create_payload(
-            op=self.PRESENCE_UPDATE,
+            op=self._PRESENCE_UPDATE,
             data=presence
         ))
 
@@ -119,7 +120,7 @@ class Gateway:
         nonce: bool = False
     ):
         payload = self.create_payload(
-            op=self.REQUEST_GUILD_MEMBERS,
+            op=self._REQUEST_GUILD_MEMBERS,
             data={
                 'guild_id': guild_id,
                 'query': query,
@@ -164,7 +165,7 @@ class Gateway:
         if isinstance(received_data, bytes):
             self.buffer.extend(received_data)
 
-            if len(received_data) < 4 or received_data[-4:] != self.ZLIB_SUFFIX:
+            if len(received_data) < 4 or received_data[-4:] != self._ZLIB_SUFFIX:
                 return
 
             received_data = self.zlib_decompressed_object.decompress(self.buffer)
@@ -179,20 +180,20 @@ class Gateway:
         sequence = received_data["s"]
 
         match op:
-            case self.DISPATCH:
+            case self._DISPATCH:
                 self.sequence = int(sequence)
                 received_event_type = received_data["t"]
 
                 self.cache.add_from_event(received_event_type, **received_data["d"])
                 await dispatch(self, received_event_type, **received_data["d"])
-            case self.INVALID_SESSION:
+            case self._INVALID_SESSION:
                 await self.websocket_connection.close(code=4000)
                 await self.error_reconnect(code=4000)
-            case self.HELLO:
+            case self._HELLO:
                 await self.send_hello(received_data)
-            case self.HEARTBEAT_ACK:
+            case self._HEARTBEAT_ACK:
                 self.latency = time.perf_counter() - self._previous_heartbeat
-            case self.RECONNECT:
+            case self._RECONNECT:
                 await self.close(code=1012)
 
     async def keep_alive_check(self) -> None:
@@ -230,7 +231,7 @@ class Gateway:
         if self.websocket_connection.closed:
             return
 
-        payload = self.create_payload(self.RESUME, {
+        payload = self.create_payload(self._RESUME, {
             "token": self.token,
             "session_id": self.session_id,
             "seq": self.sequence
@@ -241,7 +242,7 @@ class Gateway:
         if resume:
             return await self.resume_connection()
 
-        await self.send_data(self.create_payload(self.IDENTIFY, self.identify_payload))
+        await self.send_data(self.create_payload(self._IDENTIFY, self.identify_payload))
         self.get_logger.info("Bot identified")
 
     async def close(self, code: int = 4000):
@@ -259,7 +260,7 @@ class Gateway:
         if self.websocket_connection.closed:
             return
 
-        await self.send_data(self.create_payload(self.HEARTBEAT, sequence=self.sequence))
+        await self.send_data(self.create_payload(self._HEARTBEAT, sequence=self.sequence))
         self._previous_heartbeat = time.perf_counter()
 
         await asyncio.sleep(interval)
@@ -296,7 +297,7 @@ class Gateway:
         event_name: str = None
     ) -> str:
         payload = {"op": op, "d": data}
-        if op == self.DISPATCH:
+        if op == self._DISPATCH:
             payload.update({"s": sequence, "t": event_name})
 
         return json.dumps(payload)

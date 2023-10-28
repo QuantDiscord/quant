@@ -1,6 +1,8 @@
 from typing import Dict, List
 
 from quant.data.components import Component
+from quant.data.gateway.snowflake import Snowflake
+from quant.impl.json_object import JSONObjectBuilder
 from quant.data.guild.voice.voice_state_update import VoiceState
 from quant.data.user import User
 from quant.data.guild.guild_object import Guild
@@ -11,73 +13,73 @@ from quant.impl.events.types import EventTypes
 
 
 class CacheManager:
-    __cached_guilds: Dict[int, Guild] = {}
-    __cached_users: Dict[int, User] = {}
-    __cached_messages: Dict[int, Message] = {}
-    __cached_emojis: Dict[int, Emoji | Reaction] = {}
+    __cached_guilds: JSONObjectBuilder[int, Guild] = JSONObjectBuilder()
+    __cached_users: JSONObjectBuilder[int, User] = JSONObjectBuilder()
+    __cached_messages: JSONObjectBuilder[int, Message] = JSONObjectBuilder()
+    __cached_emojis: JSONObjectBuilder[int, Emoji | Reaction] = JSONObjectBuilder()
     __cached_components: List[Component] = []
-    __cached_channels: Dict[int, Channel] = {}
+    __cached_channels: JSONObjectBuilder[int, Channel] = JSONObjectBuilder()
 
     def add_user(self, user: User):
         """Adds user to cache."""
-        self.__cached_users[user.user_id] = user
+        self.__cached_users.put(user.user_id, user)
 
     def add_message(self, message: Message):
         """Adds message to cache."""
-        self.__cached_messages[message.message_id] = message
+        self.__cached_messages.put(message.message_id, message)
 
     def add_guild(self, guild: Guild):
         """Adds guild to cache."""
-        self.__cached_guilds[guild.guild_id] = guild
+        self.__cached_guilds.put(guild.guild_id, guild)
 
     def add_emoji(self, emoji: Emoji | Reaction):
         """Adds emoji to cache."""
         if isinstance(emoji, Emoji):
-            self.__cached_emojis[emoji.emoji_id] = emoji
+            self.__cached_emojis.put(emoji.emoji_id, emoji)
         elif isinstance(emoji, Reaction):
-            self.__cached_emojis[emoji.emoji.emoji_id] = emoji
+            self.__cached_emojis.put(emoji.emoji.emoji_id, emoji)
 
     def add_component(self, component: Component):
         self.__cached_components.append(component)
 
     def add_channel(self, channel: Channel):
-        self.__cached_channels[channel.channel_id] = channel
+        self.__cached_channels.put(channel.channel_id, channel)
 
     def get_user(self, user_id: int) -> User | None:
         """Get user from cache."""
-        return self.__cached_users.get(user_id)
+        return self.__cached_users[user_id]
 
     def get_users(self) -> List[User]:
         """Get all cached users."""
-        return list(self.__cached_users.values())
+        return list(self.__cached_users.get_values())
 
     def get_message(self, message_id: int) -> Message | None:
         """Get message from cache."""
-        return self.__cached_messages.get(message_id)
+        return self.__cached_messages[message_id]
 
     def get_messages(self) -> List[Message]:
         """Get all cached message."""
-        return list(self.__cached_messages.values())
+        return list(self.__cached_messages.get_values())
 
-    def get_guild(self, guild_id: int) -> Guild | None:
+    def get_guild(self, guild_id: int | Snowflake) -> Guild | None:
         """Get guild from cache."""
-        return self.__cached_guilds.get(guild_id)
+        return self.__cached_guilds[guild_id]
 
     def get_guilds(self) -> List[Guild]:
         """Get all cached guilds."""
-        return list(self.__cached_guilds.values())
+        return list(self.__cached_guilds.get_values())
 
     def get_emoji(self, emoji_id: int) -> Emoji | Reaction:
         """Get emoji from cache."""
-        return self.__cached_emojis.get(emoji_id)
+        return self.__cached_emojis[emoji_id]
 
     def get_channel(self, channel_id: int) -> Channel:
         """Get channel from cache"""
-        return self.__cached_channels.get(channel_id)
+        return self.__cached_channels[channel_id]
 
     def get_emojis(self) -> List[Emoji | Reaction]:
         """Get all cached emojis"""
-        return list(self.__cached_emojis.values())
+        return list(self.__cached_emojis.get_values())
 
     def get_component(self) -> List[Component]:
         """Get all cached components"""

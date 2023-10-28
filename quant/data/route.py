@@ -45,6 +45,7 @@ GET_CHANNEL_WEBHOOKS: Final[Route] = Route("GET", URI("/channels/{channel_id}/we
 GET_GUILD: Final[Route] = Route("GET", URI("/guilds/{guild_id}"))
 CREATE_GUILD: Final[Route] = Route("POST", URI("/guilds"))
 DELETE_GUILD: Final[Route] = Route("DELETE", URI("/guilds/{guild_id}"))
+CREATE_GUILD_BAN: Final[Route] = Route("PUT", URI("/guilds/{guild_id}/bans/{user_id}"))
 
 # Interactions
 CREATE_INTERACTION_RESPONSE: Final[Route] = Route(

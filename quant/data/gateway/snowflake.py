@@ -1,3 +1,4 @@
+from __future__ import annotations
 from functools import reduce
 
 
@@ -9,17 +10,12 @@ class Snowflake(int):
     DISCORD_EPOCH = 14_200_704_000_00
     INCREMENT = 0
 
-    def __init__(self) -> None:
-        self._object_id = self
-        self.timestamp = ((self.object_id >> 22) + self.DISCORD_EPOCH) / 1000
+    def __new__(cls, object_id: int) -> Snowflake:
+        return super().__new__(cls, object_id)
 
-    @property
-    def object_id(self):
-        return self._object_id
-
-    @object_id.setter
-    def object_id(self, data):
-        self._object_id = data
+    def __init__(self, object_id: int) -> None:
+        self.object_id = object_id
+        self.timestamp = ((object_id >> 22) + self.DISCORD_EPOCH) / 1000
 
     def generate_snowflake(
         self,

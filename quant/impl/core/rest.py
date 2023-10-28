@@ -1,4 +1,5 @@
 import re
+import warnings
 from typing import List, Any, Dict
 
 import attrs
@@ -18,7 +19,8 @@ from quant.data.route import (
     CREATE_WEBHOOK, GET_GUILD, CREATE_GUILD,
     DELETE_GUILD, CREATE_REACTION, GET_GUILD_EMOJI,
     CREATE_INTERACTION_RESPONSE, GET_MESSAGE, EDIT_MESSAGE,
-    CREATE_APPLICATION_COMMAND, GET_ORIGINAL_INTERACTION_RESPONSE
+    CREATE_APPLICATION_COMMAND, GET_ORIGINAL_INTERACTION_RESPONSE,
+    CREATE_GUILD_BAN
 )
 from quant.data.guild.messages.message import Message
 from quant.data.guild.messages.embeds import Embed
@@ -325,6 +327,34 @@ class DiscordREST(RESTAware):
             data=payload
         )
         return Guild(**await data.json())
+
+    async def create_guild_ban(
+        self,
+        guild_id: int | Snowflake,
+        member_id: int | Snowflake,
+        reason: str,
+        delete_message_days: int,
+        delete_message_seconds: int
+    ) -> None:
+        payload = {
+            'delete_message_days': delete_message_days,
+            'delete_message_seconds': delete_message_seconds
+        }
+        headers = {self.http.AUTHORIZATION: self.token}
+        url = CREATE_GUILD_BAN.uri.url_string.format(guild_id=guild_id, user_id=member_id)
+
+        if delete_message_days > 0:
+            warnings.warn("Option \"delete_message_days\" deprecated in Discord API", category=DeprecationWarning)
+
+        if reason is not None:
+            headers.update({"X-Audit-Log-Reason": reason})
+
+        await self.http.send_request(
+            CREATE_GUILD_BAN.method,
+            url=url,
+            headers=headers,
+            data=payload
+        )
 
     async def create_interaction_response(
         self, interaction_type: InteractionCallbackType,

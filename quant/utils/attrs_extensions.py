@@ -13,17 +13,19 @@ def iso_to_datetime(time: str = None):
     return datetime.fromisoformat(time)
 
 
-def int_converter(data: str = None) -> int:
-    if data is None or not isinstance(data, (str, bytes, int)):
+def int_converter(data: str = None) -> int | Snowflake:
+    check = isinstance(data, (str, bytes, int))
+    if data is None or not check:
         return 0
+
+    if check:
+        return Snowflake(int(data))
 
     return int(data)
 
 
 def to_snowflake(data: str = None) -> int | Snowflake:
-    snowflake = Snowflake()
-    snowflake.object_id = data
-    return snowflake
+    return Snowflake(int(data))
 
 
 def execute_converters(cls, fields: List[attrs.Attribute]):

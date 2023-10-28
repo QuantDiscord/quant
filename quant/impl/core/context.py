@@ -70,6 +70,12 @@ class CombineContext(BaseContext):
         self.interaction: Interaction = interaction
         super().__init__(self.client, self.original_message)
 
+    def get_author(self) -> int:
+        if getattr(self, 'original_message') is not None:
+            return self.original_message.author_as_user.user_id
+        else:
+            return self.interaction.member.user.user_id
+
     async def send_message(
         self,
         channel_id: int = None,
@@ -87,7 +93,7 @@ class CombineContext(BaseContext):
         attachments: List = None,
         flags: int = None
     ):
-        if hasattr(self, 'interaction'):
+        if getattr(self, 'interaction') is not None:
             return await self.interaction.respond(
                 content=content,
                 tts=tts,
@@ -98,23 +104,23 @@ class CombineContext(BaseContext):
                 components=components,
                 attachments=attachments
             )
+        else:
+            if components is not None:
+                components = [component.as_json() for component in components]
 
-        if components is not None:
-            components = [component.as_json() for component in components]
-
-        return await self.client.rest.create_message(
-            channel_id=channel_id if channel_id is not None else self.original_message.channel_id,
-            content=str(content),
-            nonce=nonce,
-            tts=tts,
-            embed=embed,
-            embeds=embeds,
-            allowed_mentions=allowed_mentions,
-            message_reference=message_reference,
-            components=components,
-            sticker_ids=sticker_ids,
-            files=files,
-            payload_json=payload_json,
-            attachments=attachments,
-            flags=flags
-        )
+            return await self.client.rest.create_message(
+                channel_id=channel_id if channel_id is not None else self.original_message.channel_id,
+                content=str(content),
+                nonce=nonce,
+                tts=tts,
+                embed=embed,
+                embeds=embeds,
+                allowed_mentions=allowed_mentions,
+                message_reference=message_reference,
+                components=components,
+                sticker_ids=sticker_ids,
+                files=files,
+                payload_json=payload_json,
+                attachments=attachments,
+                flags=flags
+            )

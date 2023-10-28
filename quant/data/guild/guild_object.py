@@ -89,3 +89,18 @@ class Guild(BaseModel):
 
     def get_member(self, member_id: Snowflake | int) -> GuildMember:
         return [i for i in self.members if i.user.user_id == member_id][0]
+
+    async def ban(
+        self,
+        member: Snowflake | int | GuildMember,
+        reason: str = None,
+        delete_message_days: int = 0,
+        delete_message_seconds: int = 0
+    ) -> None:
+        await self.client.rest.create_guild_ban(
+            guild_id=self.guild_id,
+            member_id=member.user.user_id if isinstance(member, GuildMember) else member,
+            reason=reason,
+            delete_message_days=delete_message_days,
+            delete_message_seconds=delete_message_seconds
+        )

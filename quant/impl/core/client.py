@@ -227,10 +227,14 @@ class Client:
                 try:
                     if not command.name == substring_command:
                         continue
-                    context = MessageCommandContext(client=self, message=event.message)
 
+                    context = MessageCommandContext(client=self, message=event.message)
                     if isinstance(command, CombineCommand):
-                        await command.callback_func(CombineContext(self, event.message, None), *arguments)
+                        await command.callback_func(CombineContext(
+                            client=self,
+                            original_message=event.message,
+                            interaction=None
+                        ), *arguments)
                     else:
                         await command.callback_func(context, *arguments)
                 except TypeError as e:  # stupid but ok
