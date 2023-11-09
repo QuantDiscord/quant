@@ -219,7 +219,7 @@ class Gateway:
 
             close_code = self.websocket_connection.close_code
             if close_code is not None:
-                self.get_logger.error(f"Gateway received close code: {close_code}")
+                self.get_logger.error("Gateway received close code: %s", close_code)
                 break
 
     async def send_data(self, data) -> None:
@@ -246,7 +246,7 @@ class Gateway:
         self.get_logger.info("Bot identified")
 
     async def close(self, code: int = 4000):
-        self.get_logger.info(f"Connection closing, code: {code}")
+        self.get_logger.info("Connection closing, code: %s", code)
 
         if not self.websocket_connection:
             return

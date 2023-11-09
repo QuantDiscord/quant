@@ -18,7 +18,7 @@ from quant.impl.events.bot.ready_event import ReadyEvent
 from quant.data.guild.messages.interactions.interaction_type import InteractionType
 from quant.data.components.modals.modal import Modal
 from quant.impl.core.commands import SlashCommand, CombineCommand
-from quant.impl.core.context import InteractionContext, CombineContext
+from quant.impl.core.context import InteractionContext, CombineContext, ModalContext
 from quant.impl.events.bot.interaction_create_event import InteractionCreateEvent
 from quant.impl.core import MessageCommand, MessageCommandContext
 from quant.impl.core.exceptions.command_exceptions import CommandNotFoundException, CommandArgumentsNotFound
@@ -206,7 +206,7 @@ class Client:
             case InteractionType.MODAL_SUBMIT:
                 for modal in self.modals.values():
                     if modal.custom_id == event.interaction.interaction_data.custom_id:
-                        await modal.callback_func(context)
+                        await modal.callback_func(ModalContext(self, event.interaction))
 
     async def _handle_message_commands(self, event: MessageCreateEvent) -> None:
         content = event.message.content

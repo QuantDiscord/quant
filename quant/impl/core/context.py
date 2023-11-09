@@ -63,6 +63,16 @@ class InteractionContext:
         self.interaction: Interaction = interaction
 
 
+class ModalContext(InteractionContext):
+    def __init__(self, client, interaction) -> None:
+        self.values = [
+            interaction.interaction_data.components.components[i]['components'][0]['value']
+            for i in range(len(interaction.interaction_data.components.components))
+        ]
+
+        super().__init__(client, interaction)
+
+
 class CombineContext(BaseContext):
     def __init__(self, client, original_message=None, interaction=None) -> None:
         self.client: Client = client

@@ -24,7 +24,7 @@ class JSONObjectBuilder(Mapping[KT, VT]):
     def __len__(self) -> int:
         return len(self._json_data)
 
-    def __iter__(self) -> Iterator:
+    def __iter__(self) -> Dict:
         return self._json_data
 
     def get_first_element(self) -> tuple[Any, Any]:
