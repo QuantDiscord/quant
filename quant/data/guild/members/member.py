@@ -1,7 +1,6 @@
-from __future__ import annotations
-
 import datetime
 from typing import List, Any
+from typing_extensions import Self
 
 import attrs
 
@@ -32,6 +31,6 @@ class GuildMember:
             return cls(**data)
 
     @classmethod
-    def as_dict_iter(cls, data) -> List[GuildMember] | None:
+    def as_dict_iter(cls, data) -> List[Self] | None:
         if data is not None:
             return [cls(**member) for member in data]

@@ -24,7 +24,7 @@ from quant.impl.core import MessageCommand, MessageCommandContext
 from quant.impl.core.exceptions.command_exceptions import CommandNotFoundException, CommandArgumentsNotFound
 from quant.impl.core.gateway import Gateway
 from quant.data.intents import Intents
-from quant.impl.core.exceptions.library_exception import LibraryException, ExperimentalFutureWarning
+from quant.impl.core.exceptions.library_exception import DiscordException, ExperimentalFutureWarning
 from quant.impl.core.rest import DiscordREST
 from quant.impl.events.event import BaseEvent
 from quant.data.model import BaseModel
@@ -109,16 +109,16 @@ class Client:
 
     def _add_listener_from_event_and_coro(self, event: T, coro: _Coroutine) -> None:
         if inspect.iscoroutine(coro):
-            raise LibraryException("Callback function must be coroutine")
+            raise DiscordException("Callback function must be coroutine")
 
         if not issubclass(event, BaseEvent):
-            raise LibraryException(f"Subclass of event {event} must be BaseEvent")
+            raise DiscordException(f"Subclass of event {event} must be BaseEvent")
 
         self.gateway.add_event(event.API_EVENT_NAME, event, coro)
 
     def _add_listener_from_coro(self, coro: _Coroutine) -> None:
         if inspect.iscoroutine(coro):
-            raise LibraryException("Callback function must be coroutine")
+            raise DiscordException("Callback function must be coroutine")
 
         annotations = inspect.getmembers(coro)[0]
         try:
@@ -126,11 +126,11 @@ class Client:
 
             # idk why linter warning there
             if not issubclass(event_type, BaseEvent):  # type: ignore
-                raise LibraryException(f"{event_type.__name__} must be subclass of BaseEvent")
+                raise DiscordException(f"{event_type.__name__} must be subclass of BaseEvent")
 
             self.gateway.add_event(event_type.API_EVENT_NAME, event_type, coro)
         except IndexError:
-            raise LibraryException(f"You need provide which event you need in function {coro}")
+            raise DiscordException(f"You need provide which event you need in function {coro}")
 
     async def add_combine_command(self, *commands: CombineCommand):
         warnings.warn(
@@ -139,24 +139,24 @@ class Client:
         )
         for command in commands:
             if inspect.iscoroutine(command.callback):
-                raise LibraryException("Callback function must be coroutine")
+                raise DiscordException("Callback function must be coroutine")
 
             self.combined_commands[command.name] = command
 
     def add_message_command(self, *commands: MessageCommand) -> None:
         for command in commands:
             if inspect.iscoroutine(command.callback):
-                raise LibraryException("Callback function must be coroutine")
+                raise DiscordException("Callback function must be coroutine")
 
             self.message_commands[command.name] = command
 
     async def add_slash_command(self, *commands: SlashCommand, app_id: Snowflake | int = None) -> None:
         for command in commands:
             if inspect.iscoroutine(command.callback):
-                raise LibraryException("Callback function must be coroutine")
+                raise DiscordException("Callback function must be coroutine")
 
             if len(self.slash_commands) == 100:
-                raise LibraryException("You can't create more than 100 slash commands.")
+                raise DiscordException("You can't create more than 100 slash commands.")
 
             self.slash_commands[command.name] = command
 
@@ -170,7 +170,7 @@ class Client:
     def add_modal(self, *modals: Modal) -> None:
         for modal in modals:
             if inspect.iscoroutine(modal):
-                raise LibraryException("Callback function must be coroutine")
+                raise DiscordException("Callback function must be coroutine")
 
             self.modals[str(modal.custom_id)] = modal
 

@@ -36,6 +36,10 @@ EDIT_MESSAGE: Final[Route] = Route("PATCH", URI("/channels/{channel_id}/messages
 DELETE_MESSAGE: Final[Route] = Route("DELETE", URI("/channels/{channel_id}/messages/{message_id}"))
 CREATE_REACTION: Final[Route] = Route("PUT", URI("/channels/{channel_id}/messages/{message_id}/reactions/{emoji}/@me"))
 GET_GUILD_EMOJI: Final[Route] = Route("GET", URI("/guilds/{guild_id}/emojis/{emoji_id}"))
+DELETE_ALL_REACTIONS: Final[Route] = Route("DELETE", URI("/channels/{channel_id}/messages/{message_id}/reactions"))
+DELETE_ALL_REACTION_FOR_EMOJI: Final[Route] = Route(
+    "DELETE", URI("/channels/{channel_id}/messages/{message_id}/reactions/{emoji}")
+)
 
 # Webhooks
 CREATE_WEBHOOK: Final[Route] = Route("POST", URI("/channels/{channel_id}/webhooks"))

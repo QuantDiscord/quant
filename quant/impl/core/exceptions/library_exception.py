@@ -1,7 +1,4 @@
-import warnings
-
-
-class LibraryException(Exception):
+class DiscordException(Exception):
     ...
 
 

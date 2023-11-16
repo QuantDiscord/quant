@@ -6,7 +6,7 @@ from aiohttp import ClientSession, ClientResponse
 from quant.api.core.http_manager_abc import HttpManager
 from quant.data.gateway.http_codes import HttpCodes
 from quant.impl.core.exceptions.http_exception import Forbidden, InternalServerError
-from quant.impl.core.exceptions.library_exception import LibraryException
+from quant.impl.core.exceptions.library_exception import DiscordException
 
 
 class HttpManagerImpl(HttpManager):
@@ -39,7 +39,7 @@ class HttpManagerImpl(HttpManager):
 
             request_json_data = await request.json()
             if 'code' in request_json_data.keys():
-                raise LibraryException(request_text_data)
+                raise DiscordException(request_text_data)
 
             match request.status:
                 case HttpCodes.FORBIDDEN:
@@ -50,4 +50,4 @@ class HttpManagerImpl(HttpManager):
             if request.ok or request_json_data['code'] != 50006:
                 return request
 
-            raise LibraryException(str(request_json_data))
+            raise DiscordException(str(request_json_data))

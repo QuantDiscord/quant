@@ -1,8 +1,7 @@
-from __future__ import annotations
-
 import datetime
 import asyncio
 from typing import List, Any
+from typing_extensions import Self
 
 import attrs
 
@@ -42,7 +41,7 @@ class Message(BaseModel):
     stickers: List[Any] | None = attrs.field(default=None)
     attachments: List[Any] | None = attrs.field(default=None)
     flags: int | None = attrs.field(default=None, converter=int_converter)
-    referenced_message: Message | None = attrs.field(default=None)
+    referenced_message: Self | None = attrs.field(default=None)
     pinned: bool = attrs.field(default=False)
     webhook_id: Snowflake | None = attrs.field(default=None)
     activity: Any | None = attrs.field(default=None)
@@ -68,7 +67,7 @@ class Message(BaseModel):
         flags: MessageFlags = MessageFlags.NONE,
         allowed_mentions: AllowedMentions = None,
         components: ActionRow = None
-    ) -> Message:
+    ) -> Self:
         return await self.client.rest.edit_message(
             channel_id=self.channel_id,
             message_id=self.message_id,
@@ -79,3 +78,13 @@ class Message(BaseModel):
             components=components
         )
 
+    async def remove_reactions(self) -> None:
+        await self.client.rest.delete_all_reactions(channel_id=self.channel_id, message_id=self.message_id)
+
+    async def remove_reactions_by_emoji(self, emoji: int | Snowflake | Emoji) -> None:
+        await self.client.rest.delete_all_reactions_for_emoji(
+            guild_id=self.guild_id,
+            channel_id=self.channel_id,
+            message_id=self.message_id,
+            emoji=emoji
+        )

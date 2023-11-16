@@ -1,8 +1,6 @@
-from __future__ import annotations
-
 from typing import List, Any, Dict
+from typing_extensions import Self
 
-from quant.data.guild.messages.interactions.response.choice_response import ChoiceResponse
 from quant.data.guild.messages.interactions.slashes.slash_option_type import SlashOptionType
 
 
@@ -17,7 +15,7 @@ class SlashOption:
         max_length: int = None,
         autocomplete: bool = False,
         channel_types: List[Any] = None,
-        options: List[SlashOption] = None,
+        options: List[Self] = None,
         choices: List[Any] = None,
         required: bool = False,
         option_type: SlashOptionType = SlashOptionType.STRING,

@@ -1,5 +1,5 @@
-from __future__ import annotations
 from functools import reduce
+from typing_extensions import Self
 
 
 class SnowflakeException(Exception):
@@ -10,7 +10,7 @@ class Snowflake(int):
     DISCORD_EPOCH = 14_200_704_000_00
     INCREMENT = 0
 
-    def __new__(cls, object_id: int) -> Snowflake:
+    def __new__(cls, object_id: int) -> Self:
         return super().__new__(cls, object_id)
 
     def __init__(self, object_id: int) -> None:

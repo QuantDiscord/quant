@@ -1,6 +1,5 @@
-from __future__ import annotations
-
 from datetime import datetime
+from typing_extensions import Self
 
 import attrs
 
@@ -26,7 +25,7 @@ class VoiceState:
     request_to_speak_timestamp: datetime = attrs.field(default=None, converter=iso_to_datetime)
 
     @classmethod
-    def as_dict(cls, data) -> VoiceState | None:
+    def as_dict(cls, data) -> Self | None:
         if data is not None:
             return cls(**data)
 

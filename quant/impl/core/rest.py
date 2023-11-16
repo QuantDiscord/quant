@@ -20,7 +20,7 @@ from quant.data.route import (
     DELETE_GUILD, CREATE_REACTION, GET_GUILD_EMOJI,
     CREATE_INTERACTION_RESPONSE, GET_MESSAGE, EDIT_MESSAGE,
     CREATE_APPLICATION_COMMAND, GET_ORIGINAL_INTERACTION_RESPONSE,
-    CREATE_GUILD_BAN
+    CREATE_GUILD_BAN, DELETE_ALL_REACTIONS, DELETE_ALL_REACTION_FOR_EMOJI
 )
 from quant.data.guild.messages.message import Message
 from quant.data.guild.messages.embeds import Embed
@@ -157,7 +157,7 @@ class DiscordREST(RESTAware):
             url=CREATE_REACTION.uri.url_string.format(
                 channel_id=channel_id,
                 message_id=message_id,
-                emoji=str(emoji).replace("<", "").replace(">", "") if emoji.emoji_id > 0 else emoji
+                emoji=self._parse_emoji(emoji)
             ),
             headers=headers,
             content_type=self.http.APPLICATION_X_WWW_FORM_URLENCODED
@@ -484,3 +484,31 @@ class DiscordREST(RESTAware):
         )
 
         return Message(**await response.json())
+
+    async def delete_all_reactions(self, channel_id: Snowflake, message_id: Snowflake) -> None:
+        url = DELETE_ALL_REACTIONS.uri.url_string.format(channel_id=channel_id, message_id=message_id)
+        await self.http.send_request(
+            DELETE_ALL_REACTIONS.method,
+            url=url,
+            headers={self.http.AUTHORIZATION: self.token}
+        )
+
+    async def delete_all_reactions_for_emoji(
+        self,
+        guild_id: Snowflake | int,
+        channel_id: Snowflake | int,
+        message_id: Snowflake | int,
+        emoji: str | Snowflake | Emoji
+    ):
+        parsed_emoji = self._parse_emoji(await self.fetch_emoji(guild_id=guild_id, emoji=emoji))
+        url = DELETE_ALL_REACTION_FOR_EMOJI.uri.url_string.format(
+            channel_id=channel_id, message_id=message_id, emoji=parsed_emoji
+        )
+        await self.http.send_request(
+            DELETE_ALL_REACTION_FOR_EMOJI.method, url=url,
+            content_type=self.http.APPLICATION_X_WWW_FORM_URLENCODED
+        )
+
+    @staticmethod
+    def _parse_emoji(emoji: str | Emoji | Snowflake | int) -> str:
+        return str(emoji).replace("<", "").replace(">", "") if emoji.emoji_id > 0 else emoji

@@ -1,6 +1,5 @@
-from __future__ import annotations
-
 from typing import Any
+from typing_extensions import Self
 
 import attrs
 
@@ -35,7 +34,7 @@ class User(BaseModel):
     _member: Any = attrs.field(alias="member", default=None, repr=False)
 
     @classmethod
-    def as_dict(cls, data) -> User | None:
+    def as_dict(cls, data) -> Self | None:
         if data is not None:
             return cls(**data)
 
