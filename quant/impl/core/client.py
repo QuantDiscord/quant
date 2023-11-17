@@ -1,4 +1,5 @@
 import asyncio
+import base64
 import inspect
 from base64 import b64decode
 from typing import (
@@ -74,7 +75,8 @@ class Client:
         token = first_token_part[4:] \
             if first_token_part.startswith('Bot') \
             else first_token_part
-        return int(b64decode(token).decode('utf8'))
+        decoded_token = base64.b64decode(token + "==")
+        return int(decoded_token.decode("utf8"))
 
     def run(self, loop: asyncio.AbstractEventLoop = None) -> None:
         BaseModel.set_client(self)

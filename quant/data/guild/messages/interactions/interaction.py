@@ -67,7 +67,7 @@ class Interaction(BaseModel):
                 tts=tts,
                 embeds=embeds,
                 allowed_mentions=allowed_mentions,
-                flags=flags if flags is None or flags <= 0 else flags.value,
+                flags=flags if flags is None or isinstance(flags, int) else flags.value,
                 components=components,
                 attachments=attachments
             ), self.interaction_id, self.interaction_token
