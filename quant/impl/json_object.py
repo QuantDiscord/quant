@@ -9,7 +9,14 @@ VT = TypeVar("VT")
 
 
 class JSONObjectBuilder(Mapping[KT, VT]):
-    _json_data: Dict[str, Any] = {}
+    def __iter__(self) -> Iterator:
+        ...
+
+    def __init__(self) -> None:
+        self._json_data: Dict[str, Any] = {}
+
+    def asdict(self) -> Dict:
+        return self._json_data
 
     def __getitem__(self, item) -> Any:
         # print(self._json_data, type(item))
@@ -23,9 +30,6 @@ class JSONObjectBuilder(Mapping[KT, VT]):
 
     def __len__(self) -> int:
         return len(self._json_data)
-
-    def __iter__(self) -> Dict:
-        return self._json_data
 
     def get_first_element(self) -> tuple[Any, Any]:
         return [(key, value) for key, value in self._json_data.items()][0]

@@ -7,12 +7,13 @@ from quant.api.core.http_manager_abc import HttpManager
 from quant.data.gateway.http_codes import HttpCodes
 from quant.impl.core.exceptions.http_exception import Forbidden, InternalServerError
 from quant.impl.core.exceptions.library_exception import DiscordException
+from quant.impl.json_object import JSONObjectBuilder
 
 
 class HttpManagerImpl(HttpManager):
     @staticmethod
     async def send_request(method: str, url: str,
-                           data: Dict[str, Any] = None,
+                           data: Dict[str, Any] | JSONObjectBuilder = None,
                            headers: Dict[str, str] = None,
                            content_type: str = None) -> ClientResponse | None:
         async with ClientSession(headers=headers) as session:
@@ -27,6 +28,11 @@ class HttpManagerImpl(HttpManager):
             if data is None:
                 request = await session.request(method=method, url=url, headers=headers)
             else:
+                if isinstance(data, JSONObjectBuilder):
+                    data = data.asdict()
+                else:
+                    data = data
+
                 request = await session.request(method=method, url=url, data=json.dumps(data), headers=headers)
 
             content_type = request.content_type

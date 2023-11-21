@@ -3,7 +3,9 @@ from typing import Any, List
 import attrs
 
 from quant.data.user import User
+from quant.data.components.action_row import ActionRow
 from quant.data.components.modals.modal import Modal
+from quant.data.components.action_row import ActionRow
 from quant.data.guild.messages.embeds import Embed
 from quant.data.guild.messages.mentions.allowed_mentions import AllowedMentions
 from quant.data.guild.messages.message_flags import MessageFlags
@@ -41,6 +43,7 @@ class Interaction(BaseModel):
     guild_locale: str = attrs.field(default=None)
     entitlements: List[Any] = attrs.field(default=None)
     entitlement_sku_ids: Any = attrs.field(default=None)
+    message: Any = attrs.field(default=None)
     _guild: Any = attrs.field(default=None, repr=False, alias="guild")
 
     async def respond(
@@ -51,11 +54,12 @@ class Interaction(BaseModel):
         embeds: List[Embed] | None = None,
         allowed_mentions: AllowedMentions | None = None,
         flags: MessageFlags | int = 0,
-        components: List[Any] = None,  # TODO: Fix circular import when Component class here
+        components: ActionRow = None,
         attachments: List[Any] = None
     ) -> None:
         if components is not None:
-            components = [component.as_json() for component in components]
+            # why warning here
+            components = [component.as_json() for component in components.components]  # type: ignore
 
         if embed is not None:
             embeds = [embed]
@@ -70,7 +74,9 @@ class Interaction(BaseModel):
                 flags=flags if flags is None or isinstance(flags, int) else flags.value,
                 components=components,
                 attachments=attachments
-            ), self.interaction_id, self.interaction_token
+            ),
+            self.interaction_id,
+            self.interaction_token
         )
 
     async def respond_modal(self, modal: Modal):
@@ -81,10 +87,33 @@ class Interaction(BaseModel):
                 title=modal.title,
                 components=[component.as_json() for component in modal.components]
             ),
-            self.interaction_id, self.interaction_token
+            self.interaction_id,
+            self.interaction_token
         )
 
     async def fetch_initial_response(self):
         return await self.client.rest.fetch_initial_interaction_response(
             self.client.client_id, self.interaction_token
+        )
+
+    async def edit_interaction(
+        self,
+        content: str | None = None,
+        embeds: List[Embed] | None = None,
+        allowed_mentions: AllowedMentions | None = None,
+        components: ActionRow | None = None,
+        files: List[Any] | None = None,
+        payload_json: str | None = None,
+        attachments: Any | None = None
+    ):
+        return await self.client.rest.edit_original_interaction_response(
+            application_id=self.client.client_id,
+            interaction_token=self.interaction_token,
+            content=content,
+            embeds=embeds,
+            allowed_mentions=allowed_mentions,
+            components=components,
+            files=files,
+            payload_json=payload_json,
+            attachments=attachments
         )

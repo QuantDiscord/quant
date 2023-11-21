@@ -1,7 +1,4 @@
-from typing import Callable, Coroutine, Any, Dict, TYPE_CHECKING
-
-if TYPE_CHECKING:
-    from quant.data.guild.messages.interactions.interaction import Interaction
+from typing import Callable, Coroutine, Any, Dict
 
 from quant.data.components.component import Component
 from quant.data.guild.messages.emoji import Emoji
@@ -32,13 +29,13 @@ class Button(Component):
 
     _Coroutine = Callable[..., Coroutine[Any, Any, Any]]
 
-    async def callback(self, interaction: "Interaction") -> None:
-        ...
+    # async def callback(self, interaction: "Interaction") -> None:
+    #     ...
 
-    callback_func = callback
+    # callback_func = callback
 
-    def set_callback(self, coro: _Coroutine) -> None:
-        self.callback_func = coro
+    # def set_callback(self, coro: _Coroutine) -> None:
+    #     self.callback_func = coro
 
     def as_json(self) -> Dict[str, Any]:
         return {

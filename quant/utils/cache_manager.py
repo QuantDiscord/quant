@@ -1,4 +1,4 @@
-from typing import Dict, List
+from typing import List
 
 from quant.data.components import Component
 from quant.data.gateway.snowflake import Snowflake

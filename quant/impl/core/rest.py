@@ -1,6 +1,6 @@
 import re
 import warnings
-from typing import List, Any, Dict
+from typing import List, Any
 
 import attrs
 
@@ -19,18 +19,78 @@ from quant.data.route import (
     CREATE_WEBHOOK, GET_GUILD, CREATE_GUILD,
     DELETE_GUILD, CREATE_REACTION, GET_GUILD_EMOJI,
     CREATE_INTERACTION_RESPONSE, GET_MESSAGE, EDIT_MESSAGE,
-    CREATE_APPLICATION_COMMAND, GET_ORIGINAL_INTERACTION_RESPONSE,
+    CREATE_APPLICATION_COMMAND, GET_ORIGINAL_INTERACTION_RESPONSE, EDIT_ORIGINAL_INTERACTION_RESPONSE,
     CREATE_GUILD_BAN, DELETE_ALL_REACTIONS, DELETE_ALL_REACTION_FOR_EMOJI
 )
 from quant.data.guild.messages.message import Message
 from quant.data.guild.messages.embeds import Embed
 from quant.data.guild.webhooks.webhook import Webhook
+from quant.impl.json_object import JSONObjectBuilder
 
 
 class DiscordREST(RESTAware):
     def __init__(self, token: str) -> None:
         self.http = HttpManagerImpl()
         self.token = token
+
+    def _build_payload(
+        self,
+        content: str | None = None,
+        nonce: str | int | None = None,
+        tts: bool = False,
+        embed: Embed | None = None,
+        embeds: List[Embed] | None = None,
+        allowed_mentions: AllowedMentions | None = None,
+        message_reference: Any | None = None,
+        components: ActionRow | None = None,
+        sticker_ids: List | None = None,
+        files: Any | None = None,
+        payload_json: Any | None = None,
+        attachments: List[Any] | None = None,
+        flags: int | None = None
+    ) -> JSONObjectBuilder:
+        body = JSONObjectBuilder()
+
+        if content is not None:
+            body.put("content", content)
+
+        if nonce is not None:
+            body.put("nonce", nonce)
+
+        if tts is not None:
+            body.put("tts", tts)
+
+        if embed is not None:
+            body.put("embeds", [embed])
+
+        if embeds is not None:
+            body.put("embeds", embed)
+
+        if allowed_mentions is not None:
+            body.put("allowed_mentions", attrs.asdict(allowed_mentions))
+
+        if message_reference is not None:
+            body.put("message_reference", message_reference)
+
+        if components is not None:
+            self._apply_components(body, components)
+
+        if sticker_ids is not None:
+            body.put("sticker_ids", sticker_ids)
+
+        if files is not None:
+            body.put("files", files)
+
+        if payload_json is not None:
+            body.put("payload_json", payload_json)
+
+        if attachments is not None:
+            body.put("attachments", attachments)
+
+        if flags is not None:
+            body.put("flags", flags)
+
+        return body
 
     async def execute_webhook(
         self,
@@ -49,46 +109,19 @@ class DiscordREST(RESTAware):
         flags: int = None,
         thread_name: str = None
     ) -> None:
-        payload = {}
-
-        if components is not None:
-            payload.update({"components": components})
-
-        if files is not None:
-            payload.update({"files": files})
-
-        if payload_json is not None:
-            payload.update({"payload_json": payload_json})
-
-        if attachments is not None:
-            payload.update({"attachments": attachments})
-
-        if flags is not None:
-            payload.update({"flags": flags})
-
-        if thread_name is not None:
-            payload.update({"thread_name": thread_name})
-
-        if content is not None:
-            payload.update({"content": content})
-
-        if username is not None:
-            payload.update({"username": username})
-
-        if avatar_url is not None:
-            payload.update({"avatar_url": avatar_url})
-
-        if tts is not None:
-            payload.update({"tts": tts})
-
-        if embed is not None:
-            payload.update({"embeds": [embed]})
-
-        if embeds is not None:
-            payload.update({"embeds": embeds})
-
-        if allowed_mentions is not None:
-            payload.update({"allowed_mentions": attrs.asdict(allowed_mentions)})
+        payload = self._build_payload(
+            content=content,
+            tts=tts,
+            embed=embed,
+            embeds=embeds,
+            allowed_mentions=allowed_mentions,
+            components=components,
+            files=files,
+            payload_json=payload_json,
+            attachments=attachments,
+            flags=flags
+        )
+        payload.put("thread_name", thread_name)
 
         await self.http.send_request(
             CREATE_WEBHOOK.method,
@@ -138,14 +171,6 @@ class DiscordREST(RESTAware):
         message_id: int = None,
         reason: str = None
     ) -> Emoji | str:
-        """
-        :param emoji:
-        :param guild_id:
-        :param channel_id:
-        :param message_id:
-        :param reason:
-        :return:
-        """
         headers = {self.http.AUTHORIZATION: self.token}
         emoji = await self.fetch_emoji(guild_id=guild_id, emoji=emoji)
 
@@ -180,68 +205,39 @@ class DiscordREST(RESTAware):
     async def create_message(
         self,
         channel_id: int,
-        content: str = None,
-        nonce: str | int = None,
+        content: str | None = None,
+        nonce: str | int | None = None,
         tts: bool = False,
-        embed: Embed = None,
-        embeds: List[Embed] = None,
-        allowed_mentions: AllowedMentions = None,
-        message_reference=None,
-        components: List[Dict[str, Any]] = None,
+        embed: Embed | None = None,
+        embeds: List[Embed] | None = None,
+        allowed_mentions: AllowedMentions | None = None,
+        message_reference: Any = None,
+        components: ActionRow | None = None,
         sticker_ids: List = None,
-        files=None,
-        payload_json: str = None,
-        attachments: List = None,
-        flags: int = None
+        files: List[Any] | None = None,
+        payload_json: str | None = None,
+        attachments: List | None = None,
+        flags: int | None = None
     ) -> Message:
-        payload = {}
-
-        if content is not None:
-            payload.update({"content": str(content)})
-
-        if nonce is not None:
-            payload.update({"nonce": nonce})
-
-        if tts is not None:
-            payload.update({"tts": tts})
-
-        if embed is not None:
-            payload.update({"embeds": [embed]})
-
-        if embeds is not None:
-            payload.update({"embeds": embeds})
-
-        if sticker_ids is not None:
-            payload.update({"sticker_ids": sticker_ids})
-
-        if files is not None:
-            payload.update({"files": files})
-
-        if payload_json is not None:
-            payload.update({"payload_json": payload_json})
-
-        if components is not None:
-            payload.update({"components": []})
-            for component in components:
-                message_components = payload.get("components")
-                message_components.append(component)  # type: ignore
-
-        if flags is not None:
-            payload.update({"flags": flags})
-
-        if attachments is not None:
-            # form_data = aiohttp.FormData()
-            # form_data.add_field("payload_json", )
-            payload.update({"attachments": attachments})
-
-        if allowed_mentions is not None:
-            payload.update({"allowed_mentions": attrs.asdict(allowed_mentions)})
-
-        if message_reference is not None:
-            payload.update({"message_reference": message_reference})
+        payload = self._build_payload(
+            content=content,
+            nonce=nonce,
+            tts=tts,
+            embed=embed,
+            embeds=embeds,
+            allowed_mentions=allowed_mentions,
+            message_reference=message_reference,
+            components=components,
+            sticker_ids=sticker_ids,
+            files=files,
+            payload_json=payload_json,
+            attachments=attachments,
+            flags=flags
+        )
 
         data = await self.http.send_request(
-            CREATE_MESSAGE.method, CREATE_MESSAGE.uri.url_string.format(channel_id),
+            CREATE_MESSAGE.method,
+            CREATE_MESSAGE.uri.url_string.format(channel_id),
             data=payload, headers={
                 self.http.AUTHORIZATION: self.token,
             }
@@ -447,31 +443,21 @@ class DiscordREST(RESTAware):
         channel_id: Snowflake | int,
         message_id: Snowflake | int,
         content: str = None,
+        embed: Embed | None = None,
         embeds: List[Embed] = None,
         flags: int = None,
         allowed_mentions: AllowedMentions = None,
         components: ActionRow = None,
     ) -> Message:  # TODO: File uploading later
-        payload = {}
+        payload = self._build_payload(
+            content=content,
+            embeds=embeds,
+            embed=embed,
+            flags=flags,
+            allowed_mentions=allowed_mentions,
+            components=components
+        )
         headers = {self.http.AUTHORIZATION: self.token}
-
-        if content is not None:
-            payload.update({"content": content})
-
-        if embeds is not None:
-            payload.update({"embeds": embeds})
-
-        if flags is not None:
-            payload.update({"flags": flags})
-
-        if allowed_mentions is not None:
-            payload.update({"allowed_mentions": attrs.asdict(allowed_mentions)})
-
-        if components is not None:
-            payload.update({"components": []})
-            for component in components.components:
-                message_components = payload.get("components")
-                message_components.append(component)  # type: ignore
 
         url = EDIT_MESSAGE.uri.url_string.format(
             channel_id=channel_id, message_id=message_id
@@ -509,6 +495,53 @@ class DiscordREST(RESTAware):
             content_type=self.http.APPLICATION_X_WWW_FORM_URLENCODED
         )
 
+    async def edit_original_interaction_response(
+        self,
+        application_id: int | Snowflake,
+        interaction_token: str,
+        content: str | None = None,
+        embed: Embed | None = None,
+        embeds: List[Embed] | None = None,
+        allowed_mentions: AllowedMentions | None = None,
+        components: ActionRow | None = None,
+        files: List[Any] | None = None,
+        payload_json: str | None = None,
+        attachments: Any | None = None,
+        thread_id: int | Snowflake | None = None
+    ) -> Message:
+        url = EDIT_ORIGINAL_INTERACTION_RESPONSE.uri.url_string.format(
+            application_id=application_id, interaction_token=interaction_token
+        )
+        payload = self._build_payload(
+            content=content,
+            embed=embed,
+            embeds=embeds,
+            allowed_mentions=allowed_mentions,
+            components=components,
+            files=files,
+            payload_json=payload_json,
+            attachments=attachments
+        )
+
+        if thread_id is not None:
+            url += f"?thread_id={thread_id}"
+
+        response = await self.http.send_request(
+            EDIT_ORIGINAL_INTERACTION_RESPONSE.method, url=url,
+            headers={self.http.AUTHORIZATION: self.token}, data=payload
+        )
+        return Message(**await response.json())
+
     @staticmethod
     def _parse_emoji(emoji: str | Emoji | Snowflake | int) -> str:
         return str(emoji).replace("<", "").replace(">", "") if emoji.emoji_id > 0 else emoji
+
+    @staticmethod
+    def _apply_components(payload: JSONObjectBuilder, components: ActionRow):
+        payload.put(
+            "components", [{"type": ActionRow.INTERACTION_TYPE, "components": []}]
+        )
+        for component in components.components:
+            for row in payload.get("components"):
+                message_components = row.get("components")
+                message_components.append(component.as_json())  # type: ignore
