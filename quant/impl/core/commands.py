@@ -1,6 +1,6 @@
 from typing import Dict, Any, List
 
-from quant.data.guild.messages.interactions.slashes.slash_option import SlashOption
+from quant.entities.interactions.slash_option import SlashOption
 from quant.impl.core.context import MessageCommandContext
 
 

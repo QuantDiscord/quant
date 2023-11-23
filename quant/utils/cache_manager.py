@@ -1,14 +1,14 @@
 from typing import List
 
-from quant.data.components import Component
-from quant.data.gateway.snowflake import Snowflake
+from quant.entities.interactions.component import Component
+from quant.entities.snowflake import Snowflake
 from quant.impl.json_object import JSONObjectBuilder
-from quant.data.guild.voice.voice_state_update import VoiceState
-from quant.data.user import User
-from quant.data.guild.guild_object import Guild
-from quant.data.guild.messages.emoji import Emoji, Reaction
-from quant.data.guild.messages.message import Message
-from quant.data.guild.channel_object import Channel
+from quant.entities.voice_state_update import VoiceState
+from quant.entities.user import User
+from quant.entities.guild import Guild
+from quant.entities.emoji import Emoji, Reaction
+from quant.entities.message import Message
+from quant.entities.channel import Channel
 from quant.impl.events.types import EventTypes
 
 

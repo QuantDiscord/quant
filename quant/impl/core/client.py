@@ -1,7 +1,6 @@
 import asyncio
 import base64
 import inspect
-from base64 import b64decode
 from typing import (
     Coroutine,
     Callable,
@@ -13,24 +12,25 @@ from typing import (
 )
 import warnings
 
-from quant.data.gateway.snowflake import Snowflake
-from quant.data.user import User
+from quant.entities.snowflake import Snowflake
+from quant.entities.button import Button
+from quant.entities.user import User
 from quant.impl.events.bot.ready_event import ReadyEvent
-from quant.data.guild.messages.interactions.interaction_type import InteractionType
-from quant.data.components.modals.modal import Modal
+from quant.entities.interactions.interaction import InteractionType
+from quant.entities.modal.modal import Modal
 from quant.impl.core.commands import SlashCommand, CombineCommand
-from quant.impl.core.context import InteractionContext, CombineContext, ModalContext
+from quant.impl.core.context import InteractionContext, CombineContext, ModalContext, ButtonContext
 from quant.impl.events.bot.interaction_create_event import InteractionCreateEvent
 from quant.impl.core import MessageCommand, MessageCommandContext
 from quant.impl.core.exceptions.command_exceptions import CommandNotFoundException, CommandArgumentsNotFound
 from quant.impl.core.gateway import Gateway
-from quant.data.intents import Intents
+from quant.entities.intents import Intents
 from quant.impl.core.exceptions.library_exception import DiscordException, ExperimentalFutureWarning
 from quant.impl.core.rest import DiscordREST
-from quant.impl.events.event import BaseEvent
-from quant.data.model import BaseModel
-from quant.data.activities.activity import ActivityBuilder
-from quant.impl.events.guild.message_events import MessageCreateEvent
+from quant.impl.events.event import Event
+from quant.entities.model import BaseModel
+from quant.entities.activity import ActivityBuilder
+from quant.impl.events.guild.message_event import MessageCreateEvent
 
 
 class Client:
@@ -59,14 +59,15 @@ class Client:
         self.cache = self.gateway.cache
         self.client_id: int = self._decode_token_to_id()
 
+        self._modals: Dict[str, Modal] = {}
+        self._buttons: Dict[str, Button] = {}
         self._commands: Dict[str, MessageCommand] = {}
         self._slash_commands: Dict[str, SlashCommand] = {}
         self._combined_commands: Dict[str, CombineCommand] = {}
-        self._modals: Dict[str, Modal] = {}
 
         self.add_listener(MessageCreateEvent, self._handle_message_commands)
         self.add_listener(InteractionCreateEvent, self._handle_interactions)
-        self.add_listener(ReadyEvent, self._set_client_user)
+        self.add_listener(ReadyEvent, self._set_client_user_on_ready)
 
     _Coroutine = Callable[..., Coroutine[Any, Any, Any]]
 
@@ -113,7 +114,7 @@ class Client:
         if inspect.iscoroutine(coro):
             raise DiscordException("Callback function must be coroutine")
 
-        if not issubclass(event, BaseEvent):
+        if not issubclass(event, Event):
             raise DiscordException(f"Subclass of event {event} must be BaseEvent")
 
         self.gateway.add_event(event.API_EVENT_NAME, event, coro)
@@ -124,10 +125,10 @@ class Client:
 
         annotations = inspect.getmembers(coro)[0]
         try:
-            event_type: BaseEvent = list(annotations[1].values())[0]
+            event_type: Event = list(annotations[1].values())[0]
 
             # idk why linter warning there
-            if not issubclass(event_type, BaseEvent):  # type: ignore
+            if not issubclass(event_type, Event):  # type: ignore
                 raise DiscordException(f"{event_type.__name__} must be subclass of BaseEvent")
 
             self.gateway.add_event(event_type.API_EVENT_NAME, event_type, coro)
@@ -161,7 +162,6 @@ class Client:
                 raise DiscordException("You can't create more than 100 slash commands.")
 
             self.slash_commands[command.name] = command
-
             await self.rest.create_application_command(
                 application_id=self.client_id if app_id is None else app_id,
                 name=command.name,
@@ -171,10 +171,17 @@ class Client:
 
     def add_modal(self, *modals: Modal) -> None:
         for modal in modals:
-            if inspect.iscoroutine(modal):
+            if inspect.iscoroutine(modal.callback):
                 raise DiscordException("Callback function must be coroutine")
 
             self.modals[str(modal.custom_id)] = modal
+
+    def add_button(self, *buttons: Button) -> None:
+        for button in buttons:
+            if inspect.iscoroutine(button.callback):
+                raise DiscordException("Callback function must be coroutine")
+
+            self._buttons[str(button.custom_id)] = button
 
     @property
     def message_commands(self) -> Dict[str, MessageCommand]:
@@ -192,23 +199,29 @@ class Client:
     def combined_commands(self) -> Dict[str, CombineCommand]:
         return self._combined_commands
 
+    @property
+    def buttons(self) -> Dict[str, Button]:
+        return self._buttons
+
     async def _handle_interactions(self, event: InteractionCreateEvent):
         interaction_type = event.interaction.interaction_type
         context = InteractionContext(self, event.interaction)
 
-        match interaction_type:
-            case InteractionType.APPLICATION_COMMAND:
-                slash_commands = self.slash_commands.values()
-                combined_commands = self.combined_commands.values()
-                for command in list(slash_commands) + list(combined_commands):
-                    if isinstance(command, CombineCommand) and command.name == event.interaction.interaction_data.name:
-                        await command.callback_func(CombineContext(self, None, event.interaction))
-                    elif command.name == event.interaction.interaction_data.name:
-                        await command.callback_func(context)
-            case InteractionType.MODAL_SUBMIT:
-                for modal in self.modals.values():
-                    if modal.custom_id == event.interaction.interaction_data.custom_id:
-                        await modal.callback_func(ModalContext(self, event.interaction))
+        if interaction_type == InteractionType.APPLICATION_COMMAND:
+            slash_commands = self.slash_commands.values()
+            combined_commands = self.combined_commands.values()
+
+            for command in list(slash_commands) + list(combined_commands):
+                if isinstance(command, CombineCommand) and command.name == event.interaction.interaction_data.name:
+                    await command.callback_func(CombineContext(self, None, event.interaction))
+
+                elif command.name == event.interaction.interaction_data.name:
+                    await command.callback_func(context)
+
+        if interaction_type == InteractionType.MODAL_SUBMIT:
+            for modal in self.modals.values():
+                if modal.custom_id == event.interaction.interaction_data.custom_id:
+                    await modal.callback_func(ModalContext(self, event.interaction))
 
     async def _handle_message_commands(self, event: MessageCreateEvent) -> None:
         content = event.message.content
@@ -242,7 +255,7 @@ class Client:
                 except TypeError as e:  # stupid but ok
                     raise CommandArgumentsNotFound(e)
 
-    async def _set_client_user(self, _: ReadyEvent) -> None:
+    async def _set_client_user_on_ready(self, _: ReadyEvent) -> None:
         self.my_user = self.cache.get_users()[0]
 
     @staticmethod

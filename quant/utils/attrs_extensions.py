@@ -3,7 +3,7 @@ from datetime import datetime
 
 import attrs
 
-from quant.data.gateway.snowflake import Snowflake
+from quant.entities.snowflake import Snowflake
 
 
 def iso_to_datetime(time: str = None):

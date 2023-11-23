@@ -1,15 +1,14 @@
 from typing import List, Any, Dict
 from abc import ABC, abstractmethod
 
-from quant.data.guild.messages.interactions.slashes.slash_option import SlashOption
-from quant.data.guild.guild_object import Guild
-from quant.data.guild.messages.emoji import Emoji
-from quant.data.guild.messages.interactions.response.interaction_callback_data import InteractionCallbackData
-from quant.data.guild.messages.interactions.response.interaction_callback_type import InteractionCallbackType
-from quant.data.guild.messages.mentions import AllowedMentions
-from quant.data.guild.messages.message import Message
-from quant.data.guild.messages.embeds import Embed
-from quant.data.guild.webhooks.webhook import Webhook
+from quant.entities.interactions.slash_option import SlashOption
+from quant.entities.guild import Guild
+from quant.entities.emoji import Emoji
+from quant.entities.interactions.interaction import InteractionCallbackType, InteractionCallbackData
+from quant.entities.allowed_mentions import AllowedMentions
+from quant.entities.message import Message
+from quant.entities.embeds import Embed
+from quant.entities.webhook import Webhook
 
 
 class RESTAware(ABC):

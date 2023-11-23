@@ -14,12 +14,12 @@ from traceback import print_exception
 import json
 import aiohttp
 
-from quant.data.activities.activity import Activity
-from quant.data.gateway.snowflake import Snowflake
-from quant.data.route import DISCORD_WS_URL
-from quant.data.intents import Intents
+from quant.entities.activity import Activity
+from quant.entities.snowflake import Snowflake
+from quant.impl.core.route import DISCORD_WS_URL
+from quant.entities.intents import Intents
 from quant.impl.events.dispatch import dispatch
-from quant.impl.events.event import BaseEvent
+from quant.impl.events.event import Event
 from quant.utils.cache_manager import CacheManager
 from quant.utils.asyncio_utils import get_loop
 
@@ -56,7 +56,7 @@ class Gateway:
         self.session_id = None
         self._previous_heartbeat = 0
         self.mobile_status = mobile_status
-        self._events: Dict[Callable, Dict[str, BaseEvent]] = {}
+        self._events: Dict[Callable, Dict[str, Event]] = {}
         self.cache: CacheManager = CacheManager()
 
         self.loop = get_loop()
@@ -305,5 +305,5 @@ class Gateway:
     def add_event(self, event_name, event_type, event_callback) -> None:
         self._events[event_callback] = {event_name: event_type}
 
-    def event_list(self) -> Dict[Callable, Dict[str, BaseEvent]]:
+    def event_list(self) -> Dict[Callable, Dict[str, Event]]:
         return self._events

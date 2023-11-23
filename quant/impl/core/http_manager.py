@@ -4,7 +4,7 @@ from typing import Dict, Any
 from aiohttp import ClientSession, ClientResponse
 
 from quant.api.core.http_manager_abc import HttpManager
-from quant.data.gateway.http_codes import HttpCodes
+from quant.entities.http_codes import HttpCodes
 from quant.impl.core.exceptions.http_exception import Forbidden, InternalServerError
 from quant.impl.core.exceptions.library_exception import DiscordException
 from quant.impl.json_object import JSONObjectBuilder

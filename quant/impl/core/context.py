@@ -2,12 +2,13 @@ from typing import List, TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
     from quant.impl.core.client import Client
-    from quant.data.guild.messages.interactions.interaction import Interaction
-    from quant.data.guild.messages.message import Message
+    from quant.entities.interactions.interaction import Interaction
+    from quant.entities.message import Message
+    from quant.entities.button import Button
 
-from quant.data.components.action_row import ActionRow
-from quant.data.guild.messages.embeds import Embed
-from quant.data.guild.messages.mentions import AllowedMentions
+from quant.entities.action_row import ActionRow
+from quant.entities.embeds import Embed
+from quant.entities.allowed_mentions import AllowedMentions
 
 
 class BaseContext:
@@ -61,6 +62,12 @@ class InteractionContext:
     def __init__(self, client, interaction) -> None:
         self.client: Client = client
         self.interaction: Interaction = interaction
+
+
+class ButtonContext(InteractionContext):
+    def __init__(self, client, interaction, button) -> None:
+        self.button: Button = button
+        super().__init__(client, interaction)
 
 
 class ModalContext(InteractionContext):

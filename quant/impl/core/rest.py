@@ -4,17 +4,17 @@ from typing import List, Any
 
 import attrs
 
-from quant.data.components.action_row import ActionRow
-from quant.data.guild.messages.interactions.slashes.slash_option import SlashOption
+from quant.entities.action_row import ActionRow
+from quant.entities.message import MessageReference
+from quant.entities.interactions.slash_option import SlashOption
 from quant.api.core.rest_aware import RESTAware
-from quant.data.gateway.snowflake import Snowflake
-from quant.data.guild.guild_object import Guild
-from quant.data.guild.messages.emoji import Emoji
-from quant.data.guild.messages.interactions.response.interaction_callback_data import InteractionCallbackData
-from quant.data.guild.messages.interactions.response.interaction_callback_type import InteractionCallbackType
-from quant.data.guild.messages.mentions import AllowedMentions
+from quant.entities.snowflake import Snowflake
+from quant.entities.guild import Guild
+from quant.entities.emoji import Emoji
+from quant.entities.interactions.interaction import InteractionCallbackData, InteractionCallbackType
+from quant.entities.allowed_mentions import AllowedMentions
 from quant.impl.core.http_manager import HttpManagerImpl
-from quant.data.route import (
+from quant.impl.core.route import (
     CREATE_MESSAGE, DELETE_MESSAGE,
     CREATE_WEBHOOK, GET_GUILD, CREATE_GUILD,
     DELETE_GUILD, CREATE_REACTION, GET_GUILD_EMOJI,
@@ -22,9 +22,9 @@ from quant.data.route import (
     CREATE_APPLICATION_COMMAND, GET_ORIGINAL_INTERACTION_RESPONSE, EDIT_ORIGINAL_INTERACTION_RESPONSE,
     CREATE_GUILD_BAN, DELETE_ALL_REACTIONS, DELETE_ALL_REACTION_FOR_EMOJI
 )
-from quant.data.guild.messages.message import Message
-from quant.data.guild.messages.embeds import Embed
-from quant.data.guild.webhooks.webhook import Webhook
+from quant.entities.message import Message
+from quant.entities.embeds import Embed
+from quant.entities.webhook import Webhook
 from quant.impl.json_object import JSONObjectBuilder
 
 
@@ -41,7 +41,7 @@ class DiscordREST(RESTAware):
         embed: Embed | None = None,
         embeds: List[Embed] | None = None,
         allowed_mentions: AllowedMentions | None = None,
-        message_reference: Any | None = None,
+        message_reference: MessageReference | None = None,
         components: ActionRow | None = None,
         sticker_ids: List | None = None,
         files: Any | None = None,
@@ -70,7 +70,7 @@ class DiscordREST(RESTAware):
             body.put("allowed_mentions", attrs.asdict(allowed_mentions))
 
         if message_reference is not None:
-            body.put("message_reference", message_reference)
+            body.put("message_reference", attrs.asdict(message_reference))
 
         if components is not None:
             self._apply_components(body, components)
@@ -211,7 +211,7 @@ class DiscordREST(RESTAware):
         embed: Embed | None = None,
         embeds: List[Embed] | None = None,
         allowed_mentions: AllowedMentions | None = None,
-        message_reference: Any = None,
+        message_reference: MessageReference = None,
         components: ActionRow | None = None,
         sticker_ids: List = None,
         files: List[Any] | None = None,
@@ -442,12 +442,12 @@ class DiscordREST(RESTAware):
         self,
         channel_id: Snowflake | int,
         message_id: Snowflake | int,
-        content: str = None,
+        content: str | None = None,
         embed: Embed | None = None,
-        embeds: List[Embed] = None,
-        flags: int = None,
-        allowed_mentions: AllowedMentions = None,
-        components: ActionRow = None,
+        embeds: List[Embed] | None = None,
+        flags: int | None = None,
+        allowed_mentions: AllowedMentions | None = None,
+        components: ActionRow | None = None
     ) -> Message:  # TODO: File uploading later
         payload = self._build_payload(
             content=content,
