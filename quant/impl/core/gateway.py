@@ -4,9 +4,8 @@ import zlib
 import logging
 from typing import (
     Dict,
-    Callable,
     NoReturn,
-    List
+    List,
 )
 import asyncio
 from traceback import print_exception
@@ -14,12 +13,12 @@ from traceback import print_exception
 import json
 import aiohttp
 
+from quant.impl.events.types import EventTypes
 from quant.entities.activity import Activity
 from quant.entities.snowflake import Snowflake
 from quant.impl.core.route import DISCORD_WS_URL
 from quant.entities.intents import Intents
-from quant.impl.events.dispatch import dispatch
-from quant.impl.events.event import Event
+from quant.entities.factory.event_factory import EventFactory
 from quant.utils.cache_manager import CacheManager
 from quant.utils.asyncio_utils import get_loop
 
@@ -56,8 +55,8 @@ class Gateway:
         self.session_id = None
         self._previous_heartbeat = 0
         self.mobile_status = mobile_status
-        self._events: Dict[Callable, Dict[str, Event]] = {}
         self.cache: CacheManager = CacheManager()
+        self.event_factory = EventFactory(self)
 
         self.loop = get_loop()
 
@@ -185,7 +184,8 @@ class Gateway:
                 received_event_type = received_data["t"]
 
                 self.cache.add_from_event(received_event_type, **received_data["d"])
-                await dispatch(self, received_event_type, **received_data["d"])
+                event = self.event_factory.build_event(received_event_type, **received_data["d"])
+                await self.event_factory.dispatch(event)
             case self._INVALID_SESSION:
                 await self.websocket_connection.close(code=4000)
                 await self.error_reconnect(code=4000)
@@ -301,9 +301,3 @@ class Gateway:
             payload.update({"s": sequence, "t": event_name})
 
         return json.dumps(payload)
-
-    def add_event(self, event_name, event_type, event_callback) -> None:
-        self._events[event_callback] = {event_name: event_type}
-
-    def event_list(self) -> Dict[Callable, Dict[str, Event]]:
-        return self._events

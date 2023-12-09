@@ -12,6 +12,7 @@ class ReactionAddEvent(Event):
         self.reaction = Reaction(**kwargs)
 
         cache_manager.add_emoji(self.reaction)
+        return self
 
 
 class ReactionRemoveEvent(Event):
@@ -22,3 +23,4 @@ class ReactionRemoveEvent(Event):
         self.reaction = Reaction(**kwargs)
 
         cache_manager.add_emoji(self.reaction)
+        return self

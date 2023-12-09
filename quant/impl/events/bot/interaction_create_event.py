@@ -10,3 +10,4 @@ class InteractionCreateEvent(Event):
 
     def process_event(self, _, **kwargs):
         self.interaction = Interaction(**kwargs)
+        return self

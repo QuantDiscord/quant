@@ -104,3 +104,6 @@ class Guild(BaseModel):
             delete_message_days=delete_message_days,
             delete_message_seconds=delete_message_seconds
         )
+
+    async def fetch_invites(self) -> List:
+        return await self.client.rest.fetch_guild_invites(guild_id=self.guild_id)

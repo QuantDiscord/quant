@@ -44,7 +44,10 @@ class HttpManagerImpl(HttpManager):
                 return request
 
             request_json_data = await request.json()
-            if 'code' in request_json_data.keys():
+            if isinstance(request_json_data, list):
+                return request
+
+            if isinstance(request_json_data, dict) and 'code' in request_json_data.keys():
                 raise DiscordException(request_text_data)
 
             match request.status:

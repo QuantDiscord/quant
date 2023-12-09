@@ -33,6 +33,8 @@ class MessageEditEvent(Event):
 
         self.old_message = message
 
+        return self
+
 
 class MessageDeleteEvent(Event):
     API_EVENT_NAME: EventTypes = EventTypes.MESSAGE_DELETE
@@ -44,6 +46,8 @@ class MessageDeleteEvent(Event):
         message = cache_manager.get_message(int(kwargs.get("id")))
         if message is not None:
             self.message = message
+
+        return self
 
     @classmethod
     def set_author(cls, user: User):

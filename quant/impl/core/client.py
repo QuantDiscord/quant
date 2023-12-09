@@ -27,7 +27,7 @@ from quant.impl.core.gateway import Gateway
 from quant.entities.intents import Intents
 from quant.impl.core.exceptions.library_exception import DiscordException, ExperimentalFutureWarning
 from quant.impl.core.rest import DiscordREST
-from quant.impl.events.event import Event
+from quant.impl.events.event import Event, InternalEvent
 from quant.entities.model import BaseModel
 from quant.entities.activity import ActivityBuilder
 from quant.impl.events.guild.message_event import MessageCreateEvent
@@ -117,7 +117,7 @@ class Client:
         if not issubclass(event, Event):
             raise DiscordException(f"Subclass of event {event} must be BaseEvent")
 
-        self.gateway.add_event(event.API_EVENT_NAME, event, coro)
+        self.gateway.event_factory.add_event(event, coro)
 
     def _add_listener_from_coro(self, coro: _Coroutine) -> None:
         if inspect.iscoroutine(coro):
@@ -128,10 +128,10 @@ class Client:
             event_type: Event = list(annotations[1].values())[0]
 
             # idk why linter warning there
-            if not issubclass(event_type, Event):  # type: ignore
-                raise DiscordException(f"{event_type.__name__} must be subclass of BaseEvent")
+            if not issubclass(event_type, (InternalEvent, Event)):  # type: ignore
+                raise DiscordException(f"{event_type.__name__} must be subclass of Event")
 
-            self.gateway.add_event(event_type.API_EVENT_NAME, event_type, coro)
+            self.gateway.event_factory.add_event(event_type, coro)
         except IndexError:
             raise DiscordException(f"You need provide which event you need in function {coro}")
 

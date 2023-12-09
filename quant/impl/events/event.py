@@ -1,13 +1,18 @@
-from abc import ABCMeta, abstractmethod
+from abc import ABC, abstractmethod
+
+from typing_extensions import Self
 
 from quant.utils.cache_manager import CacheManager
-from quant.impl.events.types import EventTypes
+from .types import EventTypes
 
 
-class Event:
-    __metaclass__ = ABCMeta
-
+class Event(ABC):
     API_EVENT_NAME: EventTypes
 
     @abstractmethod
-    def process_event(self, cache_manager: CacheManager, **kwargs): ...
+    def process_event(self, cache_manager: CacheManager, **kwargs) -> Self: ...
+
+
+class InternalEvent(ABC):
+    @abstractmethod
+    def process_event(self, cache_manager: CacheManager) -> Self: ...

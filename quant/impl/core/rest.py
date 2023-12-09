@@ -1,9 +1,10 @@
 import re
 import warnings
-from typing import List, Any
+from typing import List, Any, Dict
 
 import attrs
 
+from quant.impl.core.route import Route
 from quant.entities.action_row import ActionRow
 from quant.entities.message import MessageReference
 from quant.entities.interactions.slash_option import SlashOption
@@ -11,6 +12,7 @@ from quant.api.core.rest_aware import RESTAware
 from quant.entities.snowflake import Snowflake
 from quant.entities.guild import Guild
 from quant.entities.emoji import Emoji
+from quant.entities.invite import Invite
 from quant.entities.interactions.interaction import InteractionCallbackData, InteractionCallbackType
 from quant.entities.allowed_mentions import AllowedMentions
 from quant.impl.core.http_manager import HttpManagerImpl
@@ -20,7 +22,8 @@ from quant.impl.core.route import (
     DELETE_GUILD, CREATE_REACTION, GET_GUILD_EMOJI,
     CREATE_INTERACTION_RESPONSE, GET_MESSAGE, EDIT_MESSAGE,
     CREATE_APPLICATION_COMMAND, GET_ORIGINAL_INTERACTION_RESPONSE, EDIT_ORIGINAL_INTERACTION_RESPONSE,
-    CREATE_GUILD_BAN, DELETE_ALL_REACTIONS, DELETE_ALL_REACTION_FOR_EMOJI
+    CREATE_GUILD_BAN, DELETE_ALL_REACTIONS, DELETE_ALL_REACTION_FOR_EMOJI, GET_INVITE, DELETE_INVITE,
+    GET_GUILD_INVITES
 )
 from quant.entities.message import Message
 from quant.entities.embeds import Embed
@@ -532,6 +535,55 @@ class DiscordREST(RESTAware):
         )
         return Message(**await response.json())
 
+    async def fetch_invite(
+        self,
+        invite_code: str,
+        with_counts: bool = False,
+        with_expiration: bool = False,
+        guild_scheduled_event_id: Snowflake | None = None
+    ) -> Invite:
+        url = self.build_url(
+            route=GET_INVITE,
+            data={"invite_code": invite_code},
+            query_params={
+                "with_counts": with_counts,
+                "with_expiration": with_expiration,
+                "guild_scheduled_event_id": guild_scheduled_event_id
+            }
+        )
+
+        response = await self.http.send_request(
+            GET_INVITE.method, url=url,
+            headers={self.http.AUTHORIZATION: self.token}
+        )
+
+        return Invite(**await response.json())
+
+    async def delete_invite(self, invite_code: str, reason: str | None = None) -> Invite:
+        url = DELETE_INVITE.uri.url_string.format(invite_code=invite_code)
+        headers = {self.http.AUTHORIZATION: self.token}
+
+        if reason is not None:
+            headers['X-Audit-Log-Reason'] = reason
+
+        response = await self.http.send_request(
+            DELETE_INVITE.method, url=url,
+            headers=headers
+        )
+
+        return Invite(**await response.json())
+
+    async def fetch_guild_invites(self, guild_id: Snowflake) -> List:
+        url = self.build_url(
+            route=GET_GUILD_INVITES,
+            data={"guild_id": guild_id}
+        )
+        return await (await self.http.send_request(
+            GET_GUILD_INVITES.method, url=url,
+            headers={self.http.AUTHORIZATION: self.token}
+        )).json()
+
+
     @staticmethod
     def _parse_emoji(emoji: str | Emoji | Snowflake | int) -> str:
         return str(emoji).replace("<", "").replace(">", "") if emoji.emoji_id > 0 else emoji
@@ -545,3 +597,14 @@ class DiscordREST(RESTAware):
             for row in payload.get("components"):
                 message_components = row.get("components")
                 message_components.append(component.as_json())  # type: ignore
+
+    @staticmethod
+    def build_url(route: Route, data: Dict[str, Any] = None, query_params: Dict[str, Any] = None) -> str:
+        url = route.uri.url_string.format(**data) \
+            if data is not None else route.uri.url_string
+
+        if query_params is not None:
+            for param, value in query_params.items():
+                url += f"?{param}={value}"
+
+        return url

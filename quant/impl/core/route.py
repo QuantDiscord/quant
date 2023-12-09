@@ -50,6 +50,9 @@ GET_GUILD: Final[Route] = Route("GET", URI("/guilds/{guild_id}"))
 CREATE_GUILD: Final[Route] = Route("POST", URI("/guilds"))
 DELETE_GUILD: Final[Route] = Route("DELETE", URI("/guilds/{guild_id}"))
 CREATE_GUILD_BAN: Final[Route] = Route("PUT", URI("/guilds/{guild_id}/bans/{user_id}"))
+GET_INVITE: Final[Route] = Route("GET", URI("/invites/{invite_code}"))
+DELETE_INVITE: Final[Route] = Route("DELETE", URI("/invites/{invite_code}"))
+GET_GUILD_INVITES: Final[Route] = Route("GET", URI("/guilds/{guild_id}/invites"))
 
 # Interactions
 CREATE_INTERACTION_RESPONSE: Final[Route] = Route(

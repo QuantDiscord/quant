@@ -11,3 +11,4 @@ class VoiceServerUpdateEvent(Event):
 
     def process_event(self, cache_manager: CacheManager, **kwargs):
         self.state = VoiceServer(**kwargs)
+        return self
