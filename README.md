@@ -1,6 +1,8 @@
-# Quant - Discord API Framework
-
-Quant is a Python framework designed to simplify interaction with the Discord API and facilitate the development of Discord bots.
+<p align="center">
+    <a href="https://discord.gg/MnECK7DJ6n">
+        <img width="2249px" src="https://media.discordapp.net/attachments/1130594736944726106/1183271884175986688/Frame_1222.png?ex=6587bad1&is=657545d1&hm=9e223a5cb45271eae4cd2a56d994ed81030c4902d12f105a984554e807038086&=&format=webp&quality=lossless&width=1012&height=339" alt="banner">
+    </a>
+</p>
 
 ## Example Usage
 
