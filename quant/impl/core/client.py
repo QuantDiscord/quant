@@ -15,6 +15,7 @@ import warnings
 from quant.entities.snowflake import Snowflake
 from quant.entities.button import Button
 from quant.entities.user import User
+from quant.impl.events.bot.exception_event import QuantExceptionEvent
 from quant.impl.events.bot.ready_event import ReadyEvent
 from quant.entities.interactions.interaction import InteractionType
 from quant.entities.modal.modal import Modal
@@ -37,12 +38,12 @@ class Client:
     T = TypeVar("T")
 
     def __init__(
-        self,
-        token: str,
-        intents: Intents = Intents.ALL_UNPRIVILEGED,
-        prefix: str = None,
-        mobile_status: bool = False,
-        shards: List[int] = None
+            self,
+            token: str,
+            intents: Intents = Intents.ALL_UNPRIVILEGED,
+            prefix: str = None,
+            mobile_status: bool = False,
+            shards: List[int] = None
     ) -> None:
         self.my_user: User | None = None
         self.token = token
@@ -207,21 +208,28 @@ class Client:
         interaction_type = event.interaction.interaction_type
         context = InteractionContext(self, event.interaction)
 
-        if interaction_type == InteractionType.APPLICATION_COMMAND:
-            slash_commands = self.slash_commands.values()
-            combined_commands = self.combined_commands.values()
+        try:
+            if interaction_type == InteractionType.APPLICATION_COMMAND:
+                slash_commands = self.slash_commands.values()
+                combined_commands = self.combined_commands.values()
 
-            for command in list(slash_commands) + list(combined_commands):
-                if isinstance(command, CombineCommand) and command.name == event.interaction.interaction_data.name:
-                    await command.callback_func(CombineContext(self, None, event.interaction))
+                for command in list(slash_commands) + list(combined_commands):
+                    if isinstance(command, CombineCommand) and command.name == event.interaction.interaction_data.name:
+                        await command.callback_func(CombineContext(self, None, event.interaction))
 
-                elif command.name == event.interaction.interaction_data.name:
-                    await command.callback_func(context)
+                    elif command.name == event.interaction.interaction_data.name:
+                        await command.callback_func(context)
 
-        if interaction_type == InteractionType.MODAL_SUBMIT:
-            for modal in self.modals.values():
-                if modal.custom_id == event.interaction.interaction_data.custom_id:
-                    await modal.callback_func(ModalContext(self, event.interaction))
+            if interaction_type == InteractionType.MODAL_SUBMIT:
+                for modal in self.modals.values():
+                    if modal.custom_id == event.interaction.interaction_data.custom_id:
+                        await modal.callback_func(ModalContext(self, event.interaction))
+
+        except Exception as e:
+            await self.gateway.event_factory.dispatch(
+                self.gateway.event_factory.build_from_class(QuantExceptionEvent, context, e)
+            )
+            raise e
 
     async def _handle_message_commands(self, event: MessageCreateEvent) -> None:
         content = event.message.content
@@ -238,21 +246,32 @@ class Client:
 
             message_commands = self.message_commands.values()
             combined_commands = self.combined_commands.values()
+            context = MessageCommandContext(client=self, message=event.message)
+
             for command in list(message_commands) + list(combined_commands):
                 try:
                     if not command.name == substring_command:
                         continue
 
-                    context = MessageCommandContext(client=self, message=event.message)
-                    if isinstance(command, CombineCommand):
-                        await command.callback_func(CombineContext(
-                            client=self,
-                            original_message=event.message,
-                            interaction=None
-                        ), *arguments)
-                    else:
-                        await command.callback_func(context, *arguments)
+                    try:
+                        if isinstance(command, CombineCommand):
+                            context = CombineContext(
+                                client=self,
+                                original_message=event.message,
+                                interaction=None
+                            )
+                            await command.callback_func(context, *arguments)
+                        else:
+                            await command.callback_func(context, *arguments)
+                    except Exception as exc:
+                        await self.gateway.event_factory.dispatch(
+                            self.gateway.event_factory.build_from_class(QuantExceptionEvent, context, exc)
+                        )
+                        raise exc
                 except TypeError as e:  # stupid but ok
+                    await self.gateway.event_factory.dispatch(
+                        self.gateway.event_factory.build_from_class(QuantExceptionEvent, context, e)
+                    )
                     raise CommandArgumentsNotFound(e)
 
     async def _set_client_user_on_ready(self, _: ReadyEvent) -> None:

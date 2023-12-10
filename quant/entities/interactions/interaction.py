@@ -103,7 +103,7 @@ class Interaction(BaseModel):
 
     async def respond(
         self,
-        content: str | None = None,
+        content: str | Any | None = None,
         tts: bool = False,
         embed: Embed | None = None,
         embeds: List[Embed] | None = None,
@@ -114,7 +114,7 @@ class Interaction(BaseModel):
     ) -> None:
         if components is not None:
             # why warning here
-            components = [component.as_json() for component in components.components]  # type: ignore
+            components = ActionRow([component.as_json() for component in components.components])  # type: ignore
 
         if embed is not None:
             embeds = [embed]
@@ -122,7 +122,7 @@ class Interaction(BaseModel):
         await self.client.rest.create_interaction_response(
             InteractionCallbackType.CHANNEL_MESSAGE_WITH_SOURCE,
             InteractionCallbackData(
-                content=content,
+                content=str(content),
                 tts=tts,
                 embeds=embeds,
                 allowed_mentions=allowed_mentions,

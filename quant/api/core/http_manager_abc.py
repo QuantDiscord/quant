@@ -11,9 +11,9 @@ class HttpManager(ABC):
     AUTHORIZATION: Final[str] = "Authorization"
     TEXT_HTML: Final[str] = "text/html"
 
-    @staticmethod
     @abstractmethod
-    async def send_request(method: str, url: str,
+    async def send_request(self,
+                           method: str, url: str,
                            data: Dict[str, Any] = None,
                            headers: Dict[str, str] = None,
                            content_type: str = None) -> ClientResponse | None:

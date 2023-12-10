@@ -33,7 +33,7 @@ from quant.impl.json_object import JSONObjectBuilder
 
 class DiscordREST(RESTAware):
     def __init__(self, token: str) -> None:
-        self.http = HttpManagerImpl()
+        self.http = HttpManagerImpl(authorization=token)
         self.token = token
 
     def _build_payload(
@@ -133,7 +133,7 @@ class DiscordREST(RESTAware):
         )
 
     async def create_webhook(self, channel_id: int, name: str, avatar: str = None, reason: str = None) -> Webhook:
-        headers = {self.http.AUTHORIZATION: self.token}
+        headers = {}
 
         if reason is not None:
             headers.update({"X-Audit-Log-Reason": reason})
@@ -148,17 +148,12 @@ class DiscordREST(RESTAware):
         return Webhook(**await webhook_data.json())
 
     async def fetch_emoji(self, guild_id: int, emoji: str) -> Emoji:
-        headers = {self.http.AUTHORIZATION: self.token}
-
         if re.match(r"<:(\w+):(\w+)>", emoji):
-            emoji_name, emoji_id = (
-                emoji.replace(">", "").replace("<", "")
-            ).split(":")[1:]
+            emoji_name, emoji_id = emoji.replace(">", "").replace("<", "").split(":")[1:]
             url = GET_GUILD_EMOJI.uri.url_string.format(guild_id=guild_id, emoji_id=emoji_id)
             response = await self.http.send_request(
                 GET_GUILD_EMOJI.method,
                 url=url,
-                headers=headers,
                 content_type=self.http.APPLICATION_X_WWW_FORM_URLENCODED
             )
 
@@ -174,7 +169,7 @@ class DiscordREST(RESTAware):
         message_id: int = None,
         reason: str = None
     ) -> Emoji | str:
-        headers = {self.http.AUTHORIZATION: self.token}
+        headers = {}
         emoji = await self.fetch_emoji(guild_id=guild_id, emoji=emoji)
 
         if reason is not None:
@@ -194,7 +189,7 @@ class DiscordREST(RESTAware):
         return emoji
 
     async def delete_message(self, channel_id: int, message_id: int, reason: str = None) -> None:
-        headers = {self.http.AUTHORIZATION: self.token}
+        headers = {}
 
         if reason is not None:
             headers.update({"X-Audit-Log-Reason": reason})
@@ -241,15 +236,12 @@ class DiscordREST(RESTAware):
         data = await self.http.send_request(
             CREATE_MESSAGE.method,
             CREATE_MESSAGE.uri.url_string.format(channel_id),
-            data=payload, headers={
-                self.http.AUTHORIZATION: self.token,
-            }
+            data=payload
         )
         message_json = await data.json()
         return Message(**message_json)
 
     async def fetch_guild(self, guild_id: int, with_counts: bool = False) -> Guild:
-        headers = {self.http.AUTHORIZATION: self.token, }
         url_with_guild_id = GET_GUILD.uri.url_string.format(guild_id=guild_id)
         build_guild_url = (
             url_with_guild_id
@@ -257,18 +249,15 @@ class DiscordREST(RESTAware):
             else url_with_guild_id + "?with_counts=true"
         )
         data = await self.http.send_request(
-            GET_GUILD.method, build_guild_url,
-            headers=headers
+            GET_GUILD.method, build_guild_url
         )
         guild_data = await data.json()
         return Guild(**guild_data)
 
     async def delete_guild(self, guild_id: int) -> None:
-        headers = {self.http.AUTHORIZATION: self.token, }
         await self.http.send_request(
             DELETE_GUILD.method,
-            url=DELETE_GUILD.uri.url_string.format(guild_id=guild_id),
-            headers=headers
+            url=DELETE_GUILD.uri.url_string.format(guild_id=guild_id)
         )
 
     async def create_guild(
@@ -287,7 +276,6 @@ class DiscordREST(RESTAware):
         system_channel_flags: int = 0
     ) -> Guild:
         payload = {'name': name, 'system_channel_flags': system_channel_flags}
-        headers = {self.http.AUTHORIZATION: self.token}
 
         if region is not None:
             payload.update({"region": region})
@@ -322,7 +310,6 @@ class DiscordREST(RESTAware):
         data = await self.http.send_request(
             CREATE_GUILD.method,
             CREATE_GUILD.uri.url_string,
-            headers=headers,
             data=payload
         )
         return Guild(**await data.json())
@@ -339,7 +326,7 @@ class DiscordREST(RESTAware):
             'delete_message_days': delete_message_days,
             'delete_message_seconds': delete_message_seconds
         }
-        headers = {self.http.AUTHORIZATION: self.token}
+        headers = {}
         url = CREATE_GUILD_BAN.uri.url_string.format(guild_id=guild_id, user_id=member_id)
 
         if delete_message_days > 0:
@@ -380,8 +367,7 @@ class DiscordREST(RESTAware):
             url=GET_MESSAGE.uri.url_string.format(
                 channel_id=channel_id,
                 message_id=message_id
-            ),
-            headers={self.http.AUTHORIZATION: self.token}
+            )
         )
 
         return Message(**await raw_message.json())
@@ -421,22 +407,17 @@ class DiscordREST(RESTAware):
         await self.http.send_request(
             CREATE_APPLICATION_COMMAND.method,
             url=CREATE_APPLICATION_COMMAND.uri.url_string.format(application_id=application_id),
-            data=payload,
-            headers={
-                self.http.AUTHORIZATION: self.token
-            }
+            data=payload
         )
 
     async def fetch_initial_interaction_response(self, application_id: int, interaction_token: str) -> Message:
-        headers = {self.http.AUTHORIZATION: self.token}
         url = GET_ORIGINAL_INTERACTION_RESPONSE.uri.url_string.format(
             application_id=application_id,
             interaction_token=interaction_token
         )
         response = await self.http.send_request(
             GET_ORIGINAL_INTERACTION_RESPONSE.method,
-            url=url,
-            headers=headers
+            url=url
         )
 
         return Message(**await response.json())
@@ -460,7 +441,6 @@ class DiscordREST(RESTAware):
             allowed_mentions=allowed_mentions,
             components=components
         )
-        headers = {self.http.AUTHORIZATION: self.token}
 
         url = EDIT_MESSAGE.uri.url_string.format(
             channel_id=channel_id, message_id=message_id
@@ -468,8 +448,7 @@ class DiscordREST(RESTAware):
         response = await self.http.send_request(
             EDIT_MESSAGE.method,
             url=url,
-            data=payload,
-            headers=headers
+            data=payload
         )
 
         return Message(**await response.json())
@@ -479,7 +458,7 @@ class DiscordREST(RESTAware):
         await self.http.send_request(
             DELETE_ALL_REACTIONS.method,
             url=url,
-            headers={self.http.AUTHORIZATION: self.token}
+            headers={}
         )
 
     async def delete_all_reactions_for_emoji(
@@ -530,8 +509,7 @@ class DiscordREST(RESTAware):
             url += f"?thread_id={thread_id}"
 
         response = await self.http.send_request(
-            EDIT_ORIGINAL_INTERACTION_RESPONSE.method, url=url,
-            headers={self.http.AUTHORIZATION: self.token}, data=payload
+            EDIT_ORIGINAL_INTERACTION_RESPONSE.method, url=url, data=payload
         )
         return Message(**await response.json())
 
@@ -553,15 +531,14 @@ class DiscordREST(RESTAware):
         )
 
         response = await self.http.send_request(
-            GET_INVITE.method, url=url,
-            headers={self.http.AUTHORIZATION: self.token}
+            GET_INVITE.method, url=url
         )
 
         return Invite(**await response.json())
 
     async def delete_invite(self, invite_code: str, reason: str | None = None) -> Invite:
         url = DELETE_INVITE.uri.url_string.format(invite_code=invite_code)
-        headers = {self.http.AUTHORIZATION: self.token}
+        headers = {}
 
         if reason is not None:
             headers['X-Audit-Log-Reason'] = reason
@@ -578,11 +555,10 @@ class DiscordREST(RESTAware):
             route=GET_GUILD_INVITES,
             data={"guild_id": guild_id}
         )
+        # Integration object later
         return await (await self.http.send_request(
-            GET_GUILD_INVITES.method, url=url,
-            headers={self.http.AUTHORIZATION: self.token}
+            GET_GUILD_INVITES.method, url=url
         )).json()
-
 
     @staticmethod
     def _parse_emoji(emoji: str | Emoji | Snowflake | int) -> str:

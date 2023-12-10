@@ -1,10 +1,12 @@
-from typing import Dict, List, Any, Callable, TYPE_CHECKING, cast
+from typing import Dict, List, Any, Callable, TYPE_CHECKING, cast, TypeVar
 
 if TYPE_CHECKING:
     from quant.impl.core.gateway import Gateway
 
 from quant.impl.events.event import Event, InternalEvent
 from quant.impl.events.types import EventTypes
+
+EventT = TypeVar("EventT")
 
 
 class EventFactory:
@@ -17,7 +19,15 @@ class EventFactory:
         if received_type in self._listener_transformer:
             event = self._listener_transformer[received_type]
             if event in self.added_listeners.keys():
-                return event().process_event(self.cache, **details)
+                event_class = cast(event, self._listener_transformer[received_type])
+                return event_class().process_event(self.cache, **details)
+
+    @staticmethod
+    def build_from_class(event: EventT, *args: Any) -> EventT | None:
+        try:
+            return event().build(*args)
+        except AttributeError:
+            return
 
     async def dispatch(self, event: Event | InternalEvent) -> None:
         event_callback = self.added_listeners.get(type(event))

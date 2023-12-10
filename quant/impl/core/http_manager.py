@@ -11,8 +11,11 @@ from quant.impl.json_object import JSONObjectBuilder
 
 
 class HttpManagerImpl(HttpManager):
-    @staticmethod
-    async def send_request(method: str, url: str,
+    def __init__(self, authorization: str | None = None) -> None:
+        self.authorization = authorization
+
+    async def send_request(self,
+                           method: str, url: str,
                            data: Dict[str, Any] | JSONObjectBuilder = None,
                            headers: Dict[str, str] = None,
                            content_type: str = None) -> ClientResponse | None:
@@ -20,8 +23,12 @@ class HttpManagerImpl(HttpManager):
             if headers is None:
                 headers = {}
 
+            if self.authorization is not None:
+                headers.update({"Authorization": self.authorization})
+
             if content_type is not None:
                 headers.update({"Content-Type": content_type})
+
             if content_type is None:
                 headers.update({"Content-Type": HttpManagerImpl.APPLICATION_JSON})
 

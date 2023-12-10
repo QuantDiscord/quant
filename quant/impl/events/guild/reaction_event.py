@@ -6,6 +6,7 @@ from quant.utils.cache_manager import CacheManager
 
 class ReactionAddEvent(Event):
     API_EVENT_NAME = EventTypes.MESSAGE_REACTION_ADD
+
     reaction: Reaction
 
     def process_event(self, cache_manager: CacheManager, **kwargs):
@@ -17,6 +18,7 @@ class ReactionAddEvent(Event):
 
 class ReactionRemoveEvent(Event):
     API_EVENT_NAME = EventTypes.MESSAGE_REACTION_REMOVE
+
     reaction: Reaction
 
     def process_event(self, cache_manager: CacheManager, **kwargs):
