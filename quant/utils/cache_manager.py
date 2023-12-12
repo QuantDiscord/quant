@@ -119,4 +119,4 @@ class CacheManager:
             case EventTypes.CHANNEL_CREATE:
                 self.add_channel(Channel(**data))
 
-# мама сказала, что я умный
+# мама сказала, что я умный (fr)
