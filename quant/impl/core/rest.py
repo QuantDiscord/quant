@@ -76,7 +76,7 @@ class DiscordREST(RESTAware):
             body.put("message_reference", attrs.asdict(message_reference))
 
         if components is not None:
-            self._apply_components(body, components)
+            body.put("components", components.as_json())
 
         if sticker_ids is not None:
             body.put("sticker_ids", sticker_ids)
@@ -562,17 +562,9 @@ class DiscordREST(RESTAware):
 
     @staticmethod
     def _parse_emoji(emoji: str | Emoji | Snowflake | int) -> str:
+        if not isinstance(emoji, Emoji | Snowflake):
+            
         return str(emoji).replace("<", "").replace(">", "") if emoji.emoji_id > 0 else emoji
-
-    @staticmethod
-    def _apply_components(payload: MutableJsonBuilder, components: ActionRow):
-        payload.put(
-            "components", [{"type": ActionRow.INTERACTION_TYPE, "components": []}]
-        )
-        for component in components.components:
-            for row in payload.get("components"):
-                message_components = row.get("components")
-                message_components.append(component.as_json())  # type: ignore
 
     @staticmethod
     def build_url(route: Route, data: Dict[str, Any] = None, query_params: Dict[str, Any] = None) -> str:
