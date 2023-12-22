@@ -4,6 +4,9 @@
     </a>
 </p>
 
+# **LIBRARY UNDER DEVELOPMENT**
+So, if you catch some bugs you can create issue or join to support server (click banner)
+
 ## Example Usage
 
 Here's an example code showcasing how to use quant:
