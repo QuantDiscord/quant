@@ -1,3 +1,4 @@
+import asyncio
 from typing import Dict, Any, Callable, TYPE_CHECKING, cast, TypeVar
 
 if TYPE_CHECKING:
@@ -44,3 +45,6 @@ class EventFactory:
             return
 
         self._listener_transformer[event.API_EVENT_NAME] = event
+
+    async def wait(self, event_type: EventTypes, condition: Callable, timeout: int = 5) -> None:
+        ...

@@ -14,23 +14,25 @@ class HttpManagerImpl(HttpManager):
     def __init__(self, authorization: str | None = None) -> None:
         self.authorization = authorization
 
-    async def send_request(self,
-                           method: str, url: str,
-                           data: Dict[str, Any] | MutableJsonBuilder = None,
-                           headers: Dict[str, str] = None,
-                           content_type: str = None) -> ClientResponse | None:
+    async def send_request(
+        self,
+        method: str, url: str,
+        data: Dict[str, Any] | MutableJsonBuilder[str, Any] = None,
+        headers: Dict[str, str] | MutableJsonBuilder[str, Any] = None,
+        content_type: str = None
+    ) -> ClientResponse | None:
         async with ClientSession(headers=headers) as session:
             if headers is None:
-                headers = {}
+                headers = MutableJsonBuilder()
 
             if self.authorization is not None:
-                headers.update({"Authorization": self.authorization})
+                headers.put("Authorization", self.authorization)
 
             if content_type is not None:
-                headers.update({"Content-Type": content_type})
+                headers.put("Content-Type", content_type)
 
             if content_type is None:
-                headers.update({"Content-Type": HttpManagerImpl.APPLICATION_JSON})
+                headers.put("Content-Type", HttpManagerImpl.APPLICATION_JSON)
 
             if data is None:
                 request = await session.request(method=method, url=url, headers=headers)

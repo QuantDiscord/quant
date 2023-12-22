@@ -12,14 +12,16 @@ class MutableJsonBuilder(Mapping[KT, VT]):
     def __iter__(self) -> Iterator:
         ...
 
-    def __init__(self) -> None:
+    def __init__(self, dict_object: Dict[str, Any] = None) -> None:
         self._json_data: Dict[str, Any] = {}
+
+        if dict_object is not None:
+            self._json_data = dict_object
 
     def asdict(self) -> Dict:
         return self._json_data
 
     def __getitem__(self, item) -> Any:
-        # print(self._json_data, type(item))
         return self._json_data.get(item)
 
     def __delitem__(self, key):
