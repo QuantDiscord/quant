@@ -562,8 +562,6 @@ class DiscordREST(RESTAware):
 
     @staticmethod
     def _parse_emoji(emoji: str | Emoji | Snowflake | int) -> str:
-        if not isinstance(emoji, Emoji | Snowflake):
-            
         return str(emoji).replace("<", "").replace(">", "") if emoji.emoji_id > 0 else emoji
 
     @staticmethod

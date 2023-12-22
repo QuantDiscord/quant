@@ -1,10 +1,10 @@
 from typing_extensions import Self
 
-from quant.impl.core.context import InteractionContext, MessageCommandContext, ModalContext, CombineContext
+from quant.impl.core.context import InteractionContext, MessageCommandContext, ModalContext
 from quant.impl.core.exceptions.library_exception import DiscordException
 from quant.impl.events.event import InternalEvent
 
-ContextType = InteractionContext | MessageCommandContext | ModalContext | CombineContext
+ContextType = InteractionContext | MessageCommandContext | ModalContext
 
 
 class QuantExceptionEvent(InternalEvent):

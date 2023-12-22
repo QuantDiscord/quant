@@ -12,7 +12,6 @@ from typing import (
 )
 import warnings
 
-import quant
 from quant.entities.interactions.component_types import ComponentType
 
 if TYPE_CHECKING:
@@ -25,14 +24,14 @@ from quant.impl.events.bot.exception_event import QuantExceptionEvent
 from quant.impl.events.bot.ready_event import ReadyEvent
 from quant.entities.interactions.interaction import InteractionType
 from quant.entities.modal.modal import Modal
-from quant.impl.core.commands import SlashCommand, CombineCommand
-from quant.impl.core.context import InteractionContext, CombineContext, ModalContext, ButtonContext
+from quant.impl.core.commands import SlashCommand
+from quant.impl.core.context import InteractionContext, ModalContext, ButtonContext
 from quant.impl.events.bot.interaction_create_event import InteractionCreateEvent
 from quant.impl.core import MessageCommand, MessageCommandContext
 from quant.impl.core.exceptions.command_exceptions import CommandNotFoundException, CommandArgumentsNotFound
 from quant.impl.core.gateway import Gateway
 from quant.entities.intents import Intents
-from quant.impl.core.exceptions.library_exception import DiscordException, ExperimentalFutureWarning
+from quant.impl.core.exceptions.library_exception import DiscordException
 from quant.impl.core.rest import DiscordREST
 from quant.impl.events.event import Event, InternalEvent
 from quant.entities.model import BaseModel
@@ -69,7 +68,6 @@ class Client:
         self._buttons: Dict[str, Button] = {}
         self._commands: Dict[str, MessageCommand] = {}
         self._slash_commands: Dict[str, SlashCommand] = {}
-        self._combined_commands: Dict[str, CombineCommand] = {}
 
         self.add_listener(MessageCreateEvent, self._handle_message_commands)
         self.add_listener(InteractionCreateEvent, self._listen_interaction_create)
@@ -144,17 +142,6 @@ class Client:
         except IndexError:
             raise DiscordException(f"You must provide which event you need {coro}")
 
-    async def add_combine_command(self, *commands: CombineCommand):
-        warnings.warn(
-            "Combine commands is experimental feature and can be removed in future",
-            category=ExperimentalFutureWarning
-        )
-        for command in commands:
-            if inspect.iscoroutine(command.callback):
-                raise DiscordException("Callback function must be coroutine")
-
-            self.combined_commands[command.name] = command
-
     def add_message_command(self, *commands: MessageCommand) -> None:
         warnings.warn(
             "Message commands is deprecated and would be deleted in future",
@@ -207,10 +194,6 @@ class Client:
     @property
     def modals(self) -> Dict[str, Modal]:
         return self._modals
-
-    @property
-    def combined_commands(self) -> Dict[str, CombineCommand]:
-        return self._combined_commands
 
     @property
     def buttons(self) -> Dict[str, "Button"]:
