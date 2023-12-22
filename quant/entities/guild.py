@@ -1,7 +1,10 @@
 import datetime
-from typing import List, Any
+from typing import List, Any, TYPE_CHECKING
 
 import attrs
+
+if TYPE_CHECKING:
+    from .invite import Invite
 
 from .channel import Channel
 from .member import GuildMember
@@ -105,5 +108,5 @@ class Guild(BaseModel):
             delete_message_seconds=delete_message_seconds
         )
 
-    async def fetch_invites(self) -> List:
+    async def fetch_invites(self) -> List["Invite"]:
         return await self.client.rest.fetch_guild_invites(guild_id=self.guild_id)

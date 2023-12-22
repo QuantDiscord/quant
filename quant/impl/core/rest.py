@@ -17,18 +17,31 @@ from quant.entities.interactions.interaction import InteractionCallbackData, Int
 from quant.entities.allowed_mentions import AllowedMentions
 from quant.impl.core.http_manager import HttpManagerImpl
 from quant.impl.core.route import (
-    CREATE_MESSAGE, DELETE_MESSAGE,
-    CREATE_WEBHOOK, GET_GUILD, CREATE_GUILD,
-    DELETE_GUILD, CREATE_REACTION, GET_GUILD_EMOJI,
-    CREATE_INTERACTION_RESPONSE, GET_MESSAGE, EDIT_MESSAGE,
-    CREATE_APPLICATION_COMMAND, GET_ORIGINAL_INTERACTION_RESPONSE, EDIT_ORIGINAL_INTERACTION_RESPONSE,
-    CREATE_GUILD_BAN, DELETE_ALL_REACTIONS, DELETE_ALL_REACTION_FOR_EMOJI, GET_INVITE, DELETE_INVITE,
+    CREATE_MESSAGE,
+    DELETE_MESSAGE,
+    CREATE_WEBHOOK,
+    GET_GUILD,
+    CREATE_GUILD,
+    DELETE_GUILD,
+    CREATE_REACTION,
+    GET_GUILD_EMOJI,
+    CREATE_INTERACTION_RESPONSE,
+    GET_MESSAGE,
+    EDIT_MESSAGE,
+    CREATE_APPLICATION_COMMAND,
+    GET_ORIGINAL_INTERACTION_RESPONSE,
+    EDIT_ORIGINAL_INTERACTION_RESPONSE,
+    CREATE_GUILD_BAN,
+    DELETE_ALL_REACTIONS,
+    DELETE_ALL_REACTION_FOR_EMOJI,
+    GET_INVITE, DELETE_INVITE,
     GET_GUILD_INVITES
 )
 from quant.entities.message import Message
 from quant.entities.embeds import Embed
 from quant.entities.webhook import Webhook
 from quant.utils.json_builder import MutableJsonBuilder
+from quant.entities.integration import Integration
 
 
 class DiscordREST(RESTAware):
@@ -36,8 +49,8 @@ class DiscordREST(RESTAware):
         self.http = HttpManagerImpl(authorization=token)
         self.token = token
 
+    @staticmethod
     def _build_payload(
-        self,
         content: str | None = None,
         nonce: str | int | None = None,
         tts: bool = False,
@@ -550,15 +563,15 @@ class DiscordREST(RESTAware):
 
         return Invite(**await response.json())
 
-    async def fetch_guild_invites(self, guild_id: Snowflake) -> List:
+    async def fetch_guild_invites(self, guild_id: Snowflake) -> List[Invite]:
         url = self.build_url(
             route=GET_GUILD_INVITES,
             data={"guild_id": guild_id}
         )
-        # Integration object later
-        return await (await self.http.send_request(
+        response = await self.http.send_request(
             GET_GUILD_INVITES.method, url=url
-        )).json()
+        )
+        return [Invite(**integration) for integration in await response.json()]
 
     @staticmethod
     def _parse_emoji(emoji: str | Emoji | Snowflake | int) -> str:

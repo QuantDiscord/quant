@@ -210,7 +210,6 @@ class Client:
 
         if command_name in self.slash_commands.keys():
             command = self.slash_commands[command_name]
-            print(command)
             await command.callback_func(context)
 
     async def handle_modal_submit(self, interaction: Interaction) -> None:
@@ -280,15 +279,7 @@ class Client:
                         continue
 
                     try:
-                        if isinstance(command, CombineCommand):
-                            context = CombineContext(
-                                client=self,
-                                original_message=event.message,
-                                interaction=None
-                            )
-                            await command.callback_func(context, *arguments)
-                        else:
-                            await command.callback_func(context, *arguments)
+                        await command.callback_func(context, *arguments)
                     except Exception as exc:
                         await self.gateway.event_factory.dispatch(
                             self.gateway.event_factory.build_from_class(QuantExceptionEvent, context, exc)
