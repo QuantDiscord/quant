@@ -2,7 +2,7 @@ from typing import List
 
 from quant.entities.interactions.component import Component
 from quant.entities.snowflake import Snowflake
-from quant.impl.json_object import MutableJsonBuilder
+from quant.utils.json_builder import MutableJsonBuilder
 from quant.entities.voice_state_update import VoiceState
 from quant.entities.user import User
 from quant.entities.guild import Guild

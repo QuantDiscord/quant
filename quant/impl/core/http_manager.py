@@ -7,7 +7,7 @@ from quant.api.core.http_manager_abc import HttpManager
 from quant.entities.http_codes import HttpCodes
 from quant.impl.core.exceptions.http_exception import Forbidden, InternalServerError
 from quant.impl.core.exceptions.library_exception import DiscordException
-from quant.impl.json_object import MutableJsonBuilder
+from quant.utils.json_builder import MutableJsonBuilder
 
 
 class HttpManagerImpl(HttpManager):

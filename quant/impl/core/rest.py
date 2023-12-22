@@ -28,7 +28,7 @@ from quant.impl.core.route import (
 from quant.entities.message import Message
 from quant.entities.embeds import Embed
 from quant.entities.webhook import Webhook
-from quant.impl.json_object import MutableJsonBuilder
+from quant.utils.json_builder import MutableJsonBuilder
 
 
 class DiscordREST(RESTAware):
