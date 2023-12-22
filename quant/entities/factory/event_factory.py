@@ -1,4 +1,4 @@
-from typing import Dict, List, Any, Callable, TYPE_CHECKING, cast, TypeVar
+from typing import Dict, Any, Callable, TYPE_CHECKING, cast, TypeVar
 
 if TYPE_CHECKING:
     from quant.impl.core.gateway import Gateway
@@ -40,5 +40,7 @@ class EventFactory:
     def add_event(self, event: Event | InternalEvent, callback: Callable) -> None:
         self.added_listeners[event] = callback
 
-        if hasattr(event, "API_EVENT_NAME"):
-            self._listener_transformer[event.API_EVENT_NAME] = event
+        if not hasattr(event, "API_EVENT_NAME"):
+            return
+
+        self._listener_transformer[event.API_EVENT_NAME] = event

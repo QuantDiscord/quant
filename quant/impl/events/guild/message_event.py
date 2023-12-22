@@ -2,7 +2,7 @@ from quant.entities.user import User
 from quant.impl.events.event import Event
 from quant.entities.message import Message
 from quant.impl.events.types import EventTypes
-from quant.utils.cache_manager import CacheManager
+from quant.utils.cache.cache_manager import CacheManager
 
 
 class MessageCreateEvent(Event):

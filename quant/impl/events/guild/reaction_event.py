@@ -1,7 +1,7 @@
 from quant.entities.emoji import Reaction
 from quant.impl.events import EventTypes
 from quant.impl.events.event import Event
-from quant.utils.cache_manager import CacheManager
+from quant.utils.cache.cache_manager import CacheManager
 
 
 class ReactionAddEvent(Event):

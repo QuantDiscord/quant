@@ -2,7 +2,7 @@ from typing import List
 
 from quant.entities.interactions.component import Component
 from quant.entities.snowflake import Snowflake
-from quant.impl.json_object import JSONObjectBuilder
+from quant.impl.json_object import MutableJsonBuilder
 from quant.entities.voice_state_update import VoiceState
 from quant.entities.user import User
 from quant.entities.guild import Guild
@@ -10,15 +10,19 @@ from quant.entities.emoji import Emoji, Reaction
 from quant.entities.message import Message
 from quant.entities.channel import Channel
 from quant.impl.events.types import EventTypes
+from quant.utils.cache.cacheable import CacheableType
 
 
 class CacheManager:
-    __cached_guilds: JSONObjectBuilder[int, Guild] = JSONObjectBuilder()
-    __cached_users: JSONObjectBuilder[int, User] = JSONObjectBuilder()
-    __cached_messages: JSONObjectBuilder[int, Message] = JSONObjectBuilder()
-    __cached_emojis: JSONObjectBuilder[int, Emoji | Reaction] = JSONObjectBuilder()
+    __cached_guilds: MutableJsonBuilder[int, Guild] = MutableJsonBuilder()
+    __cached_users: MutableJsonBuilder[int, User] = MutableJsonBuilder()
+    __cached_messages: MutableJsonBuilder[int, Message] = MutableJsonBuilder()
+    __cached_emojis: MutableJsonBuilder[int, Emoji | Reaction] = MutableJsonBuilder()
     __cached_components: List[Component] = []
-    __cached_channels: JSONObjectBuilder[int, Channel] = JSONObjectBuilder()
+    __cached_channels: MutableJsonBuilder[int, Channel] = MutableJsonBuilder()
+
+    def __init__(self, cacheable: CacheableType | None = None) -> None:
+        self.cacheable = cacheable.value if cacheable is not None else None
 
     def add_user(self, user: User):
         """Adds user to cache."""

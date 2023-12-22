@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 
 from typing_extensions import Self
 
-from quant.utils.cache_manager import CacheManager
+from quant.utils.cache.cache_manager import CacheManager
 from .types import EventTypes
 
 
@@ -15,4 +15,4 @@ class Event(ABC):
 
 class InternalEvent(ABC):
     @abstractmethod
-    def process_event(self, cache_manager: CacheManager) -> Self: ...
+    def process_event(self, cache_manager: CacheManager, **kwargs) -> Self: ...

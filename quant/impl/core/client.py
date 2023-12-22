@@ -8,12 +8,18 @@ from typing import (
     Dict,
     overload,
     TypeVar,
-    List
+    TYPE_CHECKING
 )
 import warnings
 
+import quant
+from quant.entities.interactions.component_types import ComponentType
+
+if TYPE_CHECKING:
+    from quant.entities.button import Button
+
+from quant.entities.interactions.interaction import Interaction
 from quant.entities.snowflake import Snowflake
-from quant.entities.button import Button
 from quant.entities.user import User
 from quant.impl.events.bot.exception_event import QuantExceptionEvent
 from quant.impl.events.bot.ready_event import ReadyEvent
@@ -38,23 +44,22 @@ class Client:
     T = TypeVar("T")
 
     def __init__(
-            self,
-            token: str,
-            intents: Intents = Intents.ALL_UNPRIVILEGED,
-            prefix: str = None,
-            mobile_status: bool = False,
-            shards: List[int] = None
+        self,
+        token: str,
+        intents: Intents = Intents.ALL_UNPRIVILEGED,
+        prefix: str = None,
+        shard_id: int = 0,
+        num_shards: int = 1
     ) -> None:
         self.my_user: User | None = None
         self.token = token
         self.prefix = prefix
         self.intents = intents
-        self.mobile_status = mobile_status
         self.gateway: Gateway = Gateway(
             token=token,
             intents=self.intents,
-            mobile_status=self.mobile_status,
-            shards=shards
+            shard_id=shard_id,
+            num_shards=num_shards
         )
         self.rest = DiscordREST(self.gateway.token)
         self.cache = self.gateway.cache
@@ -67,7 +72,7 @@ class Client:
         self._combined_commands: Dict[str, CombineCommand] = {}
 
         self.add_listener(MessageCreateEvent, self._handle_message_commands)
-        self.add_listener(InteractionCreateEvent, self._handle_interactions)
+        self.add_listener(InteractionCreateEvent, self._listen_interaction_create)
         self.add_listener(ReadyEvent, self._set_client_user_on_ready)
 
     _Coroutine = Callable[..., Coroutine[Any, Any, Any]]
@@ -87,6 +92,9 @@ class Client:
             self.gateway.loop = loop
 
         self.gateway.loop.run_until_complete(self.gateway.connect_ws())
+
+    # async def run_sharded(self):
+    #     await Shard(1, 0).run(self.token)
 
     async def set_activity(self, activity: ActivityBuilder) -> None:
         await self.gateway.send_presence(
@@ -134,7 +142,7 @@ class Client:
 
             self.gateway.event_factory.add_event(event_type, coro)
         except IndexError:
-            raise DiscordException(f"You need provide which event you need in function {coro}")
+            raise DiscordException(f"You must provide which event you need {coro}")
 
     async def add_combine_command(self, *commands: CombineCommand):
         warnings.warn(
@@ -148,6 +156,10 @@ class Client:
             self.combined_commands[command.name] = command
 
     def add_message_command(self, *commands: MessageCommand) -> None:
+        warnings.warn(
+            "Message commands is deprecated and would be deleted in future",
+            category=DeprecationWarning
+        )
         for command in commands:
             if inspect.iscoroutine(command.callback):
                 raise DiscordException("Callback function must be coroutine")
@@ -177,7 +189,7 @@ class Client:
 
             self.modals[str(modal.custom_id)] = modal
 
-    def add_button(self, *buttons: Button) -> None:
+    def add_button(self, *buttons: "Button") -> None:
         for button in buttons:
             if inspect.iscoroutine(button.callback):
                 raise DiscordException("Callback function must be coroutine")
@@ -201,33 +213,64 @@ class Client:
         return self._combined_commands
 
     @property
-    def buttons(self) -> Dict[str, Button]:
+    def buttons(self) -> Dict[str, "Button"]:
         return self._buttons
 
-    async def _handle_interactions(self, event: InteractionCreateEvent):
-        interaction_type = event.interaction.interaction_type
-        context = InteractionContext(self, event.interaction)
+    async def handle_application_command(self, interaction: Interaction) -> None:
+        interaction_type = interaction.interaction_type
+
+        if not interaction_type == InteractionType.APPLICATION_COMMAND:
+            return
+
+        context = InteractionContext(self, interaction)
+        command_name = interaction.interaction_data.name
+
+        if command_name in self.slash_commands.keys():
+            command = self.slash_commands[command_name]
+            print(command)
+            await command.callback_func(context)
+
+    async def handle_modal_submit(self, interaction: Interaction) -> None:
+        interaction_type = interaction.interaction_type
+
+        if not interaction_type == InteractionType.MODAL_SUBMIT:
+            return
+
+        context = ModalContext(self, interaction)
+        custom_id = interaction.interaction_data.custom_id
+
+        if custom_id in self.modals.keys():
+            modal = self.modals[custom_id]
+            await modal.callback_func(context)
+
+    async def handle_message_components(self, interaction: Interaction) -> None:
+        interaction_type = interaction.interaction_type
+
+        if not interaction_type == InteractionType.MESSAGE_COMPONENT:
+            return
+
+        component_type = interaction.interaction_data.component_type
+        match component_type:
+            case ComponentType.BUTTON:
+                context = ButtonContext(self, interaction, None)
+                custom_id = interaction.interaction_data.custom_id
+
+                if custom_id in self.buttons.keys():
+                    button = self.buttons[custom_id]
+                    await button.callback_func(context)
+
+    async def _listen_interaction_create(self, event: InteractionCreateEvent):
+        interaction = event.interaction
 
         try:
-            if interaction_type == InteractionType.APPLICATION_COMMAND:
-                slash_commands = self.slash_commands.values()
-                combined_commands = self.combined_commands.values()
-
-                for command in list(slash_commands) + list(combined_commands):
-                    if isinstance(command, CombineCommand) and command.name == event.interaction.interaction_data.name:
-                        await command.callback_func(CombineContext(self, None, event.interaction))
-
-                    elif command.name == event.interaction.interaction_data.name:
-                        await command.callback_func(context)
-
-            if interaction_type == InteractionType.MODAL_SUBMIT:
-                for modal in self.modals.values():
-                    if modal.custom_id == event.interaction.interaction_data.custom_id:
-                        await modal.callback_func(ModalContext(self, event.interaction))
-
+            await self.handle_application_command(interaction)
+            await self.handle_message_components(interaction)
+            await self.handle_modal_submit(interaction)
         except Exception as e:
             await self.gateway.event_factory.dispatch(
-                self.gateway.event_factory.build_from_class(QuantExceptionEvent, context, e)
+                self.gateway.event_factory.build_from_class(
+                    QuantExceptionEvent, InteractionContext(self, interaction), e
+                )
             )
             raise e
 
@@ -276,10 +319,3 @@ class Client:
 
     async def _set_client_user_on_ready(self, _: ReadyEvent) -> None:
         self.my_user = self.cache.get_users()[0]
-
-    @staticmethod
-    def create_new_loop() -> asyncio.AbstractEventLoop:
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
-
-        return loop

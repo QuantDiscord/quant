@@ -102,6 +102,7 @@ class Message(BaseModel):
     async def edit_message(
         self,
         content: str = None,
+        embed: Embed = None,
         embeds: List[Embed] = None,
         flags: MessageFlags = MessageFlags.NONE,
         allowed_mentions: AllowedMentions = None,
@@ -111,6 +112,7 @@ class Message(BaseModel):
             channel_id=self.channel_id,
             message_id=self.message_id,
             content=content,
+            embed=embed,
             embeds=embeds,
             flags=flags.value,
             allowed_mentions=allowed_mentions,

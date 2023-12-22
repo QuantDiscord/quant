@@ -85,3 +85,8 @@ Coming soon.
 
 # License:
 Quant is licensed under the MIT License. See the [LICENSE](https://github.com/MagM1go/quant/blob/main/LICENSE) file for more details.
+
+
+# Thanks
+Thanks to JetBrains for open source license
+You can apply it [here](https://www.jetbrains.com/community/opensource/)

@@ -3,6 +3,7 @@ from typing import Callable, Coroutine, Any, Dict
 
 from quant.entities.interactions.component import Component
 from .emoji import Emoji
+from quant.impl.core.context import ButtonContext
 
 
 class ButtonStyle(enum.Enum):
@@ -31,11 +32,27 @@ class Button(Component):
         self.emoji = emoji
         self.custom_id = custom_id
         self.url = url
-        self.disabled = disabled
+        self._disabled = disabled
 
         super().__init__(custom_id=custom_id)
 
+    @property
+    def disabled(self) -> bool:
+        return self._disabled
+
+    @disabled.setter
+    def disabled(self, value: bool) -> None:
+        self._disabled = value
+
     _Coroutine = Callable[..., Coroutine[Any, Any, Any]]
+
+    async def callback(self, context: ButtonContext):
+        pass
+
+    callback_func = callback
+
+    def set_callback(self, coro):
+        self.callback_func = coro
 
     def as_json(self) -> Dict[str, Any]:
         return {

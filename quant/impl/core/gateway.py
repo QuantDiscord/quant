@@ -1,4 +1,5 @@
 import sys
+import enum
 import time
 import zlib
 import logging
@@ -13,39 +14,40 @@ from traceback import print_exception
 import json
 import aiohttp
 
-from quant.impl.events.types import EventTypes
 from quant.entities.activity import Activity
 from quant.entities.snowflake import Snowflake
 from quant.impl.core.route import DISCORD_WS_URL
 from quant.entities.intents import Intents
 from quant.entities.factory.event_factory import EventFactory
-from quant.utils.cache_manager import CacheManager
+from quant.utils.cache.cache_manager import CacheManager
 from quant.utils.asyncio_utils import get_loop
 
 
+class OpCode(enum.IntEnum):
+    DISPATCH = 0
+    HEARTBEAT = 1
+    IDENTIFY = 2
+    PRESENCE_UPDATE = 3
+    VOICE_STATE_UPDATE = 4
+    RESUME = 6
+
+    RECONNECT = 7
+    REQUEST_GUILD_MEMBERS = 8
+    INVALID_SESSION = 9
+    HELLO = 10
+    HEARTBEAT_ACK = 11
+
+
 class Gateway:
-    _DISPATCH = 0
-    _HEARTBEAT = 1
-    _IDENTIFY = 2
-    _PRESENCE_UPDATE = 3
-    _VOICE_STATE_UPDATE = 4
-    _RESUME = 6
-
-    _RECONNECT = 7
-    _REQUEST_GUILD_MEMBERS = 8
-    _INVALID_SESSION = 9
-    _HELLO = 10
-    _HEARTBEAT_ACK = 11
-
     _ZLIB_SUFFIX = b'\x00\x00\xff\xff'
 
     def __init__(
         self,
         token: str,
         intents: Intents,
-        mobile_status: bool = False,
         api_version: int = 10,
-        shards: List[int] = None
+        shard_id: int = 0,
+        num_shards: int = 1
     ) -> None:
         self.token = token
         self.api_version = api_version
@@ -54,7 +56,7 @@ class Gateway:
         self.sequence = None
         self.session_id = None
         self._previous_heartbeat = 0
-        self.mobile_status = mobile_status
+        self._mobile_status = False
         self.cache: CacheManager = CacheManager()
         self.event_factory = EventFactory(self)
 
@@ -67,15 +69,13 @@ class Gateway:
             "token": self.token,
             "properties": {
                 "os": sys.platform,
-                "browser": "Discord iOS" if self.mobile_status else "quant",
+                "browser": "Discord iOS" if self._mobile_status else "quant",
                 "device": "quant"
             },
+            "shard": [shard_id, num_shards],
             "intents": intents.value,
             "large_threshold": 250
         }
-
-        if shards is not None:
-            self.raw_ws_request["shard"] = shards
 
         self.buffer = bytearray()
         self.zlib_decompressed_object = zlib.decompressobj()
@@ -105,7 +105,7 @@ class Gateway:
         }
 
         await self.send_data(self.create_payload(
-            op=self._PRESENCE_UPDATE,
+            op=OpCode.PRESENCE_UPDATE,
             data=presence
         ))
 
@@ -119,7 +119,7 @@ class Gateway:
         nonce: bool = False
     ):
         payload = self.create_payload(
-            op=self._REQUEST_GUILD_MEMBERS,
+            op=OpCode.REQUEST_GUILD_MEMBERS,
             data={
                 'guild_id': guild_id,
                 'query': query,
@@ -178,22 +178,22 @@ class Gateway:
         op = received_data["op"]
         sequence = received_data["s"]
 
-        match op:
-            case self._DISPATCH:
+        match OpCode(op):
+            case OpCode.DISPATCH:
                 self.sequence = int(sequence)
                 received_event_type = received_data["t"]
 
                 self.cache.add_from_event(received_event_type, **received_data["d"])
                 event = self.event_factory.build_event(received_event_type, **received_data["d"])
                 await self.event_factory.dispatch(event)
-            case self._INVALID_SESSION:
+            case OpCode.INVALID_SESSION:
                 await self.websocket_connection.close(code=4000)
                 await self.error_reconnect(code=4000)
-            case self._HELLO:
+            case OpCode.HELLO:
                 await self.send_hello(received_data)
-            case self._HEARTBEAT_ACK:
+            case OpCode.HEARTBEAT_ACK:
                 self.latency = time.perf_counter() - self._previous_heartbeat
-            case self._RECONNECT:
+            case OpCode.RECONNECT:
                 await self.close(code=1012)
 
     async def keep_alive_check(self) -> None:
@@ -231,7 +231,7 @@ class Gateway:
         if self.websocket_connection.closed:
             return
 
-        payload = self.create_payload(self._RESUME, {
+        payload = self.create_payload(OpCode.RESUME, {
             "token": self.token,
             "session_id": self.session_id,
             "seq": self.sequence
@@ -242,7 +242,7 @@ class Gateway:
         if resume:
             return await self.resume_connection()
 
-        await self.send_data(self.create_payload(self._IDENTIFY, self.identify_payload))
+        await self.send_data(self.create_payload(OpCode.IDENTIFY, self.identify_payload))
         self.get_logger.info("Bot identified")
 
     async def close(self, code: int = 4000):
@@ -260,7 +260,7 @@ class Gateway:
         if self.websocket_connection.closed:
             return
 
-        await self.send_data(self.create_payload(self._HEARTBEAT, sequence=self.sequence))
+        await self.send_data(self.create_payload(OpCode.HEARTBEAT, sequence=self.sequence))
         self._previous_heartbeat = time.perf_counter()
 
         await asyncio.sleep(interval)
@@ -281,7 +281,7 @@ class Gateway:
         self_deaf: bool = False
     ) -> None:
         payload = self.create_payload(
-            op=4,
+            op=OpCode.VOICE_STATE_UPDATE,
             data={
                 "guild_id": guild_id,
                 "channel_id": channel_id,
@@ -291,13 +291,29 @@ class Gateway:
         )
         await self.send_data(payload)
 
+    @staticmethod
     def create_payload(
-        self, op: int,
+        op: OpCode,
         data=None, sequence: int = None,
         event_name: str = None
     ) -> str:
         payload = {"op": op, "d": data}
-        if op == self._DISPATCH:
+        if op == OpCode.DISPATCH:
             payload.update({"s": sequence, "t": event_name})
 
         return json.dumps(payload)
+
+    @property
+    def mobile_status(self) -> bool:
+        return self._mobile_status
+
+    @mobile_status.setter
+    def mobile_status(self, value: bool):
+        self._mobile_status = value
+
+    @staticmethod
+    def create_new_loop() -> asyncio.AbstractEventLoop:
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+
+        return loop

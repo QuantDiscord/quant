@@ -8,7 +8,7 @@ KT = TypeVar("KT")
 VT = TypeVar("VT")
 
 
-class JSONObjectBuilder(Mapping[KT, VT]):
+class MutableJsonBuilder(Mapping[KT, VT]):
     def __iter__(self) -> Iterator:
         ...
 

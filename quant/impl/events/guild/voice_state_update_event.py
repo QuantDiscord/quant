@@ -1,7 +1,7 @@
 from quant.impl.events.types import EventTypes
 from quant.entities.voice_state_update import VoiceState
 from quant.impl.events.event import Event
-from quant.utils.cache_manager import CacheManager
+from quant.utils.cache.cache_manager import CacheManager
 
 
 class VoiceStateUpdateEvent(Event):

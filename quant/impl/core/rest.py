@@ -28,7 +28,7 @@ from quant.impl.core.route import (
 from quant.entities.message import Message
 from quant.entities.embeds import Embed
 from quant.entities.webhook import Webhook
-from quant.impl.json_object import JSONObjectBuilder
+from quant.impl.json_object import MutableJsonBuilder
 
 
 class DiscordREST(RESTAware):
@@ -51,8 +51,8 @@ class DiscordREST(RESTAware):
         payload_json: Any | None = None,
         attachments: List[Any] | None = None,
         flags: int | None = None
-    ) -> JSONObjectBuilder:
-        body = JSONObjectBuilder()
+    ) -> MutableJsonBuilder:
+        body = MutableJsonBuilder()
 
         if content is not None:
             body.put("content", content)
@@ -565,7 +565,7 @@ class DiscordREST(RESTAware):
         return str(emoji).replace("<", "").replace(">", "") if emoji.emoji_id > 0 else emoji
 
     @staticmethod
-    def _apply_components(payload: JSONObjectBuilder, components: ActionRow):
+    def _apply_components(payload: MutableJsonBuilder, components: ActionRow):
         payload.put(
             "components", [{"type": ActionRow.INTERACTION_TYPE, "components": []}]
         )

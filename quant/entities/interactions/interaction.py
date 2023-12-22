@@ -49,7 +49,7 @@ class InteractionCallbackData(BaseModel):
     embeds: List[Embed] = attrs.field(default=None)
     allowed_mentions: AllowedMentions = attrs.field(default=None)
     flags: int = attrs.field(default=0)
-    components: ActionRow = attrs.field(default=None)
+    components: ActionRow = attrs.field(default=None, converter=ActionRow.as_json)
     attachments: Any = attrs.field(default=None)
 
 
@@ -112,17 +112,13 @@ class Interaction(BaseModel):
         components: "ActionRow" = None,
         attachments: List[Any] = None
     ) -> None:
-        if components is not None:
-            # why warning here
-            components = ActionRow([component.as_json() for component in components.components])  # type: ignore
-
         if embed is not None:
             embeds = [embed]
 
         await self.client.rest.create_interaction_response(
             InteractionCallbackType.CHANNEL_MESSAGE_WITH_SOURCE,
             InteractionCallbackData(
-                content=str(content),
+                content=str(content) if content is not None else None,
                 tts=tts,
                 embeds=embeds,
                 allowed_mentions=allowed_mentions,
@@ -140,7 +136,7 @@ class Interaction(BaseModel):
             ModalInteractionCallbackData(
                 custom_id=modal.custom_id,
                 title=modal.title,
-                components=[component.as_json() for component in modal.components]
+                components=[ActionRow([component.components for component in modal.components])]
             ),
             self.interaction_id,
             self.interaction_token
