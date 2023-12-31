@@ -2,7 +2,7 @@ from enum import Enum
 
 import attrs
 
-from quant.entities.interactions.component import Component
+from quant.api.entities.component import Component
 
 
 class TextInputStyle(Enum):

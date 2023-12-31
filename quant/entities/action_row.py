@@ -1,7 +1,7 @@
 from typing import Dict, Any, List, TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from quant.entities.interactions.component import Component
+    from quant.api.entities.component import Component
 
 
 class ActionRow:

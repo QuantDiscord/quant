@@ -183,7 +183,7 @@ class Gateway:
                 self.sequence = int(sequence)
                 received_event_type = received_data["t"]
 
-                self.cache.add_from_event(received_event_type, **received_data["d"])
+                self.event_factory.cache_item(received_event_type, **received_data["d"])
                 event = self.event_factory.build_event(received_event_type, **received_data["d"])
                 await self.event_factory.dispatch(event)
             case OpCode.INVALID_SESSION:

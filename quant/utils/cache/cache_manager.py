@@ -1,6 +1,6 @@
 from typing import List
 
-from quant.entities.interactions.component import Component
+from quant.api.entities.component import Component
 from quant.entities.snowflake import Snowflake
 from quant.utils.json_builder import MutableJsonBuilder
 from quant.entities.voice_state_update import VoiceState
@@ -96,31 +96,36 @@ class CacheManager:
         return [state for state in guild.voice_states
                 if state.guild_id == state.guild_id and state.user_id == user_id][0]
 
-    def add_from_event(self, event_name: EventTypes, **data):
-        match event_name:
-            case EventTypes.READY_EVENT:
-                self.add_user(User(**data["user"]))
-            case EventTypes.MESSAGE_CREATE:
-                self.add_message(Message(**data))
-            case EventTypes.GUILD_CREATE:
-                guild_object = Guild(**data)
-                self.add_guild(guild_object)
 
-                for channel in guild_object.channels:
-                    self.add_channel(channel)
+class CacheHandlers(CacheManager):
+    def handle_ready(self, **kwargs) -> None:
+        self.add_user(User(**kwargs["user"]))
 
-                for emoji in guild_object.emojis:
-                    self.add_emoji(Emoji(**emoji))
-            case EventTypes.GUILD_DELETE:
-                del self.__cached_guilds[int(data["id"])]
-            case EventTypes.VOICE_STATE_UPDATE:
-                guild_id = data.get('guild_id')
-                guild = self.get_guild(int(guild_id))
-                state = VoiceState(**data)
+    def handle_message(self, **kwargs) -> None:
+        self.add_message(Message(**kwargs))
 
-                if len(guild.voice_states) == 0:
-                    guild.voice_states.append(state)
-            case EventTypes.CHANNEL_CREATE:
-                self.add_channel(Channel(**data))
+    def handle_guild(self, **kwargs) -> None:
+        guild_object = Guild(**kwargs)
+        self.add_guild(guild_object)
+
+        for channel in guild_object.channels:
+            self.add_channel(channel)
+
+        for emoji in guild_object.emojis:
+            self.add_emoji(Emoji(**emoji))
+
+    def handle_guild_delete(self, **kwargs) -> None:
+        del self.__cached_guilds[int(kwargs["id"])]
+
+    def handle_voice_state_update(self, **kwargs) -> None:
+        guild_id = kwargs.get('guild_id')
+        guild = self.get_guild(int(guild_id))
+        state = VoiceState(**kwargs)
+
+        if len(guild.voice_states) == 0:
+            guild.voice_states.append(state)
+
+    def handle_channel_create(self, **kwargs) -> None:
+        self.add_channel(Channel(**kwargs))
 
 # мама сказала, что я умный (fr)

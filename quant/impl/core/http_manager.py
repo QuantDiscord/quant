@@ -34,6 +34,7 @@ class HttpManagerImpl(HttpManager):
             if content_type is None:
                 headers.put("Content-Type", HttpManagerImpl.APPLICATION_JSON)
 
+            headers = headers.asdict()
             if data is None:
                 request = await session.request(method=method, url=url, headers=headers)
             else:
