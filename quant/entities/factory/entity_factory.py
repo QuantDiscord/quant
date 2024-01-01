@@ -5,6 +5,8 @@ import attrs
 
 from quant.entities.guild import GuildMember
 from quant.entities.user import User
+from quant.entities.action_row import ActionRow
+from quant.api.entities.component import Component
 
 
 class EntityFactory:
@@ -45,3 +47,11 @@ class EntityFactory:
             user=user,
             unusual_dm_activity_until=unusual_dm_activity_until
         )
+
+    @staticmethod
+    def serialize_action_row(row: ActionRow) -> Dict[str, Any]:
+        return row.as_json()
+
+    @staticmethod
+    def deserialize_action_row(components: List[Component] | Component) -> ActionRow:
+        return ActionRow(components=components)

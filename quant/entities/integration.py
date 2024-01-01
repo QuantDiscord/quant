@@ -6,7 +6,7 @@ import attrs
 from .snowflake import Snowflake
 from .model import BaseModel
 from .user import User
-from quant.utils.attrs_extensions import execute_converters, iso_to_datetime
+from quant.utils.attrs_extensions import execute_converters
 
 
 class IntegrationExpireBehaviours(enum.Enum):
@@ -45,7 +45,7 @@ class Integration:
     expire_grace_period: int = attrs.field(default=0)
     user: User = attrs.field(default=None, converter=User.as_dict)
     account: IntegrationAccountObject = attrs.field(default=None, converter=IntegrationAccountObject.as_dict)
-    synced_at: datetime = attrs.field(default=None, converter=iso_to_datetime)
+    synced_at: datetime = attrs.field(default=None)
     subscriber_count: int = attrs.field(default=0)
     revoked: bool = attrs.field(default=False)
     application: IntegrationApplicationObject = attrs.field(

@@ -6,13 +6,13 @@ import attrs
 from quant.entities.model import BaseModel
 
 from .snowflake import Snowflake
-from quant.utils.attrs_extensions import execute_converters, int_converter
+from quant.utils.attrs_extensions import execute_converters
 
 
 @attrs.define(field_transformer=execute_converters)
 class User(BaseModel):
     username: str = attrs.field()
-    user_id: Snowflake = attrs.field(alias="id", default=0, converter=int_converter)
+    user_id: Snowflake = attrs.field(alias="id", default=0)
     discriminator: str | None = attrs.field(default=None)
     display_name: str | None = attrs.field(default=None)
     global_name: str | None = attrs.field(default=None)
@@ -31,7 +31,7 @@ class User(BaseModel):
     avatar_decoration_data: Any = attrs.field(default=None)
     verified: bool = attrs.field(default=False)
     _email: str = attrs.field(default=None, alias="email", repr=False)
-    member: Any = attrs.field(alias="member", default=None, repr=False)
+    member: Any = attrs.field(alias="member", default=None, converter=BaseModel.entity_factory().deserialize_member)
 
     @classmethod
     def as_dict(cls, data) -> Self | None:

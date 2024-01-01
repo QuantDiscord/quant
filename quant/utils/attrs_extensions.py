@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Any
 from datetime import datetime
 
 import attrs
@@ -13,8 +13,8 @@ def iso_to_datetime(time: str = None):
     return datetime.fromisoformat(time)
 
 
-def int_converter(data: str = None) -> int | Snowflake:
-    check = isinstance(data, (str, bytes, int))
+def int_converter(data: Any = None) -> int | Snowflake:
+    check = isinstance(data, str)
     if data is None or not check:
         return 0
 
@@ -38,8 +38,12 @@ def execute_converters(_, fields: List[attrs.Attribute]):
         'Snowflake': int_converter
     }
 
-    return [
-        field if field.converter is not None else field.evolve(
-            converter=converters.get(field.type)
-        ) for field in fields
-    ]
+    results = []
+    for field in fields:
+        converter = converters.get(field.type)
+        results.append(
+            field if field.converter is not None
+            else field.evolve(converter=converter)
+        )
+
+    return results

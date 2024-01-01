@@ -41,7 +41,6 @@ from quant.entities.message import Message
 from quant.entities.embeds import Embed
 from quant.entities.webhook import Webhook
 from quant.utils.json_builder import MutableJsonBuilder
-from quant.entities.integration import Integration
 
 
 class DiscordREST(RESTAware):
@@ -89,7 +88,7 @@ class DiscordREST(RESTAware):
             body.put("message_reference", attrs.asdict(message_reference))
 
         if components is not None:
-            body.put("components", components.as_json())
+            body.put("components", list(components.as_json()))
 
         if sticker_ids is not None:
             body.put("sticker_ids", sticker_ids)
@@ -288,42 +287,42 @@ class DiscordREST(RESTAware):
         system_channel_id: int | None = None,
         system_channel_flags: int = 0
     ) -> Guild:
-        payload = {'name': name, 'system_channel_flags': system_channel_flags}
+        body = MutableJsonBuilder({'name': name, 'system_channel_flags': system_channel_flags})
 
         if region is not None:
-            payload.update({"region": region})
+            body.put("region", region)
 
         if icon is not None:
-            payload.update({"icon": icon})
+            body.put("icon", icon)
 
         if verification_level is not None:
-            payload.update({"verification_level": verification_level})
+            body.put("verification_level", verification_level)
 
         if default_message_notifications is not None:
-            payload.update({"default_message_notifications": default_message_notifications})
+            body.put("default_message_notifications", default_message_notifications)
 
         if explicit_content_filter is not None:
-            payload.update({"explicit_content_filter": explicit_content_filter})
+            body.put("explicit_content_filter", explicit_content_filter)
 
         if roles is not None:
-            payload.update({"roles": roles})
+            body.put("roles", roles)
 
         if channels is not None:
-            payload.update({"channels": channels})
+            body.put("channels", channels)
 
         if afk_channel_id is not None:
-            payload.update({"afk_channel_id": afk_channel_id})
+            body.put("afk_channel_id", afk_channel_id)
 
         if afk_timeout is not None:
-            payload.update({"afk_timeout": afk_timeout})
+            body.put("afk_timeout", afk_timeout)
 
         if system_channel_id is not None:
-            payload.update({"system_channel_id": system_channel_id})
+            body.put("system_channel_id", system_channel_id)
 
         data = await self.http.send_request(
             CREATE_GUILD.method,
             CREATE_GUILD.uri.url_string,
-            data=payload
+            data=body
         )
         return Guild(**await data.json())
 
@@ -397,30 +396,30 @@ class DiscordREST(RESTAware):
         options: List[SlashOption] = None,
         nsfw: bool = False
     ) -> None:
-        payload = {"name": name, "description": description}
+        body = MutableJsonBuilder({"name": name, "description": description})
 
         if default_permissions:
-            payload.update({"default_permissions": default_permissions})
+            body.put("default_permissions", default_permissions)
 
         if dm_permissions:
-            payload.update({"dm_permissions": dm_permissions})
+            body.put("dm_permissions", dm_permissions)
 
         if default_member_permissions is not None:
-            payload.update({"default_member_permissions": default_member_permissions})
+            body.put("default_member_permissions", default_member_permissions)
 
         if guild_id is not None:
-            payload.update({"guild_id": guild_id})
+            body.put("guild_id", guild_id)
 
         if options is not None:
-            payload.update({"options": [option.as_json() for option in options]})
+            body.put("options", [option.as_json() for option in options])
 
         if nsfw:
-            payload.update({"nsfw": nsfw})
+            body.put("nsfw", nsfw)
 
         await self.http.send_request(
             CREATE_APPLICATION_COMMAND.method,
             url=CREATE_APPLICATION_COMMAND.uri.url_string.format(application_id=application_id),
-            data=payload
+            data=body
         )
 
     async def fetch_initial_interaction_response(self, application_id: int, interaction_token: str) -> Message:

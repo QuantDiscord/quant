@@ -5,11 +5,12 @@ from typing_extensions import Self
 import attrs
 
 from .user import User
-from quant.utils.attrs_extensions import execute_converters, iso_to_datetime
+from .model import BaseModel
+from quant.utils.attrs_extensions import execute_converters
 
 
 @attrs.define(kw_only=True, field_transformer=execute_converters)
-class GuildMember:
+class GuildMember(BaseModel):
     username: str = attrs.field(default=None)
     deaf: bool = attrs.field(default=False)
     mute: bool = attrs.field(default=False)
@@ -19,7 +20,7 @@ class GuildMember:
     nick: str | None = attrs.field(default=None)
     avatar: str | None = attrs.field(default=None)
     roles: List[Any] | None = attrs.field(default=None)
-    joined_at: datetime.datetime = attrs.field(default=0, converter=iso_to_datetime)
+    joined_at: datetime.datetime = attrs.field(default=0)
     premium_since: int | None = attrs.field(default=0)
     communication_disabled_until: int | None = attrs.field(default=0)
     user: User = attrs.field(default=None, converter=User.as_dict)

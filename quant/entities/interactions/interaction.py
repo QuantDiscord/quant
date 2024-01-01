@@ -20,7 +20,7 @@ from quant.entities.embeds import Embed
 from quant.entities.allowed_mentions import AllowedMentions
 from quant.entities.member import GuildMember
 from quant.entities.model import BaseModel
-from quant.utils.attrs_extensions import execute_converters, int_converter
+from quant.utils.attrs_extensions import execute_converters
 
 
 class InteractionCallbackType(enum.Enum):
@@ -55,12 +55,12 @@ class InteractionCallbackData(BaseModel):
 
 @attrs.define(kw_only=True)
 class InteractionData(BaseModel):
-    interaction_id: Snowflake = attrs.field(default=0, alias="id", converter=int_converter)
-    component_type: int = attrs.field(default=0, converter=int_converter)
-    interaction_type: int = attrs.field(default=None, converter=int_converter, alias="type")
+    interaction_id: Snowflake = attrs.field(default=0, alias="id")
+    component_type: int = attrs.field(default=0)
+    interaction_type: int = attrs.field(default=None, alias="type")
     custom_id: str = attrs.field(default=None)
     name: str = attrs.field(default=None)
-    option_type: ApplicationCommandOptionType = attrs.field(default=0, converter=int_converter)
+    option_type: ApplicationCommandOptionType = attrs.field(default=0)
     value: str | int | bool = attrs.field(default=None)
     options: List[ChoiceResponse] = attrs.field(default=None, converter=ChoiceResponse.as_dict_iter)
     focused: bool = attrs.field(default=False)
@@ -77,21 +77,21 @@ class InteractionResponse(BaseModel):
 @attrs.define(kw_only=True, field_transformer=execute_converters)
 class Interaction(BaseModel):
     interaction_name: str = attrs.field(alias="name", default=None)
-    interaction_id: Snowflake = attrs.field(alias="id", default=0, converter=int_converter)
-    application_id: Snowflake = attrs.field(default=0, converter=int_converter)
+    interaction_id: Snowflake = attrs.field(alias="id", default=0)
+    application_id: Snowflake = attrs.field(default=0)
     interaction_type: InteractionType = attrs.field(
         alias="type",
         default=InteractionType.PING,
         converter=InteractionType
     )
     interaction_data: InteractionData = attrs.field(alias="data", default=None, converter=InteractionData.as_dict)
-    guild_id: Snowflake = attrs.field(default=0, converter=int_converter)
+    guild_id: Snowflake = attrs.field(default=0)
     channel: Channel = attrs.field(default=None, converter=Channel.as_dict)
-    channel_id: Snowflake = attrs.field(default=0, converter=int_converter)
+    channel_id: Snowflake = attrs.field(default=0)
     member: GuildMember | None = attrs.field(default=None, converter=GuildMember.as_dict)
     user: User | None = attrs.field(default=None, converter=User.as_dict)
     interaction_token: str = attrs.field(default=None, alias="token")
-    version: int = attrs.field(default=-1, converter=int_converter)
+    version: int = attrs.field(default=-1)
     app_permissions: str = attrs.field(default=None)
     locale: str = attrs.field(default=None)
     guild_locale: str = attrs.field(default=None)

@@ -10,7 +10,7 @@ if TYPE_CHECKING:
 
 from .user import User
 from .snowflake import Snowflake
-from quant.utils.attrs_extensions import iso_to_datetime, int_converter, execute_converters
+from quant.utils.attrs_extensions import execute_converters
 from .model import BaseModel
 from .member import GuildMember
 from .embeds import Embed
@@ -23,11 +23,11 @@ from .message_flags import MessageFlags
 @attrs.define(kw_only=True, field_transformer=execute_converters)
 class Message(BaseModel):
     type: int = attrs.field(default=None)
-    timestamp: datetime = attrs.field(default=None, converter=iso_to_datetime)
-    channel_id: Snowflake | None = attrs.field(default=None, converter=int_converter)
+    timestamp: datetime = attrs.field(default=None)
+    channel_id: Snowflake | None = attrs.field(default=None)
     position: Snowflake | None = attrs.field(default=None)
-    message_id: int | None = attrs.field(alias="id", default=None, converter=int_converter)
-    guild_id: Snowflake | None = attrs.field(default=None, converter=int_converter)
+    message_id: int | None = attrs.field(alias="id", default=None)
+    guild_id: Snowflake | None = attrs.field(default=None)
     author_as_member: GuildMember | None = attrs.field(alias="member", default=None, converter=GuildMember.as_dict)
     author_as_user: User | None = attrs.field(alias="author", default=None, converter=User.as_dict)
     content: str | None = attrs.field(default=None)
@@ -43,7 +43,7 @@ class Message(BaseModel):
     components: ActionRow | None = attrs.field(default=None, converter=ActionRow)
     stickers: List[Any] | None = attrs.field(default=None)
     attachments: List[Any] | None = attrs.field(default=None)
-    flags: int | None = attrs.field(default=None, converter=int_converter)
+    flags: int | None = attrs.field(default=None)
     referenced_message: Self | None = attrs.field(default=None)
     pinned: bool = attrs.field(default=False)
     webhook_id: Snowflake | None = attrs.field(default=None)

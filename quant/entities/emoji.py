@@ -2,7 +2,7 @@ from typing import List, Any
 
 import attrs
 
-from quant.utils.attrs_extensions import execute_converters, int_converter
+from quant.utils.attrs_extensions import execute_converters
 from .user import User
 from .member import GuildMember
 from .snowflake import Snowflake
@@ -24,15 +24,15 @@ class PartialReaction(BaseModel):
 
 @attrs.define(field_transformer=execute_converters)
 class Reaction(BaseModel):
-    user_id: Snowflake = attrs.field(default=0, converter=int_converter)
-    reaction_type: int = attrs.field(default=0, alias="type", converter=int_converter)
-    message_id: Snowflake = attrs.field(default=0, converter=int_converter)
-    message_author_id: Snowflake = attrs.field(default=0, converter=int_converter)
+    user_id: Snowflake = attrs.field(default=0)
+    reaction_type: int = attrs.field(default=0, alias="type")
+    message_id: Snowflake = attrs.field(default=0)
+    message_author_id: Snowflake = attrs.field(default=0)
     member: GuildMember = attrs.field(default=None, converter=GuildMember.as_dict)
     emoji: PartialReaction = attrs.field(default=None, converter=PartialReaction)
-    channel_id: Snowflake = attrs.field(default=0, converter=int_converter)
+    channel_id: Snowflake = attrs.field(default=0)
     burst: bool = attrs.field(default=False)
-    guild_id: Snowflake = attrs.field(default=0, converter=int_converter)
+    guild_id: Snowflake = attrs.field(default=0)
     burst_colors: List[Any] = attrs.field(default=None)
 
     def __str__(self) -> str:
