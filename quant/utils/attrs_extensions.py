@@ -28,22 +28,18 @@ def to_snowflake(data: str = None) -> int | Snowflake:
     return Snowflake(int(data))
 
 
-def execute_converters(cls, fields: List[attrs.Attribute]):
+def execute_converters(_, fields: List[attrs.Attribute]):
     converters = {
-        datetime: lambda argument: iso_to_datetime(argument) if argument is not None else argument,
-        'datetime': lambda argument: iso_to_datetime(argument) if argument is not None else argument,
+        datetime: iso_to_datetime,
+        'datetime': iso_to_datetime,
         int: int_converter,
         'int': int_converter,
         Snowflake: int_converter,
         'Snowflake': int_converter
     }
 
-    results = []
-    for field in fields:
-        if field.converter is not None:
-            results.append(field)
-            continue
-
-        results.append(field.evolve(converter=converters.get(field.type)))
-
-    return results
+    return [
+        field if field.converter is not None else field.evolve(
+            converter=converters.get(field.type)
+        ) for field in fields
+    ]
