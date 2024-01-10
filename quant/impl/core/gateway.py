@@ -141,7 +141,7 @@ class Gateway:
     def get_logger(self) -> logging.Logger:
         return logging.getLogger(__name__)
 
-    async def connect_ws(self) -> None:
+    async def start(self) -> None:
         self.session = aiohttp.ClientSession()
         self.websocket_connection = await self.session.ws_connect(
             DISCORD_WS_URL.uri.url_string.format(self.api_version)
@@ -164,7 +164,7 @@ class Gateway:
             return await self.resume_connection()
 
         self.ws_connected = False
-        await self.connect_ws()
+        await self.start()
 
     async def on_websocket_message(self, received_data):
         if isinstance(received_data, bytes):

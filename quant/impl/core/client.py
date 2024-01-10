@@ -69,7 +69,6 @@ class Client:
         self._commands: Dict[str, MessageCommand] = {}
         self._slash_commands: Dict[str, SlashCommand] = {}
 
-        self.add_listener(MessageCreateEvent, self._handle_message_commands)
         self.add_listener(InteractionCreateEvent, self._listen_interaction_create)
         self.add_listener(ReadyEvent, self._set_client_user_on_ready)
 
@@ -89,10 +88,7 @@ class Client:
         if loop is not None:
             self.gateway.loop = loop
 
-        self.gateway.loop.run_until_complete(self.gateway.connect_ws())
-
-    # async def run_sharded(self):
-    #     await Shard(1, 0).run(self.token)
+        self.gateway.loop.run_until_complete(self.gateway.start())
 
     async def set_activity(self, activity: ActivityBuilder) -> None:
         await self.gateway.send_presence(
