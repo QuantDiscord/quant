@@ -24,6 +24,8 @@ class HttpManagerImpl(HttpManager):
         async with ClientSession(headers=headers) as session:
             if headers is None:
                 headers = MutableJsonBuilder()
+            else:
+                headers = MutableJsonBuilder(headers)
 
             if self.authorization is not None:
                 headers.put("Authorization", self.authorization)

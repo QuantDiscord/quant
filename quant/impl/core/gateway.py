@@ -14,7 +14,7 @@ from traceback import print_exception
 import json
 import aiohttp
 
-from quant.entities.activity import Activity
+from quant.entities.activity import Activity, ActivityStatus
 from quant.entities.snowflake import Snowflake
 from quant.impl.core.route import DISCORD_WS_URL
 from quant.entities.intents import Intents
@@ -90,16 +90,22 @@ class Gateway:
     def identify_payload(self, data: Dict):
         self.raw_ws_request = data
 
-    async def send_presence(self, activity: Activity = None, status: int = None, since: int = None, afk: bool = False):
+    async def send_presence(
+        self,
+        activity: Activity | None = None,
+        status: ActivityStatus = None,
+        since: int = None,
+        afk: bool = False
+    ):
         presence = {
             'activities': [
                 {
                     'name': activity.name,
-                    'type': activity.type,
+                    'type': activity.type.value,
                     'url': activity.url
                 }
             ],
-            'status': status,
+            'status': status.value,
             'since': since,
             'afk': afk
         }

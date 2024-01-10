@@ -31,7 +31,7 @@ class User(BaseModel):
     avatar_decoration_data: Any = attrs.field(default=None)
     verified: bool = attrs.field(default=False)
     _email: str = attrs.field(default=None, alias="email", repr=False)
-    member: Any = attrs.field(alias="member", default=None, converter=BaseModel.entity_factory().deserialize_member)
+    member: Any = attrs.field(alias="member", default=None)
 
     @classmethod
     def as_dict(cls, data) -> Self | None:
