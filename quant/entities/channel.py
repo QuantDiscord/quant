@@ -7,9 +7,10 @@ from .emoji import Reaction
 from .model import BaseModel
 from .snowflake import Snowflake
 from .user import User
+from quant.utils.attrs_extensions import execute_converters
 
 
-@attrs.define(kw_only=True)
+@attrs.define(kw_only=True, field_transformer=execute_converters)
 class Channel(BaseModel):
     channel_id = attrs.field(alias="id", default=0)
     channel_type = attrs.field(alias="type", default=0)

@@ -1,5 +1,3 @@
-import time
-import asyncio
 from typing import Dict, Any, Callable, TYPE_CHECKING, cast, TypeVar
 
 if TYPE_CHECKING:
@@ -67,3 +65,6 @@ class EventFactory:
 
         if handler := handlers.get(event_name):
             handler(**kwargs)  # type: ignore
+
+    class EventListener:
+        ...

@@ -1,5 +1,15 @@
+from .factory.event_factory import EventFactory
+from .factory.entity_factory import EntityFactory
 from .action_row import ActionRow
-from .activity import Activity, ActivityBuilder, ActivityFlags, ActivityType, ActivityStatus, ActivityAssets
+from .activity import (
+    Activity,
+    ActivityBuilder,
+    ActivityFlags,
+    ActivityType,
+    ActivityStatus,
+    ActivityAssets,
+    ActivityData
+)
 from .allowed_mentions import AllowedMentions, AllowedMentionsTypes
 from .button import Button, ButtonStyle
 from .channel import Channel
@@ -40,6 +50,7 @@ __all__ = (
     "ActivityType",
     "ActivityAssets",
     "ActivityStatus",
+    "ActivityData",
     "AllowedMentions",
     "AllowedMentionsTypes",
     "Button",
@@ -81,5 +92,7 @@ __all__ = (
     "ModalInteractionCallbackData",
     "TextInput",
     "TextInputStyle",
-    "Invite"
+    "Invite",
+    "EntityFactory",
+    "EventFactory"
 )

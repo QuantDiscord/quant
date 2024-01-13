@@ -2,6 +2,7 @@ from typing import Dict, Any, List
 
 from quant.entities.interactions.slash_option import SlashOption
 from quant.impl.core.context import MessageCommandContext
+from quant.entities.snowflake import Snowflake
 
 
 class Command:
@@ -18,15 +19,8 @@ class Command:
         self.callback_func = coro
 
 
-class MessageCommand(Command):
-    ...
-
-
 class SlashCommand(Command):
-    def __init__(self, options: List[SlashOption] = None, **kwargs) -> None:
+    def __init__(self, options: List[SlashOption] = None, guild_ids: List[Snowflake | int] | None = None, **kwargs) -> None:
         super().__init__(kwargs.get("name"), kwargs.get("description"))
         self.options = options
-
-
-class CombineCommand(MessageCommand, SlashCommand):
-    ...
+        self.guild_ids = guild_ids

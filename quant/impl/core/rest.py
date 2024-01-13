@@ -29,6 +29,7 @@ from quant.impl.core.route import (
     GET_MESSAGE,
     EDIT_MESSAGE,
     CREATE_APPLICATION_COMMAND,
+    CREATE_GUILD_APPLICATION_COMMAND,
     GET_ORIGINAL_INTERACTION_RESPONSE,
     EDIT_ORIGINAL_INTERACTION_RESPONSE,
     CREATE_GUILD_BAN,
@@ -392,7 +393,41 @@ class DiscordREST(RESTAware):
         default_permissions: bool = False,
         dm_permissions: bool = False,
         default_member_permissions: str = None,
-        guild_id: int | None = None,
+        options: List[SlashOption] = None,
+        nsfw: bool = False
+    ) -> None:
+        body = MutableJsonBuilder({"name": name, "description": description})
+
+        if default_permissions:
+            body.put("default_permissions", default_permissions)
+
+        if dm_permissions:
+            body.put("dm_permissions", dm_permissions)
+
+        if default_member_permissions is not None:
+            body.put("default_member_permissions", default_member_permissions)
+
+        if options is not None:
+            body.put("options", [option.as_json() for option in options])
+
+        if nsfw:
+            body.put("nsfw", nsfw)
+
+        await self.http.send_request(
+            CREATE_APPLICATION_COMMAND.method,
+            url=CREATE_APPLICATION_COMMAND.uri.url_string.format(application_id=application_id),
+            data=body
+        )
+
+    async def create_guild_application_command(
+        self,
+        application_id: int,
+        name: str,
+        description: str,
+        guild_id: int | Snowflake,
+        default_permissions: bool = False,
+        dm_permissions: bool = False,
+        default_member_permissions: str = None,
         options: List[SlashOption] = None,
         nsfw: bool = False
     ) -> None:
@@ -417,8 +452,10 @@ class DiscordREST(RESTAware):
             body.put("nsfw", nsfw)
 
         await self.http.send_request(
-            CREATE_APPLICATION_COMMAND.method,
-            url=CREATE_APPLICATION_COMMAND.uri.url_string.format(application_id=application_id),
+            CREATE_GUILD_APPLICATION_COMMAND.method,
+            url=CREATE_GUILD_APPLICATION_COMMAND.uri.url_string.format(
+                application_id=application_id, guild_id=guild_id
+            ),
             data=body
         )
 

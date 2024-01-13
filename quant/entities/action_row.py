@@ -13,12 +13,3 @@ class ActionRow:
             self.components = components
         else:
             self.components = [components]
-
-    def as_json(self) -> Dict[str, Any] | None:
-        if self is None:
-            return
-
-        return {
-            "type": self.INTERACTION_TYPE,
-            "components": [component.as_json() for component in self.components]
-        }

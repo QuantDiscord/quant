@@ -27,7 +27,7 @@ from quant.entities.modal.modal import Modal
 from quant.impl.core.commands import SlashCommand
 from quant.impl.core.context import InteractionContext, ModalContext, ButtonContext
 from quant.impl.events.bot.interaction_create_event import InteractionCreateEvent
-from quant.impl.core import MessageCommand, MessageCommandContext
+from quant.impl.core import MessageCommandContext
 from quant.impl.core.exceptions.command_exceptions import CommandNotFoundException, CommandArgumentsNotFound
 from quant.impl.core.gateway import Gateway
 from quant.entities.intents import Intents
@@ -35,7 +35,7 @@ from quant.impl.core.exceptions.library_exception import DiscordException
 from quant.impl.core.rest import DiscordREST
 from quant.impl.events.event import Event, InternalEvent
 from quant.entities.model import BaseModel
-from quant.entities.activity import ActivityBuilder
+from quant.entities.activity import ActivityData
 from quant.impl.events.guild.message_event import MessageCreateEvent
 
 
@@ -66,7 +66,6 @@ class Client:
 
         self._modals: Dict[str, Modal] = {}
         self._buttons: Dict[str, Button] = {}
-        self._commands: Dict[str, MessageCommand] = {}
         self._slash_commands: Dict[str, SlashCommand] = {}
 
         self.add_listener(InteractionCreateEvent, self._listen_interaction_create)
@@ -90,7 +89,7 @@ class Client:
 
         self.gateway.loop.run_until_complete(self.gateway.start())
 
-    async def set_activity(self, activity: ActivityBuilder) -> None:
+    async def set_activity(self, activity: ActivityData) -> None:
         await self.gateway.send_presence(
             activity=activity.activity,
             status=activity.status,
@@ -138,18 +137,7 @@ class Client:
         except IndexError:
             raise DiscordException(f"You must provide which event you need {coro}")
 
-    def add_message_command(self, *commands: MessageCommand) -> None:
-        warnings.warn(
-            "Message commands is deprecated and would be deleted in future",
-            category=DeprecationWarning
-        )
-        for command in commands:
-            if inspect.iscoroutine(command.callback):
-                raise DiscordException("Callback function must be coroutine")
-
-            self.message_commands[command.name] = command
-
-    async def add_slash_command(self, *commands: SlashCommand, app_id: Snowflake | int = None) -> None:
+    def add_slash_command(self, *commands: SlashCommand, app_id: Snowflake | int = None) -> None:
         for command in commands:
             if inspect.iscoroutine(command.callback):
                 raise DiscordException("Callback function must be coroutine")
@@ -158,12 +146,26 @@ class Client:
                 raise DiscordException("You can't create more than 100 slash commands.")
 
             self.slash_commands[command.name] = command
-            await self.rest.create_application_command(
+
+            guild_ids = command.guild_ids
+            if len(guild_ids) > 0:
+                for guild_id in guild_ids:
+                    print(guild_id)
+                    self.gateway.loop.run_until_complete(self.rest.create_guild_application_command(
+                        application_id=self.client_id if app_id is None else app_id,
+                        name=command.name,
+                        description=command.description,
+                        options=command.options,
+                        guild_id=guild_id
+                    ))
+                continue
+
+            self.gateway.loop.run_until_complete(self.rest.create_application_command(
                 application_id=self.client_id if app_id is None else app_id,
                 name=command.name,
                 description=command.description,
-                options=command.options
-            )
+                options=command.options,
+            ))
 
     def add_modal(self, *modals: Modal) -> None:
         for modal in modals:
@@ -178,10 +180,6 @@ class Client:
                 raise DiscordException("Callback function must be coroutine")
 
             self._buttons[str(button.custom_id)] = button
-
-    @property
-    def message_commands(self) -> Dict[str, MessageCommand]:
-        return self._commands
 
     @property
     def slash_commands(self) -> Dict[str, SlashCommand]:

@@ -5,9 +5,10 @@ import attrs
 
 from .user import User
 from .snowflake import Snowflake
+from quant.utils.attrs_extensions import execute_converters
 
 
-@attrs.define
+@attrs.define(field_transformer=execute_converters)
 class Webhook:
     webhook_url: str = attrs.field(alias="url")
     webhook_token: str = attrs.field(alias="token")

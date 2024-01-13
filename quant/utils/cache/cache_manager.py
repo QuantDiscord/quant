@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Any
 
 from quant.api.entities.component import Component
 from quant.entities.snowflake import Snowflake
@@ -9,7 +9,6 @@ from quant.entities.guild import Guild
 from quant.entities.emoji import Emoji, Reaction
 from quant.entities.message import Message
 from quant.entities.channel import Channel
-from quant.impl.events.types import EventTypes
 from quant.utils.cache.cacheable import CacheableType
 
 

@@ -51,29 +51,46 @@ class ActivityAssets:
     small_text: str = attrs.field(default=None)
 
 
+@attrs.define
+class ActivityData:
+    activity: Activity | None = attrs.field(default=None)
+    status: ActivityStatus | None = attrs.field(default=None)
+    since: int | None = attrs.field(default=None)
+    afk: bool | None = attrs.field(default=None)
+
+
 class ActivityBuilder:
     def __init__(self) -> None:
-        self.activity: Activity | None = None
-        self.status: ActivityStatus | None = None
-        self.since: int | None = None
-        self.afk: bool | None = None
+        self._activity: Activity | None = None
+        self._status: ActivityStatus | None = None
+        self._since: int | None = None
+        self._afk: bool | None = None
 
     def set_activity(
-        self, name: str,
+        self,
+        name: str,
         url: str | None = None,
         activity_type: ActivityType = ActivityType.GAME
     ) -> Self:
-        self.activity = Activity(name=name, url=url, type=activity_type)
+        self._activity = Activity(name=name, url=url, type=activity_type)
         return self
 
     def set_status(self, status: ActivityStatus) -> Self:
-        self.status = status
+        self._status = status
         return self
 
     def set_since(self, value: int) -> Self:
-        self.since = value
+        self._since = value
         return self
 
     def set_afk(self, value: bool) -> Self:
-        self.afk = value
+        self._afk = value
         return self
+
+    def build(self) -> ActivityData:
+        return ActivityData(
+            activity=self._activity,
+            status=self._status,
+            since=self._since,
+            afk=self._afk
+        )
