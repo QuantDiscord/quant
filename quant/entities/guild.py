@@ -11,12 +11,11 @@ from .member import GuildMember
 from .voice_state_update import VoiceState
 from .model import BaseModel
 from .snowflake import Snowflake
-from quant.utils.attrs_extensions import execute_converters
 
 
-@attrs.define(field_transformer=execute_converters)
+@attrs.define
 class Guild(BaseModel):
-    guild_id: Snowflake = attrs.field(alias="id")
+    id: Snowflake = attrs.field()
     name: str = attrs.field(default=None)
     owner_id: Snowflake = attrs.field(default=0)
     verification_level: int = attrs.field(default=0)
@@ -25,9 +24,9 @@ class Guild(BaseModel):
     mfa_level: int = attrs.field(default=0)
     threads: List[Any] = attrs.field(default=[])
     stage_instances: List[Any] = attrs.field(default=[])
-    embedded_activities: List[Any] = attrs.field(default=[])
     unavailable: bool = attrs.field(default=False)
-    channels: List[Channel] = attrs.field(default=None, converter=Channel.as_dict_iter)
+    embedded_activities: List[Any] = attrs.field(default=[])
+    channels: List[Channel] = attrs.field(default=None)
     guild_scheduled_events: List[Any] = attrs.field(default=[])
     guild_hashes: List[Any] = attrs.field(default=[])
     lazy: bool = attrs.field(default=False)
@@ -35,7 +34,7 @@ class Guild(BaseModel):
     joined_at: datetime.datetime = attrs.field(default=None)
     member_count: int = attrs.field(default=0)
     presences: List[Any] = attrs.field(default=[])
-    members: List[GuildMember] = attrs.field(default=[], converter=GuildMember.as_dict_iter)
+    members: List[GuildMember] = attrs.field(default=[])
     large: bool = attrs.field(default=False)
     permissions: str = attrs.field(default=None)
     roles: List[Any] = attrs.field(default=[])
@@ -88,7 +87,7 @@ class Guild(BaseModel):
     locale: str = attrs.field(default=None)
 
     async def delete(self) -> None:
-        await self.client.rest.delete_guild(self.guild_id)
+        await self.client.rest.delete_guild(self.id)
 
     def get_member(self, member_id: Snowflake | int) -> GuildMember:
         return [i for i in self.members if i.user.user_id == member_id][0]
@@ -101,7 +100,7 @@ class Guild(BaseModel):
         delete_message_seconds: int = 0
     ) -> None:
         await self.client.rest.create_guild_ban(
-            guild_id=self.guild_id,
+            guild_id=self.id,
             member_id=member.user.user_id if isinstance(member, GuildMember) else member,
             reason=reason,
             delete_message_days=delete_message_days,
@@ -109,4 +108,4 @@ class Guild(BaseModel):
         )
 
     async def fetch_invites(self) -> List["Invite"]:
-        return await self.client.rest.fetch_guild_invites(guild_id=self.guild_id)
+        return await self.client.rest.fetch_guild_invites(guild_id=self.id)

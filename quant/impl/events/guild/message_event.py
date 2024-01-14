@@ -1,49 +1,52 @@
-from quant.entities.user import User
-from quant.impl.events.event import Event
-from quant.entities.message import Message
+import attrs
+from typing_extensions import Self
+
 from quant.impl.events.types import EventTypes
-from quant.utils.cache.cache_manager import CacheManager
+from quant.entities.user import User
+from quant.impl.events.event import DiscordEvent
+from quant.entities.message import Message
 
 
-class MessageCreateEvent(Event):
-    API_EVENT_NAME: EventTypes = EventTypes.MESSAGE_CREATE
+@attrs.define(kw_only=True)
+class MessageCreateEvent(DiscordEvent):
+    event_api_name: EventTypes = attrs.field(default=EventTypes.MESSAGE_CREATE)
+    message: Message = attrs.field(default=None)
 
-    message: Message
-
-    def process_event(self, cache_manager: CacheManager, **kwargs):
+    def emit(self, **kwargs) -> Self:
         if kwargs is None:
             return
 
         self.message = Message(**kwargs)
-
-        cache_manager.add_message(self.message)
-
-
-class MessageEditEvent(Event):
-    API_EVENT_NAME: EventTypes = EventTypes.MESSAGE_UPDATE
-
-    old_message: Message
-    new_message: Message
-
-    def process_event(self, cache_manager: CacheManager, **kwargs):
-        self.new_message = Message(**kwargs)
-        message = cache_manager.get_message(int(kwargs.get("id")))
-        if message is None:
-            return
-
-        self.old_message = message
+        self.cache_manager.add_message(self.message)
 
         return self
 
 
-class MessageDeleteEvent(Event):
-    API_EVENT_NAME: EventTypes = EventTypes.MESSAGE_DELETE
+@attrs.define(kw_only=True)
+class MessageEditEvent(DiscordEvent):
+    event_api_name: EventTypes = attrs.field(default=EventTypes.MESSAGE_UPDATE)
+    old_message: Message = attrs.field(default=None)
+    new_message: Message = attrs.field(default=None)
 
-    author: User
-    message: Message
+    def emit(self, *args, **kwargs) -> Self:
+        self.new_message = Message(**kwargs)
+        message = self.cache_manager.get_message(int(kwargs.get("id")))
 
-    def process_event(self, cache_manager: CacheManager, **kwargs):
-        message = cache_manager.get_message(int(kwargs.get("id")))
+        if message is None:
+            return
+
+        self.old_message = message
+        return self
+
+
+@attrs.define(kw_only=True)
+class MessageDeleteEvent(DiscordEvent):
+    event_api_name: EventTypes = attrs.field(default=EventTypes.MESSAGE_DELETE)
+    author: User = attrs.field(default=None)
+    message: Message = attrs.field(default=None)
+
+    def emit(self, *args, **kwargs) -> Self:
+        message = self.cache_manager.get_message(int(kwargs.get("id")))
         if message is not None:
             self.message = message
 

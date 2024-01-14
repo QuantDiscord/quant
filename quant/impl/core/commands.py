@@ -1,7 +1,7 @@
 from typing import Dict, Any, List
 
 from quant.entities.interactions.slash_option import SlashOption
-from quant.impl.core.context import MessageCommandContext
+from quant.impl.core.context import BaseContext
 from quant.entities.snowflake import Snowflake
 
 
@@ -10,7 +10,7 @@ class Command:
         self.name = name
         self.description = description
 
-    async def callback(self, context: MessageCommandContext, *args) -> None:
+    async def callback(self, context: BaseContext, *args) -> None:
         pass
 
     callback_func = callback

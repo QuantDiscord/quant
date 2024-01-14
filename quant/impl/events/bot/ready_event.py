@@ -1,9 +1,12 @@
-from ..event import Event
-from quant.impl.events.types import EventTypes
+import attrs
+
+from ..event import DiscordEvent
+from ..types import EventTypes
 
 
-class ReadyEvent(Event):
-    API_EVENT_NAME: EventTypes = EventTypes.READY_EVENT
+@attrs.define(kw_only=True)
+class ReadyEvent(DiscordEvent):
+    event_api_name: EventTypes = attrs.field(default=EventTypes.READY_EVENT)
 
-    def process_event(self, _, **kwargs):
+    def emit(self, *args, **kwargs):
         return self

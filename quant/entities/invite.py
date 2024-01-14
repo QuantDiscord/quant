@@ -8,7 +8,7 @@ from .guild import Guild
 from .channel import Channel
 from .user import User
 from .snowflake import Snowflake
-from quant.utils.attrs_extensions import execute_converters
+
 
 
 class InviteTargetType(enum.Enum):
@@ -17,7 +17,7 @@ class InviteTargetType(enum.Enum):
     EMBEDDED_APPLICATION = 2
 
 
-@attrs.define(kw_only=True, field_transformer=execute_converters)
+@attrs.define(kw_only=True)
 class Invite:
     code: str
     guild_id: Snowflake | None = attrs.field(default=None)

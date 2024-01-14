@@ -12,13 +12,16 @@ import asyncio
 from traceback import print_exception
 
 import json
+import attrs
 import aiohttp
 
+from quant.impl.events.types import EventTypes
 from quant.entities.activity import Activity, ActivityStatus
 from quant.entities.snowflake import Snowflake
 from quant.impl.core.route import DISCORD_WS_URL
 from quant.entities.intents import Intents
 from quant.entities.factory.event_factory import EventFactory
+from quant.entities.factory.event_controller import EventController
 from quant.utils.cache.cache_manager import CacheManager
 from quant.utils.asyncio_utils import get_loop
 
@@ -36,6 +39,15 @@ class OpCode(enum.IntEnum):
     INVALID_SESSION = 9
     HELLO = 10
     HEARTBEAT_ACK = 11
+
+
+@attrs.define
+class IdentifyPayload:
+    token: str = attrs.field()
+    properties: Dict = attrs.field()
+    shard: List[int] = attrs.field()
+    large_threshold: int = attrs.field()
+    intents: Intents = attrs.field(default=Intents.ALL_PRIVILEGED)
 
 
 class Gateway:
@@ -57,25 +69,26 @@ class Gateway:
         self.session_id = None
         self._previous_heartbeat = 0
         self._mobile_status = False
-        self.cache: CacheManager = CacheManager()
-        self.event_factory = EventFactory(self)
+        self.cache = CacheManager()
+        self.event_factory = EventFactory(self.cache)
+        self.event_controller = EventController(self.cache)
 
         self.loop = get_loop()
 
         self.latency = None
         self.session = None
 
-        self.raw_ws_request = {
-            "token": self.token,
-            "properties": {
+        self.raw_payload = IdentifyPayload(
+            token=token,
+            properties={
                 "os": sys.platform,
                 "browser": "Discord iOS" if self._mobile_status else "quant",
                 "device": "quant"
             },
-            "shard": [shard_id, num_shards],
-            "intents": intents.value,
-            "large_threshold": 250
-        }
+            shard=[shard_id, num_shards],
+            large_threshold=250,
+            intents=intents
+        )
 
         self.buffer = bytearray()
         self.zlib_decompressed_object = zlib.decompressobj()
@@ -84,11 +97,11 @@ class Gateway:
 
     @property
     def identify_payload(self):
-        return self.raw_ws_request
+        return attrs.asdict(self.raw_payload)
 
     @identify_payload.setter
     def identify_payload(self, data: Dict):
-        self.raw_ws_request = data
+        self.identify_payload = data
 
     async def send_presence(
         self,
@@ -188,9 +201,11 @@ class Gateway:
             case OpCode.DISPATCH:
                 self.sequence = int(sequence)
                 received_event_type = received_data["t"]
+                event_details = received_data["d"]
 
-                self.event_factory.cache_item(received_event_type, **received_data["d"])
-                event = self.event_factory.build_event(received_event_type, **received_data["d"])
+                self.event_factory.cache_item(received_event_type, **event_details)
+                event = self.event_factory.build_event(EventTypes(received_event_type), **event_details)
+                await self.event_controller.dispatch(received_event_type, event_details)
                 await self.event_factory.dispatch(event)
             case OpCode.INVALID_SESSION:
                 await self.websocket_connection.close(code=4000)

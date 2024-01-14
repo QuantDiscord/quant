@@ -27,16 +27,13 @@ from quant.entities.modal.modal import Modal
 from quant.impl.core.commands import SlashCommand
 from quant.impl.core.context import InteractionContext, ModalContext, ButtonContext
 from quant.impl.events.bot.interaction_create_event import InteractionCreateEvent
-from quant.impl.core import MessageCommandContext
-from quant.impl.core.exceptions.command_exceptions import CommandNotFoundException, CommandArgumentsNotFound
 from quant.impl.core.gateway import Gateway
 from quant.entities.intents import Intents
 from quant.impl.core.exceptions.library_exception import DiscordException
 from quant.impl.core.rest import DiscordREST
-from quant.impl.events.event import Event, InternalEvent
+from quant.impl.events.event import Event, InternalEvent, DiscordEvent
 from quant.entities.model import BaseModel
 from quant.entities.activity import ActivityData
-from quant.impl.events.guild.message_event import MessageCreateEvent
 
 
 class Client:
@@ -130,7 +127,7 @@ class Client:
             event_type: Event = list(annotations[1].values())[0]
 
             # idk why linter warning there
-            if not issubclass(event_type, (InternalEvent, Event)):  # type: ignore
+            if not issubclass(event_type, (InternalEvent, Event, DiscordEvent)):  # type: ignore
                 raise DiscordException(f"{event_type.__name__} must be subclass of Event")
 
             self.gateway.event_factory.add_event(event_type, coro)
@@ -200,7 +197,7 @@ class Client:
             return
 
         context = InteractionContext(self, interaction)
-        command_name = interaction.interaction_data.name
+        command_name = interaction.interaction_data['name']
 
         if command_name in self.slash_commands.keys():
             command = self.slash_commands[command_name]
@@ -245,45 +242,10 @@ class Client:
         except Exception as e:
             await self.gateway.event_factory.dispatch(
                 self.gateway.event_factory.build_from_class(
-                    QuantExceptionEvent, InteractionContext(self, interaction), e
+                    QuantExceptionEvent(), InteractionContext(self, interaction), e
                 )
             )
             raise e
-
-    async def _handle_message_commands(self, event: MessageCreateEvent) -> None:
-        content = event.message.content
-
-        if content is None or self.prefix is None:
-            return
-
-        if content.startswith(self.prefix):
-            substring_command = content[1:].split()[0]
-            arguments = content[len(substring_command) + 1:].split()
-
-            if substring_command not in self.message_commands.keys():
-                raise CommandNotFoundException(f"command {substring_command} not found")
-
-            message_commands = self.message_commands.values()
-            combined_commands = self.combined_commands.values()
-            context = MessageCommandContext(client=self, message=event.message)
-
-            for command in list(message_commands) + list(combined_commands):
-                try:
-                    if not command.name == substring_command:
-                        continue
-
-                    try:
-                        await command.callback_func(context, *arguments)
-                    except Exception as exc:
-                        await self.gateway.event_factory.dispatch(
-                            self.gateway.event_factory.build_from_class(QuantExceptionEvent, context, exc)
-                        )
-                        raise exc
-                except TypeError as e:  # stupid but ok
-                    await self.gateway.event_factory.dispatch(
-                        self.gateway.event_factory.build_from_class(QuantExceptionEvent, context, e)
-                    )
-                    raise CommandArgumentsNotFound(e)
 
     async def _set_client_user_on_ready(self, _: ReadyEvent) -> None:
         self.my_user = self.cache.get_users()[0]

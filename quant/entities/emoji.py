@@ -3,7 +3,7 @@ from typing import List, Any, TYPE_CHECKING
 import attrs
 
 from .model import BaseModel
-from quant.utils.attrs_extensions import execute_converters
+
 
 if TYPE_CHECKING:
     from .user import User
@@ -11,7 +11,7 @@ if TYPE_CHECKING:
     from .snowflake import Snowflake
 
 
-@attrs.define(field_transformer=execute_converters)
+@attrs.define
 class PartialReaction(BaseModel):
     emoji_name: str = attrs.field(alias="name")
     emoji_id: 'Snowflake' = attrs.field(default=0, alias="id")
@@ -24,24 +24,7 @@ class PartialReaction(BaseModel):
             return self.emoji_name
 
 
-@attrs.define(field_transformer=execute_converters)
-class Reaction(BaseModel):
-    user_id: 'Snowflake' = attrs.field(default=0)
-    reaction_type: int = attrs.field(default=0, alias="type")
-    message_id: 'Snowflake' = attrs.field(default=0)
-    message_author_id: 'Snowflake' = attrs.field(default=0)
-    member: 'GuildMember' = attrs.field(default=None)
-    emoji: PartialReaction = attrs.field(default=None)
-    channel_id: 'Snowflake' = attrs.field(default=0)
-    burst: bool = attrs.field(default=False)
-    guild_id: 'Snowflake' = attrs.field(default=0)
-    burst_colors: List[Any] = attrs.field(default=None)
-
-    def __str__(self) -> str:
-        return str(self.emoji)
-
-
-@attrs.define(field_transformer=execute_converters)
+@attrs.define
 class Emoji(BaseModel):
     emoji_id: 'Snowflake' = attrs.field(alias="id")
     emoji_name: str = attrs.field(alias="name")
@@ -63,3 +46,20 @@ class Emoji(BaseModel):
             return f"<:{self.emoji_name}:{self.emoji_id}>"
         else:
             return self.emoji_name
+
+
+@attrs.define
+class Reaction(BaseModel):
+    user_id: 'Snowflake' = attrs.field(default=0)
+    reaction_type: int = attrs.field(default=0, alias="type")
+    message_id: 'Snowflake' = attrs.field(default=0)
+    message_author_id: 'Snowflake' = attrs.field(default=0)
+    member: 'GuildMember' = attrs.field(default=None)
+    emoji: PartialReaction = attrs.field(default=None)
+    channel_id: 'Snowflake' = attrs.field(default=0)
+    burst: bool = attrs.field(default=False)
+    guild_id: 'Snowflake' = attrs.field(default=0)
+    burst_colors: List[Any] = attrs.field(default=None)
+
+    def __str__(self) -> str:
+        return str(self.emoji)

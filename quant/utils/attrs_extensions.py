@@ -1,4 +1,4 @@
-from typing import List, Any, TYPE_CHECKING
+from typing import List, Any
 from datetime import datetime
 
 import attrs

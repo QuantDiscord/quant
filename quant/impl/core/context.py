@@ -34,7 +34,7 @@ class BaseContext:
         flags: int = None
     ):
         if components is not None:
-            components = [component.as_json() for component in components]
+            components = [self.client.gateway.event_factory for component in components]
 
         return await self.client.rest.create_message(
             channel_id=channel_id if channel_id is not None else self.original_message.channel_id,
@@ -52,10 +52,6 @@ class BaseContext:
             attachments=attachments,
             flags=flags
         )
-
-
-class MessageCommandContext(BaseContext):
-    ...
 
 
 class InteractionContext:

@@ -6,10 +6,9 @@ import attrs
 
 from .user import User
 from .model import BaseModel
-from quant.utils.attrs_extensions import execute_converters
 
 
-@attrs.define(kw_only=True, field_transformer=execute_converters)
+@attrs.define(kw_only=True)
 class GuildMember(BaseModel):
     username: str = attrs.field(default=None)
     deaf: bool = attrs.field(default=False)
@@ -25,13 +24,3 @@ class GuildMember(BaseModel):
     communication_disabled_until: int | None = attrs.field(default=0)
     user: User = attrs.field(default=None, converter=User.as_dict)
     unusual_dm_activity_until: Any = attrs.field(default=None)
-
-    @classmethod
-    def as_dict(cls, data):
-        if data is not None:
-            return cls(**data)
-
-    @classmethod
-    def as_dict_iter(cls, data) -> List[Self] | None:
-        if data is not None:
-            return [cls(**member) for member in data]

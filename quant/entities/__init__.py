@@ -1,5 +1,3 @@
-from .factory.event_factory import EventFactory
-from .factory.entity_factory import EntityFactory
 from .action_row import ActionRow
 from .activity import (
     Activity,
@@ -12,7 +10,7 @@ from .activity import (
 )
 from .allowed_mentions import AllowedMentions, AllowedMentionsTypes
 from .button import Button, ButtonStyle
-from .channel import Channel
+from .channel import Channel, Thread, ThreadMetadata, ChannelType, VoiceChannel
 from .embeds import *
 from .emoji import Emoji, Reaction, PartialReaction
 from .guild import Guild
@@ -93,6 +91,8 @@ __all__ = (
     "TextInput",
     "TextInputStyle",
     "Invite",
-    "EntityFactory",
-    "EventFactory"
+    "Thread",
+    "ThreadMetadata",
+    "ChannelType",
+    "VoiceChannel"
 )

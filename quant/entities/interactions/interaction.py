@@ -20,7 +20,7 @@ from quant.entities.embeds import Embed
 from quant.entities.allowed_mentions import AllowedMentions
 from quant.entities.member import GuildMember
 from quant.entities.model import BaseModel
-from quant.utils.attrs_extensions import execute_converters
+
 
 
 class InteractionCallbackType(enum.Enum):
@@ -42,7 +42,7 @@ class InteractionType(enum.Enum):
     MODAL_SUBMIT = 5
 
 
-@attrs.define(kw_only=True, field_transformer=execute_converters)
+@attrs.define(kw_only=True)
 class InteractionCallbackData(BaseModel):
     tts: bool = attrs.field(default=False)
     content: str = attrs.field(default=None)
@@ -53,7 +53,7 @@ class InteractionCallbackData(BaseModel):
     attachments: Any = attrs.field(default=None)
 
 
-@attrs.define(kw_only=True, field_transformer=execute_converters)
+@attrs.define(kw_only=True)
 class InteractionData(BaseModel):
     interaction_id: Snowflake = attrs.field(default=0, alias="id")
     component_type: int = attrs.field(default=0)
@@ -75,7 +75,7 @@ class InteractionResponse(BaseModel):
     interaction_response_data: InteractionCallbackData = attrs.field(default=None)
 
 
-@attrs.define(kw_only=True, field_transformer=execute_converters)
+@attrs.define(kw_only=True)
 class Interaction(BaseModel):
     interaction_name: str = attrs.field(alias="name", default=None)
     interaction_id: Snowflake = attrs.field(alias="id", default=0)

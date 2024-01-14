@@ -6,10 +6,9 @@ import attrs
 
 from .snowflake import Snowflake
 from .member import GuildMember
-from quant.utils.attrs_extensions import execute_converters
 
 
-@attrs.define(kw_only=True, field_transformer=execute_converters)
+@attrs.define(kw_only=True)
 class VoiceState:
     guild_id: Snowflake = attrs.field(default=0)
     channel_id: Snowflake = attrs.field(default=0)

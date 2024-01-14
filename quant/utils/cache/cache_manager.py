@@ -1,4 +1,9 @@
-from typing import List, Any
+from __future__ import annotations
+
+from typing import List, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from quant.entities.factory.entity_factory import EntityFactory
 
 from quant.api.entities.component import Component
 from quant.entities.snowflake import Snowflake
@@ -13,19 +18,19 @@ from quant.utils.cache.cacheable import CacheableType
 
 
 class CacheManager:
-    __cached_guilds: MutableJsonBuilder[int, Guild] = MutableJsonBuilder()
-    __cached_users: MutableJsonBuilder[int, User] = MutableJsonBuilder()
-    __cached_messages: MutableJsonBuilder[int, Message] = MutableJsonBuilder()
-    __cached_emojis: MutableJsonBuilder[int, Emoji | Reaction] = MutableJsonBuilder()
+    __cached_guilds: MutableJsonBuilder[Snowflake, Guild] = MutableJsonBuilder()
+    __cached_users: MutableJsonBuilder[Snowflake, User] = MutableJsonBuilder()
+    __cached_messages: MutableJsonBuilder[Snowflake, Message] = MutableJsonBuilder()
+    __cached_emojis: MutableJsonBuilder[Snowflake, Emoji | Reaction] = MutableJsonBuilder()
     __cached_components: List[Component] = []
-    __cached_channels: MutableJsonBuilder[int, Channel] = MutableJsonBuilder()
+    __cached_channels: MutableJsonBuilder[Snowflake, Channel] = MutableJsonBuilder()
 
     def __init__(self, cacheable: CacheableType | None = None) -> None:
         self.cacheable = cacheable.value if cacheable is not None else None
 
     def add_user(self, user: User):
         """Adds user to cache."""
-        self.__cached_users.put(user.user_id, user)
+        self.__cached_users.put(user.id, user)
 
     def add_message(self, message: Message):
         """Adds message to cache."""
@@ -33,7 +38,7 @@ class CacheManager:
 
     def add_guild(self, guild: Guild):
         """Adds guild to cache."""
-        self.__cached_guilds.put(guild.guild_id, guild)
+        self.__cached_guilds.put(guild.id, guild)
 
     def add_emoji(self, emoji: Emoji | Reaction):
         """Adds emoji to cache."""
@@ -46,7 +51,7 @@ class CacheManager:
         self.__cached_components.append(component)
 
     def add_channel(self, channel: Channel):
-        self.__cached_channels.put(channel.channel_id, channel)
+        self.__cached_channels.put(channel.id, channel)
 
     def get_user(self, user_id: int) -> User | None:
         """Get user from cache."""
@@ -97,14 +102,18 @@ class CacheManager:
 
 
 class CacheHandlers(CacheManager):
+    def __init__(self, factory: EntityFactory) -> None:
+        self.entity_factory = factory
+        super().__init__()
+
     def handle_ready(self, **kwargs) -> None:
-        self.add_user(User(**kwargs["user"]))
+        self.add_user(self.entity_factory.deserialize_user(kwargs))
 
     def handle_message(self, **kwargs) -> None:
         self.add_message(Message(**kwargs))
 
     def handle_guild(self, **kwargs) -> None:
-        guild_object = Guild(**kwargs)
+        guild_object = self.entity_factory.deserialize_guild(kwargs)
         self.add_guild(guild_object)
 
         for channel in guild_object.channels:
@@ -119,12 +128,12 @@ class CacheHandlers(CacheManager):
     def handle_voice_state_update(self, **kwargs) -> None:
         guild_id = kwargs.get('guild_id')
         guild = self.get_guild(int(guild_id))
-        state = VoiceState(**kwargs)
+        state = self.entity_factory.deserialize_voice_state(kwargs)
 
         if len(guild.voice_states) == 0:
             guild.voice_states.append(state)
 
     def handle_channel_create(self, **kwargs) -> None:
-        self.add_channel(Channel(**kwargs))
+        self.add_channel(self.entity_factory.deserialize_channel(kwargs))
 
 # мама сказала, что я умный (fr)

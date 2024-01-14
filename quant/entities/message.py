@@ -10,7 +10,7 @@ if TYPE_CHECKING:
 
 from .user import User
 from .snowflake import Snowflake
-from quant.utils.attrs_extensions import execute_converters
+
 from .model import BaseModel
 from .member import GuildMember
 from .embeds import Embed
@@ -20,7 +20,7 @@ from .emoji import Emoji
 from .message_flags import MessageFlags
 
 
-@attrs.define(kw_only=True, field_transformer=execute_converters)
+@attrs.define(kw_only=True)
 class Message(BaseModel):
     type: int = attrs.field(default=None)
     timestamp: datetime = attrs.field(default=None)
