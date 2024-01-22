@@ -40,6 +40,9 @@ class MutableJsonBuilder(Mapping[KT, VT]):
         return [(key, value) for key, value in self._json_data.items()][-1]
 
     def put(self, key: Any, element: Any) -> None:
+        if isinstance(self._json_data, MutableJsonBuilder):
+            self._json_data = self._json_data.asdict()
+
         self._json_data.update({key: element})
 
     def get_values(self):

@@ -37,10 +37,11 @@ from .interactions import (
     SlashOption,
     SlashOptionType
 )
-from .message import Message, MessageReference
+from .message import Message, MessageReference, Attachment
 
 
 __all__ = (
+    "Attachment",
     "ActionRow",
     "Activity",
     "ActivityFlags",
@@ -94,5 +95,6 @@ __all__ = (
     "Thread",
     "ThreadMetadata",
     "ChannelType",
-    "VoiceChannel"
+    "VoiceChannel",
+    "embed"
 )

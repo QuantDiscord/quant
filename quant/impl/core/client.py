@@ -10,7 +10,6 @@ from typing import (
     TypeVar,
     TYPE_CHECKING
 )
-import warnings
 
 from quant.entities.interactions.component_types import ComponentType
 
@@ -30,7 +29,7 @@ from quant.impl.events.bot.interaction_create_event import InteractionCreateEven
 from quant.impl.core.gateway import Gateway
 from quant.entities.intents import Intents
 from quant.impl.core.exceptions.library_exception import DiscordException
-from quant.impl.core.rest import DiscordREST
+from quant.impl.core.rest import RESTImpl
 from quant.impl.events.event import Event, InternalEvent, DiscordEvent
 from quant.entities.model import BaseModel
 from quant.entities.activity import ActivityData
@@ -57,10 +56,12 @@ class Client:
             shard_id=shard_id,
             num_shards=num_shards
         )
-        self.rest = DiscordREST(self.gateway.token)
+        self.rest = RESTImpl(self.gateway.token)
         self.cache = self.gateway.cache
         self.client_id: int = self._decode_token_to_id()
-
+        self.event_factory = self.gateway.event_factory
+        self.event_controller = self.gateway.event_controller
+        
         self._modals: Dict[str, Modal] = {}
         self._buttons: Dict[str, Button] = {}
         self._slash_commands: Dict[str, SlashCommand] = {}
@@ -147,7 +148,6 @@ class Client:
             guild_ids = command.guild_ids
             if len(guild_ids) > 0:
                 for guild_id in guild_ids:
-                    print(guild_id)
                     self.gateway.loop.run_until_complete(self.rest.create_guild_application_command(
                         application_id=self.client_id if app_id is None else app_id,
                         name=command.name,
@@ -191,42 +191,42 @@ class Client:
         return self._buttons
 
     async def handle_application_command(self, interaction: Interaction) -> None:
-        interaction_type = interaction.interaction_type
+        interaction_type = interaction.type
 
         if not interaction_type == InteractionType.APPLICATION_COMMAND:
             return
 
         context = InteractionContext(self, interaction)
-        command_name = interaction.interaction_data['name']
+        command_name = interaction.data.name
 
         if command_name in self.slash_commands.keys():
             command = self.slash_commands[command_name]
             await command.callback_func(context)
 
     async def handle_modal_submit(self, interaction: Interaction) -> None:
-        interaction_type = interaction.interaction_type
+        interaction_type = interaction.type
 
         if not interaction_type == InteractionType.MODAL_SUBMIT:
             return
 
         context = ModalContext(self, interaction)
-        custom_id = interaction.interaction_data.custom_id
+        custom_id = interaction.data.custom_id
 
         if custom_id in self.modals.keys():
             modal = self.modals[custom_id]
             await modal.callback_func(context)
 
     async def handle_message_components(self, interaction: Interaction) -> None:
-        interaction_type = interaction.interaction_type
+        interaction_type = interaction.type
 
         if not interaction_type == InteractionType.MESSAGE_COMPONENT:
             return
 
-        component_type = interaction.interaction_data.component_type
+        component_type = interaction.data.component_type
         match component_type:
             case ComponentType.BUTTON:
                 context = ButtonContext(self, interaction, None)
-                custom_id = interaction.interaction_data.custom_id
+                custom_id = interaction.data.custom_id
 
                 if custom_id in self.buttons.keys():
                     button = self.buttons[custom_id]
@@ -240,7 +240,7 @@ class Client:
             await self.handle_message_components(interaction)
             await self.handle_modal_submit(interaction)
         except Exception as e:
-            await self.gateway.event_factory.dispatch(
+            await self.gateway.event_controller.dispatch(
                 self.gateway.event_factory.build_from_class(
                     QuantExceptionEvent(), InteractionContext(self, interaction), e
                 )

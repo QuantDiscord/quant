@@ -1,9 +1,11 @@
+from __future__ import annotations
+
 from typing import List, TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
     from quant.impl.core.client import Client
     from quant.entities.interactions.interaction import Interaction
-    from quant.entities.message import Message
+    from quant.entities.message import Message, Attachment, MessageReference, MessageFlags
     from quant.entities.button import Button
 
 from quant.entities.action_row import ActionRow
@@ -25,17 +27,14 @@ class BaseContext:
         embed: Embed = None,
         embeds: List[Embed] = None,
         allowed_mentions: AllowedMentions = None,
-        message_reference=None,
-        components: List[ActionRow] = None,
+        message_reference: MessageReference | None = None,
+        components: ActionRow | None = None,
         sticker_ids: List = None,
         files=None,
         payload_json: str = None,
-        attachments: List = None,
-        flags: int = None
-    ):
-        if components is not None:
-            components = [self.client.gateway.event_factory for component in components]
-
+        attachments: List[Attachment] = None,
+        flags: MessageFlags | int | None = None
+    ) -> Message:
         return await self.client.rest.create_message(
             channel_id=channel_id if channel_id is not None else self.original_message.channel_id,
             content=str(content),

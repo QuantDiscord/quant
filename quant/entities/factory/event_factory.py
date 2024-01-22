@@ -35,13 +35,14 @@ class EventFactory:
         self.cache = cache_manager
         self.entity_factory = entities.factory.EntityFactory()
 
+    # TODO: а оно нужно вообще?
     def build_event(self, received_type: EventTypes, **details) -> EventT | None:
         event_type = received_type.value
         if event_type not in self._listener_transformer:
             return
 
         event = self._listener_transformer[event_type]
-        # TODO: Это в будущем убрать надо (cache_manager)
+        # TODO: В будущем убрать надо cache_manager
         event_class = cast(event, self._listener_transformer[event_type])(cache_manager=self.cache)
         return event_class.emit(**details)
 
@@ -51,16 +52,6 @@ class EventFactory:
             event.emit(*args)
             return event.build(event, *args)
 
-    async def dispatch(self, event: EventT) -> None:
-        event_callback = self.added_listeners.get(type(event))
-        if event_callback is not None:
-            await event_callback(event)
-            return
-
-        if event is not None:
-            await event.call()
-            return
-
     def add_event(self, event: EventT, callback: Callable) -> None:
         self.added_listeners[event] = callback
 
@@ -69,9 +60,6 @@ class EventFactory:
 
         fields = attrs.fields(event)
         self._listener_transformer[fields.event_api_name.default] = event
-
-    async def wait(self, event_type: EventTypes, condition: Callable, timeout: int = 5) -> None:
-        ...
 
     def cache_item(self, event_name: EventTypes, **kwargs) -> None:
         cache_handler = CacheHandlers(self.entity_factory)
@@ -85,7 +73,6 @@ class EventFactory:
         }
 
         if handler := handlers.get(event_name):
-            print(handler)
             handler(**kwargs)  # type: ignore
 
     def deserialize_voice_state_update_event(
@@ -196,16 +183,18 @@ class EventFactory:
             )
         )
 
-    def deserialize_message_create_event(self, message: entities.Message) -> events.MessageCreateEvent:
+    def deserialize_message_create_event(self, payload: MutableJsonBuilder | Dict) -> events.MessageCreateEvent:
+        message = self.entity_factory.deserialize_message(payload)
         return events.MessageCreateEvent(
             cache_manager=self.cache,
             message=message
         )
 
-    def deserialize_message_delete_event(self, message: entities.Message) -> events.MessageDeleteEvent:
+    def deserialize_message_delete_event(self, payload: MutableJsonBuilder | Dict) -> events.MessageDeleteEvent:
+        message = self.entity_factory.deserialize_message(payload)
         return events.MessageDeleteEvent(
             cache_manager=self.cache,
-            author=message.author_as_user,
+            author=message.author,
             message=message
         )
 
@@ -220,13 +209,14 @@ class EventFactory:
             new_message=new_message
         )
 
-    def deserialize_guild_create_event(self, payload: MutableJsonBuilder) -> events.GuildCreateEvent:
+    def deserialize_guild_create_event(self, payload: MutableJsonBuilder | Dict) -> events.GuildCreateEvent:
         return events.GuildCreateEvent(
             cache_manager=self.cache,
             guild=self.entity_factory.deserialize_guild(payload)
         )
 
-    def deserialize_interaction_event(self, interaction: entities.Interaction) -> events.InteractionCreateEvent:
+    def deserialize_interaction_event(self, payload: MutableJsonBuilder | Dict) -> events.InteractionCreateEvent:
+        interaction = self.entity_factory.deserialize_interaction(payload)
         return events.InteractionCreateEvent(
             cache_manager=self.cache,
             interaction=interaction

@@ -53,6 +53,9 @@ CREATE_GUILD_BAN: Final[Route] = Route("PUT", URI("/guilds/{guild_id}/bans/{user
 GET_INVITE: Final[Route] = Route("GET", URI("/invites/{invite_code}"))
 DELETE_INVITE: Final[Route] = Route("DELETE", URI("/invites/{invite_code}"))
 GET_GUILD_INVITES: Final[Route] = Route("GET", URI("/guilds/{guild_id}/invites"))
+GET_GUILD_ROLES: Final[Route] = Route("GET", URI("/guilds/{guild_id}/roles"))
+CREATE_GUILD_ROLES: Final[Route] = Route("POST", URI("/guilds/{guild_id}/roles"))
+DELETE_GUILD_ROLE: Final[Route] = Route("DELETE", URI("/guilds/{guild_id}/roles/{role_id}"))
 
 # Interactions
 CREATE_INTERACTION_RESPONSE: Final[Route] = Route(

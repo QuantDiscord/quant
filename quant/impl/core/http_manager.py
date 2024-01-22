@@ -18,11 +18,13 @@ class HttpManagerImpl(HttpManager):
         self,
         method: str, url: str,
         data: Dict[str, Any] | MutableJsonBuilder[str, Any] = None,
-        headers: Dict[str, str] | MutableJsonBuilder[str, Any] = None,
+        headers: Dict[str, str] | MutableJsonBuilder[str, Any] | None = None,
         content_type: str = None
     ) -> ClientResponse | None:
-        async with ClientSession(headers=headers) as session:
-            if headers is None:
+        async with ClientSession(
+            headers=headers if not isinstance(headers, MutableJsonBuilder) else headers.asdict()
+        ) as session:
+            if headers is None or len(headers) == 0:
                 headers = MutableJsonBuilder()
             else:
                 headers = MutableJsonBuilder(headers)

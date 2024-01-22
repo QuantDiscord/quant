@@ -1,7 +1,7 @@
 from typing import List, Any
 from datetime import datetime
 
-from attrs import define, asdict
+from attrs import define, asdict, field
 
 
 @define
@@ -37,41 +37,42 @@ class EmbedImage:
 EmbedThumbnail = EmbedImage
 
 
-class Embed(dict):
-    def __init__(
-        self,
-        title: str = None,
-        description: str = None,
-        url: str = None,
-        timestamp: datetime = None,
-        color: str = None,
-        footer: EmbedFooter = None,
-        image: EmbedImage = None,
-        thumbnail: EmbedThumbnail = None,
-        author: EmbedAuthor = None,
-        fields: List[EmbedField] = None
-    ) -> None:
-        super().__init__(
-            type="rich",
-            title=title,
-            description=description,
-            url=url,
-            timestamp=timestamp,
-            color=color,
-            footer=asdict(footer) if footer is not None else None,
-            image=asdict(image) if image is not None else None,
-            thumbnail=asdict(thumbnail) if thumbnail is not None else None,
-            author=asdict(author) if author is not None else None,
-            fields=[asdict(i) for i in fields] if fields is not None else None
-        )
+@define
+class Embed:
+    title: str = field()
+    description: str = field()
+    url: str = field()
+    timestamp: datetime = field()
+    color: str | int = field()
+    footer: EmbedFooter = field()
+    image: EmbedImage = field()
+    thumbnail: EmbedThumbnail = field()
+    author: EmbedAuthor = field()
+    fields: List[EmbedField] = field()
+    _type: str = field(alias="type", default="rich")
 
-        self.title = title
-        self.description = description
-        self.url = url
-        self.timestamp = timestamp
-        self.color = color
-        self.footer = footer
-        self.image = image
-        self.thumbnail = thumbnail
-        self.author = author
-        self.fields = fields
+
+def embed(
+    title: str | None = None,
+    description: str | None = None,
+    url: str | None = None,
+    timestamp: datetime | None = None,
+    color: str | int | None = None,
+    footer: EmbedFooter | None = None,
+    image: EmbedImage | None = None,
+    thumbnail: EmbedThumbnail | None = None,
+    author: EmbedAuthor | None = None,
+    fields: List[EmbedField] | None = None,
+) -> Embed:
+    return Embed(
+        title=title,
+        description=description,
+        url=url,
+        timestamp=timestamp,
+        color=color,
+        footer=footer,
+        image=image,
+        thumbnail=thumbnail,
+        author=author,
+        fields=fields
+    )

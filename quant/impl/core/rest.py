@@ -1,16 +1,18 @@
 import re
 import warnings
-from typing import List, Any, Dict
+from typing import List, Any, Dict, Tuple
 
 import attrs
 
 from quant.impl.core.route import Route
+from quant.entities.factory.entity_factory import EntityFactory
 from quant.entities.action_row import ActionRow
 from quant.entities.message import MessageReference
 from quant.entities.interactions.slash_option import SlashOption
 from quant.api.core.rest_aware import RESTAware
 from quant.entities.snowflake import Snowflake
 from quant.entities.guild import Guild
+from quant.entities.roles import GuildRole
 from quant.entities.emoji import Emoji
 from quant.entities.invite import Invite
 from quant.entities.interactions.interaction import InteractionCallbackData, InteractionCallbackType
@@ -35,22 +37,27 @@ from quant.impl.core.route import (
     CREATE_GUILD_BAN,
     DELETE_ALL_REACTIONS,
     DELETE_ALL_REACTION_FOR_EMOJI,
-    GET_INVITE, DELETE_INVITE,
-    GET_GUILD_INVITES
+    GET_INVITE,
+    DELETE_INVITE,
+    GET_GUILD_INVITES,
+    GET_GUILD_ROLES,
+    CREATE_GUILD_ROLES,
+    DELETE_GUILD_ROLE
 )
-from quant.entities.message import Message
+from quant.entities.message import Message, Attachment
 from quant.entities.embeds import Embed
 from quant.entities.webhook import Webhook
 from quant.utils.json_builder import MutableJsonBuilder
 
 
-class DiscordREST(RESTAware):
+class RESTImpl(RESTAware):
     def __init__(self, token: str) -> None:
         self.http = HttpManagerImpl(authorization=token)
         self.token = token
+        self.entity_factory = EntityFactory()
 
-    @staticmethod
     def _build_payload(
+        self,
         content: str | None = None,
         nonce: str | int | None = None,
         tts: bool = False,
@@ -62,7 +69,7 @@ class DiscordREST(RESTAware):
         sticker_ids: List | None = None,
         files: Any | None = None,
         payload_json: Any | None = None,
-        attachments: List[Any] | None = None,
+        attachments: List[Attachment] | None = None,
         flags: int | None = None
     ) -> MutableJsonBuilder:
         body = MutableJsonBuilder()
@@ -77,10 +84,10 @@ class DiscordREST(RESTAware):
             body.put("tts", tts)
 
         if embed is not None:
-            body.put("embeds", [embed])
+            body.put("embeds", [self.entity_factory.serialize_embed(embed)])
 
         if embeds is not None:
-            body.put("embeds", embed)
+            body.put("embeds", self.entity_factory.serialize_embed(embed))
 
         if allowed_mentions is not None:
             body.put("allowed_mentions", attrs.asdict(allowed_mentions))
@@ -89,7 +96,7 @@ class DiscordREST(RESTAware):
             body.put("message_reference", attrs.asdict(message_reference))
 
         if components is not None:
-            body.put("components", list(components.as_json()))
+            body.put("components", [self.entity_factory.serialize_action_row(components)])
 
         if sticker_ids is not None:
             body.put("sticker_ids", sticker_ids)
@@ -101,7 +108,7 @@ class DiscordREST(RESTAware):
             body.put("payload_json", payload_json)
 
         if attachments is not None:
-            body.put("attachments", attachments)
+            body.put("attachments", [self.entity_factory.serialize_attachment(attach) for attach in attachments])
 
         if flags is not None:
             body.put("flags", flags)
@@ -121,10 +128,11 @@ class DiscordREST(RESTAware):
         components: List[Any] = None,
         files: List[Any] = None,
         payload_json: str = None,
-        attachments: List[Any] = None,
+        attachments: List[Attachment] | None = None,
         flags: int = None,
         thread_name: str = None
     ) -> None:
+        headers = MutableJsonBuilder()
         payload = self._build_payload(
             content=content,
             tts=tts,
@@ -139,17 +147,22 @@ class DiscordREST(RESTAware):
         )
         payload.put("thread_name", thread_name)
 
+        if attachments is not None:
+            headers.put("Content-Disposition", "form-data;name=fields[0]")
+            headers.put("Content-Type", self.http.MULTIPART_FORM_DATA)
+
         await self.http.send_request(
             CREATE_WEBHOOK.method,
             webhook_url,
-            data=payload
+            data=payload,
+            headers=headers
         )
 
     async def create_webhook(self, channel_id: int, name: str, avatar: str = None, reason: str = None) -> Webhook:
-        headers = {}
+        headers = MutableJsonBuilder()
 
         if reason is not None:
-            headers.update({"X-Audit-Log-Reason": reason})
+            headers.put("X-Audit-Log-Reason", reason)
 
         payload = {"name": name, "avatar": avatar}
         webhook_data = await self.http.send_request(
@@ -170,9 +183,9 @@ class DiscordREST(RESTAware):
                 content_type=self.http.APPLICATION_X_WWW_FORM_URLENCODED
             )
 
-            return Emoji(**await response.json())
+            return self.entity_factory.deserialize_emoji(await response.json())
 
-        return Emoji(name=emoji, id=Snowflake())  # type: ignore
+        return self.entity_factory.deserialize_emoji({"name": emoji, "id": Snowflake(0)})
 
     async def create_reaction(
         self,
@@ -227,7 +240,7 @@ class DiscordREST(RESTAware):
         sticker_ids: List = None,
         files: List[Any] | None = None,
         payload_json: str | None = None,
-        attachments: List | None = None,
+        attachments: List[Attachment] | None = None,
         flags: int | None = None
     ) -> Message:
         payload = self._build_payload(
@@ -252,7 +265,7 @@ class DiscordREST(RESTAware):
             data=payload
         )
         message_json = await data.json()
-        return Message(**message_json)
+        return self.entity_factory.deserialize_message(message_json)
 
     async def fetch_guild(self, guild_id: int, with_counts: bool = False) -> Guild:
         url_with_guild_id = GET_GUILD.uri.url_string.format(guild_id=guild_id)
@@ -265,7 +278,7 @@ class DiscordREST(RESTAware):
             GET_GUILD.method, build_guild_url
         )
         guild_data = await data.json()
-        return Guild(**guild_data)
+        return self.entity_factory.deserialize_guild(guild_data)
 
     async def delete_guild(self, guild_id: int) -> None:
         await self.http.send_request(
@@ -325,7 +338,7 @@ class DiscordREST(RESTAware):
             CREATE_GUILD.uri.url_string,
             data=body
         )
-        return Guild(**await data.json())
+        return self.entity_factory.deserialize_guild(await data.json())
 
     async def create_guild_ban(
         self,
@@ -364,26 +377,24 @@ class DiscordREST(RESTAware):
             "type": interaction_type.value,
             "data": attrs.asdict(interaction_data)
         }
-
+        method, url = self._build_url(
+            route=CREATE_INTERACTION_RESPONSE,
+            data={"interaction_id": interaction_id, "interaction_token": interaction_token}
+        )
         await self.http.send_request(
-            CREATE_INTERACTION_RESPONSE.method,
-            url=CREATE_INTERACTION_RESPONSE.uri.url_string.format(
-                interaction_id=interaction_id,
-                interaction_token=interaction_token
-            ),
+            method=method,
+            url=url,
             data=payload
         )
 
     async def fetch_message(self, channel_id: int, message_id: int) -> Message:
-        raw_message = await self.http.send_request(
-            GET_MESSAGE.method,
-            url=GET_MESSAGE.uri.url_string.format(
-                channel_id=channel_id,
-                message_id=message_id
-            )
+        method, url = self._build_url(
+            route=GET_MESSAGE,
+            data={"channel_id": channel_id, "message_id": message_id}
         )
+        raw_message = await self.http.send_request(method=method, url=url)
 
-        return Message(**await raw_message.json())
+        return self.entity_factory.deserialize_message(await raw_message.json())
 
     async def create_application_command(
         self,
@@ -397,6 +408,10 @@ class DiscordREST(RESTAware):
         nsfw: bool = False
     ) -> None:
         body = MutableJsonBuilder({"name": name, "description": description})
+        method, url = self._build_url(
+            route=CREATE_APPLICATION_COMMAND,
+            data={"application_id": application_id}
+        )
 
         if default_permissions:
             body.put("default_permissions", default_permissions)
@@ -414,8 +429,8 @@ class DiscordREST(RESTAware):
             body.put("nsfw", nsfw)
 
         await self.http.send_request(
-            CREATE_APPLICATION_COMMAND.method,
-            url=CREATE_APPLICATION_COMMAND.uri.url_string.format(application_id=application_id),
+            method=method,
+            url=url,
             data=body
         )
 
@@ -432,6 +447,10 @@ class DiscordREST(RESTAware):
         nsfw: bool = False
     ) -> None:
         body = MutableJsonBuilder({"name": name, "description": description})
+        method, url = self._build_url(
+            route=CREATE_GUILD_APPLICATION_COMMAND,
+            data={"application_id": application_id, "guild_id": guild_id}
+        )
 
         if default_permissions:
             body.put("default_permissions", default_permissions)
@@ -452,24 +471,22 @@ class DiscordREST(RESTAware):
             body.put("nsfw", nsfw)
 
         await self.http.send_request(
-            CREATE_GUILD_APPLICATION_COMMAND.method,
-            url=CREATE_GUILD_APPLICATION_COMMAND.uri.url_string.format(
-                application_id=application_id, guild_id=guild_id
-            ),
+            method=method,
+            url=url,
             data=body
         )
 
     async def fetch_initial_interaction_response(self, application_id: int, interaction_token: str) -> Message:
-        url = GET_ORIGINAL_INTERACTION_RESPONSE.uri.url_string.format(
-            application_id=application_id,
-            interaction_token=interaction_token
+        method, url = self._build_url(
+            route=GET_ORIGINAL_INTERACTION_RESPONSE,
+            data={"application_id": application_id, "interaction_token": interaction_token}
         )
         response = await self.http.send_request(
-            GET_ORIGINAL_INTERACTION_RESPONSE.method,
+            method=method,
             url=url
         )
 
-        return Message(**await response.json())
+        return self.entity_factory.deserialize_message(await response.json())
 
     async def edit_message(
         self,
@@ -490,25 +507,24 @@ class DiscordREST(RESTAware):
             allowed_mentions=allowed_mentions,
             components=components
         )
-
-        url = EDIT_MESSAGE.uri.url_string.format(
-            channel_id=channel_id, message_id=message_id
+        method, url = self._build_url(
+            route=EDIT_MESSAGE,
+            data={"channel_id": channel_id, "message_id": message_id}
         )
         response = await self.http.send_request(
-            EDIT_MESSAGE.method,
+            method=method,
             url=url,
             data=payload
         )
 
-        return Message(**await response.json())
+        return self.entity_factory.deserialize_message(await response.json())
 
     async def delete_all_reactions(self, channel_id: Snowflake, message_id: Snowflake) -> None:
-        url = DELETE_ALL_REACTIONS.uri.url_string.format(channel_id=channel_id, message_id=message_id)
-        await self.http.send_request(
-            DELETE_ALL_REACTIONS.method,
-            url=url,
-            headers={}
+        method, url = self._build_url(
+            route=DELETE_ALL_REACTIONS,
+            data={"channel_id": channel_id, "message_id": message_id}
         )
+        await self.http.send_request(method=method, url=url)
 
     async def delete_all_reactions_for_emoji(
         self,
@@ -518,11 +534,13 @@ class DiscordREST(RESTAware):
         emoji: str | Snowflake | Emoji
     ):
         parsed_emoji = self._parse_emoji(await self.fetch_emoji(guild_id=guild_id, emoji=emoji))
-        url = DELETE_ALL_REACTION_FOR_EMOJI.uri.url_string.format(
-            channel_id=channel_id, message_id=message_id, emoji=parsed_emoji
+        method, url = self._build_url(
+            route=DELETE_ALL_REACTION_FOR_EMOJI,
+            data={"channel_id": channel_id, "message_id": message_id, "emoji": parsed_emoji}
         )
         await self.http.send_request(
-            DELETE_ALL_REACTION_FOR_EMOJI.method, url=url,
+            method=method,
+            url=url,
             content_type=self.http.APPLICATION_X_WWW_FORM_URLENCODED
         )
 
@@ -537,12 +555,14 @@ class DiscordREST(RESTAware):
         components: ActionRow | None = None,
         files: List[Any] | None = None,
         payload_json: str | None = None,
-        attachments: Any | None = None,
+        attachments: List[Attachment] | None = None,
         thread_id: int | Snowflake | None = None
     ) -> Message:
-        url = EDIT_ORIGINAL_INTERACTION_RESPONSE.uri.url_string.format(
-            application_id=application_id, interaction_token=interaction_token
+        method, url = self._build_url(
+            route=EDIT_ORIGINAL_INTERACTION_RESPONSE,
+            data={"application_id": application_id, "interaction_token": interaction_token}
         )
+
         payload = self._build_payload(
             content=content,
             embed=embed,
@@ -558,9 +578,9 @@ class DiscordREST(RESTAware):
             url += f"?thread_id={thread_id}"
 
         response = await self.http.send_request(
-            EDIT_ORIGINAL_INTERACTION_RESPONSE.method, url=url, data=payload
+            method=method, url=url, data=payload
         )
-        return Message(**await response.json())
+        return self.entity_factory.deserialize_message(await response.json())
 
     async def fetch_invite(
         self,
@@ -569,7 +589,7 @@ class DiscordREST(RESTAware):
         with_expiration: bool = False,
         guild_scheduled_event_id: Snowflake | None = None
     ) -> Invite:
-        url = self.build_url(
+        method, url = self._build_url(
             route=GET_INVITE,
             data={"invite_code": invite_code},
             query_params={
@@ -578,43 +598,50 @@ class DiscordREST(RESTAware):
                 "guild_scheduled_event_id": guild_scheduled_event_id
             }
         )
-
-        response = await self.http.send_request(
-            GET_INVITE.method, url=url
-        )
+        response = await self.http.send_request(method=method, url=url)
 
         return Invite(**await response.json())
 
     async def delete_invite(self, invite_code: str, reason: str | None = None) -> Invite:
-        url = DELETE_INVITE.uri.url_string.format(invite_code=invite_code)
+        method, url = self._build_url(
+            route=DELETE_INVITE,
+            data={"invite_code": invite_code}
+        )
         headers = {}
 
         if reason is not None:
             headers['X-Audit-Log-Reason'] = reason
 
         response = await self.http.send_request(
-            DELETE_INVITE.method, url=url,
-            headers=headers
+            method=method, url=url, headers=headers
         )
 
         return Invite(**await response.json())
 
     async def fetch_guild_invites(self, guild_id: Snowflake) -> List[Invite]:
-        url = self.build_url(
+        method, url = self._build_url(
             route=GET_GUILD_INVITES,
             data={"guild_id": guild_id}
         )
         response = await self.http.send_request(
-            GET_GUILD_INVITES.method, url=url
+            method=method, url=url
         )
         return [Invite(**integration) for integration in await response.json()]
 
-    @staticmethod
-    def _parse_emoji(emoji: str | Emoji | Snowflake | int) -> str:
-        return str(emoji).replace("<", "").replace(">", "") if emoji.emoji_id > 0 else emoji
+    async def fetch_guild_roles(self, guild_id: Snowflake | int) -> List[GuildRole]:
+        method, url = self._build_url(
+            route=GET_GUILD_ROLES,
+            data={"guild_id": guild_id}
+        )
+        response = await self.http.send_request(method=method, url=url)
+        return [self.entity_factory.deserialize_role(role) for role in await response.json()]
 
     @staticmethod
-    def build_url(route: Route, data: Dict[str, Any] = None, query_params: Dict[str, Any] = None) -> str:
+    def _parse_emoji(emoji: str | Emoji | Snowflake | int) -> str:
+        return str(emoji).replace("<", "").replace(">", "") if emoji.id > 0 else emoji
+
+    @staticmethod
+    def _build_url(route: Route, data: Dict[str, Any] = None, query_params: Dict[str, Any] = None) -> Tuple[str, str]:
         url = route.uri.url_string.format(**data) \
             if data is not None else route.uri.url_string
 
@@ -622,4 +649,4 @@ class DiscordREST(RESTAware):
             for param, value in query_params.items():
                 url += f"?{param}={value}"
 
-        return url
+        return route.method, url

@@ -71,7 +71,7 @@ class Gateway:
         self._mobile_status = False
         self.cache = CacheManager()
         self.event_factory = EventFactory(self.cache)
-        self.event_controller = EventController(self.cache)
+        self.event_controller = EventController(self.event_factory)
 
         self.loop = get_loop()
 
@@ -93,7 +93,7 @@ class Gateway:
         self.buffer = bytearray()
         self.zlib_decompressed_object = zlib.decompressobj()
 
-        logging.basicConfig(format='%(levelname)s | %(asctime)s - %(message)s', level=logging.INFO)
+        logging.basicConfig(format='%(levelname)s | %(asctime)s %(module)s - %(message)s', level=logging.INFO)
 
     @property
     def identify_payload(self):
@@ -123,18 +123,18 @@ class Gateway:
             'afk': afk
         }
 
-        await self.send_data(self.create_payload(
+        await self._send(self.create_payload(
             op=OpCode.PRESENCE_UPDATE,
             data=presence
         ))
 
     async def request_guild_members(
         self,
-        guild_id: Snowflake,
+        guild_id: Snowflake | int,
         query: str = None,
         limit: int = None,
         presences: bool = False,
-        user_ids: Snowflake | List[Snowflake] = None,
+        user_ids: Snowflake | int | List[Snowflake | int] = None,
         nonce: bool = False
     ):
         payload = self.create_payload(
@@ -148,7 +148,7 @@ class Gateway:
                 'nonce': nonce
             }
         )
-        await self.send_data(payload)
+        await self._send(payload)
 
     @property
     def get_logger(self) -> logging.Logger:
@@ -165,13 +165,13 @@ class Gateway:
         self.zlib_decompressed_object = zlib.decompressobj()
         self.buffer = bytearray()
 
-        self.get_logger.info("WebSocket connected")
+        self.get_logger.info("websocket connected")
         await self.send_identify()
         self.loop.create_task(self.read_websocket())
         await self.keep_alive_check()
 
     async def error_reconnect(self, code: int):
-        self.get_logger.info("Reconnecting")
+        self.get_logger.info("reconnecting")
 
         if code == 4009:
             return await self.resume_connection()
@@ -197,6 +197,9 @@ class Gateway:
         op = received_data["op"]
         sequence = received_data["s"]
 
+        await self._validate_opcode(op=op, sequence=sequence, received_data=received_data)
+
+    async def _validate_opcode(self, op: int, sequence: int, received_data: Dict) -> None:
         match OpCode(op):
             case OpCode.DISPATCH:
                 self.sequence = int(sequence)
@@ -204,9 +207,7 @@ class Gateway:
                 event_details = received_data["d"]
 
                 self.event_factory.cache_item(received_event_type, **event_details)
-                event = self.event_factory.build_event(EventTypes(received_event_type), **event_details)
                 await self.event_controller.dispatch(received_event_type, event_details)
-                await self.event_factory.dispatch(event)
             case OpCode.INVALID_SESSION:
                 await self.websocket_connection.close(code=4000)
                 await self.error_reconnect(code=4000)
@@ -243,11 +244,11 @@ class Gateway:
                 self.get_logger.error("Gateway received close code: %s", close_code)
                 break
 
-    async def send_data(self, data) -> None:
+    async def _send(self, data) -> None:
         await self.websocket_connection.send_str(data)
 
     async def resume_connection(self):
-        self.get_logger.info("Connection resumed")
+        self.get_logger.info("connection resumed")
 
         if self.websocket_connection.closed:
             return
@@ -257,14 +258,14 @@ class Gateway:
             "session_id": self.session_id,
             "seq": self.sequence
         })
-        await self.send_data(payload)
+        await self._send(payload)
 
     async def send_identify(self, resume: bool = False) -> None:
         if resume:
             return await self.resume_connection()
 
-        await self.send_data(self.create_payload(OpCode.IDENTIFY, self.identify_payload))
-        self.get_logger.info("Bot identified")
+        await self._send(self.create_payload(OpCode.IDENTIFY, self.identify_payload))
+        self.get_logger.info("bot identified")
 
     async def close(self, code: int = 4000):
         self.get_logger.info("Connection closing, code: %s", code)
@@ -281,14 +282,13 @@ class Gateway:
         if self.websocket_connection.closed:
             return
 
-        await self.send_data(self.create_payload(OpCode.HEARTBEAT, sequence=self.sequence))
+        await self._send(self.create_payload(OpCode.HEARTBEAT, sequence=self.sequence))
         self._previous_heartbeat = time.perf_counter()
 
         await asyncio.sleep(interval)
         self.loop.create_task(self.send_heartbeat(interval))
 
     async def send_hello(self, data: Dict) -> None:
-        self.get_logger.info("Hello sent")
         interval = data["d"]["heartbeat_interval"] / 1000
         await asyncio.sleep((interval - 2000) / 1000)
 
@@ -310,7 +310,7 @@ class Gateway:
                 "self_deaf": self_deaf
             }
         )
-        await self.send_data(payload)
+        await self._send(payload)
 
     @staticmethod
     def create_payload(

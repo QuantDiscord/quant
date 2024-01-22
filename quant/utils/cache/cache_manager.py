@@ -34,7 +34,7 @@ class CacheManager:
 
     def add_message(self, message: Message):
         """Adds message to cache."""
-        self.__cached_messages.put(message.message_id, message)
+        self.__cached_messages.put(message.id, message)
 
     def add_guild(self, guild: Guild):
         """Adds guild to cache."""
@@ -43,7 +43,7 @@ class CacheManager:
     def add_emoji(self, emoji: Emoji | Reaction):
         """Adds emoji to cache."""
         if isinstance(emoji, Emoji):
-            self.__cached_emojis.put(emoji.emoji_id, emoji)
+            self.__cached_emojis.put(emoji.id, emoji)
         elif isinstance(emoji, Reaction):
             self.__cached_emojis.put(emoji.emoji.emoji_id, emoji)
 
@@ -120,7 +120,7 @@ class CacheHandlers(CacheManager):
             self.add_channel(channel)
 
         for emoji in guild_object.emojis:
-            self.add_emoji(Emoji(**emoji))
+            self.add_emoji(self.entity_factory.deserialize_emoji(emoji))
 
     def handle_guild_delete(self, **kwargs) -> None:
         del self.__cached_guilds[int(kwargs["id"])]

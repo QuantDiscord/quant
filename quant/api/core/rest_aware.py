@@ -6,7 +6,7 @@ from quant.entities.guild import Guild
 from quant.entities.emoji import Emoji
 from quant.entities.interactions.interaction import InteractionCallbackType, InteractionCallbackData
 from quant.entities.allowed_mentions import AllowedMentions
-from quant.entities.message import Message
+from quant.entities.message import Message, Attachment
 from quant.entities.embeds import Embed
 from quant.entities.webhook import Webhook
 from quant.entities.snowflake import Snowflake
@@ -29,7 +29,7 @@ class RESTAware(ABC):
         components: List[Any] = None,
         files: List[Any] = None,
         payload_json: str = None,
-        attachments: List[Any] = None,
+        attachments: List[Attachment] = None,
         flags: int = None,
         thread_name: str = None
     ) -> None:
@@ -73,7 +73,7 @@ class RESTAware(ABC):
         sticker_ids: List = None,
         files=None,
         payload_json: str = None,
-        attachments: List = None,
+        attachments: List[Attachment] = None,
         flags: int = None
     ):
         raise NotImplementedError
@@ -190,7 +190,7 @@ class RESTAware(ABC):
         components: ActionRow | None = None,
         files: List[Any] | None = None,
         payload_json: str | None = None,
-        attachments: Any | None = None,
+        attachments: List[Attachment] | None = None,
         thread_id: int | Snowflake | None = None
     ) -> Message:
         raise NotImplementedError
