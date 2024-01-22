@@ -467,7 +467,7 @@ class EntityFactory:
             content=payload.get("content"),
             embeds=embeds,
             allowed_mentions=payload.get("allowed_mentions"),
-            flags=flags,
+            flags=payload.get("flags"),
             components=self.deserialize_action_row(payload.get("components")),
             attachments=attachments
         )
