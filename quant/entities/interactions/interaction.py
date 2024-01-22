@@ -26,7 +26,6 @@ from quant.entities.member import GuildMember
 from quant.entities.model import BaseModel
 
 
-
 class InteractionCallbackType(enum.Enum):
     PONG = 1
     CHANNEL_MESSAGE_WITH_SOURCE = 4
@@ -48,13 +47,13 @@ class InteractionType(enum.Enum):
 
 @attrs.define(kw_only=True)
 class InteractionCallbackData(BaseModel):
-    tts: bool = attrs.field(default=False)
-    content: str = attrs.field(default=None)
-    embeds: List[Embed] = attrs.field(default=None)
-    allowed_mentions: AllowedMentions = attrs.field(default=None)
-    flags: int = attrs.field(default=0)
-    components: ActionRow = attrs.field(default=None)
-    attachments: List[Attachment] = attrs.field(default=None)
+    tts: bool = attrs.field()
+    content: str | None = attrs.field()
+    embeds: List[Embed] | None = attrs.field()
+    allowed_mentions: AllowedMentions | None = attrs.field()
+    flags: MessageFlags | int | None = attrs.field()
+    components: ActionRow | None = attrs.field()
+    attachments: List[Attachment] | None = attrs.field()
 
 
 @attrs.define(kw_only=True)
@@ -161,7 +160,7 @@ class Interaction(BaseModel):
         files: List[Any] | None = None,
         payload_json: str | None = None,
         attachments: List[Attachment] | None = None
-    ):
+    ) -> Message:
         return await self.client.rest.edit_original_interaction_response(
             application_id=self.client.client_id,
             interaction_token=self.token,
@@ -173,4 +172,20 @@ class Interaction(BaseModel):
             files=files,
             payload_json=payload_json,
             attachments=attachments
+        )
+
+    async def deferred(self, flags: MessageFlags | int | None = None) -> None:
+        await self.client.rest.create_interaction_response(
+            interaction_type=InteractionCallbackType.DEFERRED_CHANNEL_MESSAGE_WITH_SOURCE,
+            interaction_data=InteractionCallbackData(
+                tts=False,
+                content=None,
+                embeds=None,
+                allowed_mentions=None,
+                flags=flags,
+                components=None,
+                attachments=None
+            ),
+            interaction_id=self.id,
+            interaction_token=self.token
         )

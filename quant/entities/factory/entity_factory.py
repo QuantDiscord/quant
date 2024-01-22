@@ -3,10 +3,10 @@ from typing import Dict, Any, List, Callable
 
 import attrs
 
-from quant.entities.message import Message, Attachment
+from quant.entities.message import Message, Attachment, MessageFlags
 from quant.entities.embeds import Embed, EmbedField, EmbedAuthor, EmbedImage, EmbedThumbnail, EmbedFooter
 from quant.entities.voice_state_update import VoiceState
-from quant.entities.interactions.interaction import InteractionData, InteractionType, Interaction, ChoiceResponse
+from quant.entities.interactions.interaction import InteractionData, InteractionType, Interaction, ChoiceResponse, InteractionCallbackData
 from quant.entities.channel import Channel, Thread, ThreadMetadata, ChannelType, VoiceChannel
 from quant.entities.guild import Guild
 from quant.entities.guild import GuildMember
@@ -434,6 +434,42 @@ class EntityFactory:
             duration_secs=payload.get("duration_secs", float(0)),
             waveform=payload.get("waveform"),
             flags=payload.get("flags", 0)
+        )
+
+    def serialize_interaction_callback_data(self, callback_data: InteractionCallbackData) -> Dict:
+        flags = callback_data.flags
+
+        if isinstance(flags, MessageFlags):
+            flags = flags.value
+
+        if (embeds := callback_data.embeds) is not None:
+            embeds = [self.serialize_embed(embed) for embed in embeds]
+
+        return {
+            "tts": callback_data.tts,
+            "content": callback_data.content,
+            "embeds": embeds,
+            "allowed_mentions": callback_data.allowed_mentions,
+            "flags": flags,
+            "components": callback_data.components,
+            "attachments": callback_data.attachments
+        }
+
+    def deserialize_interaction_callback_data(self, payload: MutableJsonBuilder | Dict) -> InteractionCallbackData:
+        if (embeds := payload.get("embeds")) is not None:
+            embeds = [self.deserialize_embed(embed) for embed in embeds]
+
+        if (attachments := payload.get("attachments")) is not None:
+            attachments = [self.deserialize_attachment(attachment) for attachment in attachments]
+
+        return InteractionCallbackData(
+            tts=payload.get("tts", False),
+            content=payload.get("content"),
+            embeds=embeds,
+            allowed_mentions=payload.get("allowed_mentions"),
+            flags=flags,
+            components=self.deserialize_action_row(payload.get("components")),
+            attachments=attachments
         )
 
     def deserialize_guild(self, payload: MutableJsonBuilder | Dict | None) -> Guild | None:

@@ -369,14 +369,18 @@ class RESTImpl(RESTAware):
         )
 
     async def create_interaction_response(
-        self, interaction_type: InteractionCallbackType,
-        interaction_data: InteractionCallbackData, interaction_id: int,
+        self,
+        interaction_type: InteractionCallbackType,
+        interaction_data: InteractionCallbackData | None,
+        interaction_id: int,
         interaction_token: str
     ) -> None:
-        payload = {
-            "type": interaction_type.value,
-            "data": attrs.asdict(interaction_data)
-        }
+        payload = MutableJsonBuilder()
+        payload.put("type", interaction_type.value)
+
+        if interaction_data is not None:
+            payload.put("data", self.entity_factory.serialize_interaction_callback_data(interaction_data))
+
         method, url = self._build_url(
             route=CREATE_INTERACTION_RESPONSE,
             data={"interaction_id": interaction_id, "interaction_token": interaction_token}
