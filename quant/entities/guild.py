@@ -13,6 +13,7 @@ from .member import GuildMember
 from .voice_state_update import VoiceState
 from .model import BaseModel
 from .snowflake import Snowflake
+from .roles import GuildRole
 
 
 @attrs.define
@@ -39,7 +40,7 @@ class Guild(BaseModel):
     members: List[GuildMember] = attrs.field()
     large: bool = attrs.field()
     permissions: str = attrs.field()
-    roles: List[Any] = attrs.field()
+    roles: List[GuildRole] = attrs.field()
     emojis: List[Any] = attrs.field()
     icon: str = attrs.field()
     icon_hash: str = attrs.field()
@@ -91,8 +92,12 @@ class Guild(BaseModel):
     async def delete(self) -> None:
         await self.client.rest.delete_guild(self.id)
 
-    def get_member(self, member_id: Snowflake | int) -> GuildMember:
-        return [i for i in self.members if i.user.id == member_id][0]
+    async def fetch_member(self, member_id: Snowflake | int) -> GuildMember:
+        members = await self.fetch_members()
+        return [i for i in members if i.user.id == member_id][0]
+
+    async def fetch_members(self, limit: int = 1000, after: Snowflake | int = Snowflake(0)) -> List[GuildMember]:
+        return await self.client.rest.fetch_guild_members(guild_id=self.id, limit=limit, after=after)
 
     async def ban(
         self,
@@ -111,3 +116,9 @@ class Guild(BaseModel):
 
     async def fetch_invites(self) -> List[Invite]:
         return await self.client.rest.fetch_guild_invites(guild_id=self.id)
+
+    def get_role(self, role_id: Snowflake | int) -> GuildRole:
+        return self.client.cache.get_role(role_id=role_id)
+
+    def get_channel(self, channel_id: Snowflake | int) -> Channel:
+        return self.client.cache.get_channel(channel_id=channel_id)

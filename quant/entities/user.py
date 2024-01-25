@@ -32,12 +32,5 @@ class User(BaseModel):
     _email: str = attrs.field(default=None, alias="email", repr=False)
     member: Any = attrs.field(default=None)
 
-    @classmethod
-    def as_dict(cls, data) -> Self | None:
-        if data is not None:
-            return cls(**data)
-
-    @classmethod
-    def as_dict_iter(cls, data):
-        if data is not None:
-            return [cls(**user_data) for user_data in data]
+    def get_avatar(self) -> str:
+        return f"https://cdn.discordapp.com/avatars/{self.id}/{self.avatar}.png?size=1024"

@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import asyncio
 import base64
 import inspect
@@ -11,11 +13,11 @@ from typing import (
     TYPE_CHECKING
 )
 
-from quant.entities.interactions.component_types import ComponentType
-
 if TYPE_CHECKING:
     from quant.entities.button import Button
 
+from quant.entities.interactions.component_types import ComponentType
+from quant.impl.core.shard import Shard
 from quant.entities.interactions.interaction import Interaction
 from quant.entities.snowflake import Snowflake
 from quant.entities.user import User
@@ -56,6 +58,7 @@ class Client:
             shard_id=shard_id,
             num_shards=num_shards
         )
+        self.loop = asyncio.get_event_loop()
         self.rest = RESTImpl(self.gateway.token)
         self.cache = self.gateway.cache
         self.client_id: int = self._decode_token_to_id()
@@ -85,7 +88,22 @@ class Client:
         if loop is not None:
             self.gateway.loop = loop
 
-        self.gateway.loop.run_until_complete(self.gateway.start())
+        asyncio.ensure_future(self.gateway.start(), loop=loop or self.gateway.loop)
+
+        self.gateway.loop.run_forever()
+
+    def run_with_shards(self, num_shards: int, loop: asyncio.AbstractEventLoop = None) -> None:
+        BaseModel.set_client(self)
+
+        if loop is not None:
+            self.gateway.loop = loop
+
+        for shard_id in range(num_shards):
+            shard = Shard(num_shards=num_shards, shard_id=shard_id)
+            print(shard)
+            asyncio.ensure_future(shard.start(self.token), loop=self.gateway.loop)
+
+        self.gateway.loop.run_forever()
 
     async def set_activity(self, activity: ActivityData) -> None:
         await self.gateway.send_presence(
@@ -148,21 +166,21 @@ class Client:
             guild_ids = command.guild_ids
             if len(guild_ids) > 0:
                 for guild_id in guild_ids:
-                    self.gateway.loop.run_until_complete(self.rest.create_guild_application_command(
+                    asyncio.ensure_future(self.rest.create_guild_application_command(
                         application_id=self.client_id if app_id is None else app_id,
                         name=command.name,
                         description=command.description,
                         options=command.options,
                         guild_id=guild_id
-                    ))
+                    ), loop=self.gateway.loop)
                 continue
 
-            self.gateway.loop.run_until_complete(self.rest.create_application_command(
+            asyncio.ensure_future(self.rest.create_application_command(
                 application_id=self.client_id if app_id is None else app_id,
                 name=command.name,
                 description=command.description,
                 options=command.options,
-            ))
+            ), loop=self.gateway.loop)
 
     def add_modal(self, *modals: Modal) -> None:
         for modal in modals:
@@ -171,7 +189,7 @@ class Client:
 
             self.modals[str(modal.custom_id)] = modal
 
-    def add_button(self, *buttons: "Button") -> None:
+    def add_button(self, *buttons: Button) -> None:
         for button in buttons:
             if inspect.iscoroutine(button.callback):
                 raise DiscordException("Callback function must be coroutine")
@@ -187,7 +205,7 @@ class Client:
         return self._modals
 
     @property
-    def buttons(self) -> Dict[str, "Button"]:
+    def buttons(self) -> Dict[str, Button]:
         return self._buttons
 
     async def handle_application_command(self, interaction: Interaction) -> None:

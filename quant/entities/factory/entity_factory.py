@@ -6,7 +6,8 @@ import attrs
 from quant.entities.message import Message, Attachment, MessageFlags
 from quant.entities.embeds import Embed, EmbedField, EmbedAuthor, EmbedImage, EmbedThumbnail, EmbedFooter
 from quant.entities.voice_state_update import VoiceState
-from quant.entities.interactions.interaction import InteractionData, InteractionType, Interaction, ChoiceResponse, InteractionCallbackData
+from quant.entities.voice_server_update import VoiceServer
+from quant.entities.interactions.interaction import InteractionData, InteractionType, Interaction, InteractionDataOption, InteractionCallbackData
 from quant.entities.channel import Channel, Thread, ThreadMetadata, ChannelType, VoiceChannel
 from quant.entities.guild import Guild
 from quant.entities.guild import GuildMember
@@ -14,6 +15,7 @@ from quant.entities.roles import GuildRole
 from quant.entities.user import User
 from quant.entities.emoji import Reaction, PartialReaction, Emoji
 from quant.entities.action_row import ActionRow
+from quant.entities.interactions.slash_option import SlashOptionType, SlashOption
 from quant.entities.interactions.component_types import ComponentType
 from quant.api.entities.component import Component
 from quant.entities.snowflake import Snowflake
@@ -34,38 +36,22 @@ class EntityFactory:
     def serialize_member(member: GuildMember) -> Dict[str, Any]:
         return attrs.asdict(member)
 
-    @staticmethod
-    def deserialize_member(
-        username: str | None = None,
-        deaf: bool = False,
-        mute: bool = False,
-        flags: int | None = None,
-        pending: bool = False,
-        permissions: str | None = None,
-        nick: str | None = None,
-        avatar: str | None = None,
-        roles: List[Any] | None = None,
-        joined_at: datetime.datetime | None = None,
-        premium_since: int | None = None,
-        communication_disabled_until: int | None = None,
-        user: User | None = None,
-        unusual_dm_activity_until: Any | None = None
-    ) -> GuildMember:
+    def deserialize_member(self, payload: MutableJsonBuilder | Dict) -> GuildMember:
         return GuildMember(
-            username=username,
-            deaf=deaf,
-            mute=mute,
-            flags=flags,
-            pending=pending,
-            permissions=permissions,
-            nick=nick,
-            avatar=avatar,
-            roles=roles,
-            joined_at=joined_at,
-            premium_since=premium_since,
-            communication_disabled_until=communication_disabled_until,
-            user=user,
-            unusual_dm_activity_until=unusual_dm_activity_until
+            username=payload.get("username"),
+            deaf=payload.get("deaf", False),
+            mute=payload.get("mute", False),
+            flags=payload.get("flags", 0),
+            pending=payload.get("pending"),
+            permissions=payload.get("permissions", 0),
+            nick=payload.get("nick"),
+            avatar=payload.get("avatar"),
+            roles=payload.get("roles"),
+            joined_at=iso_to_datetime(payload.get("joined_at")),
+            premium_since=payload.get("premium_since", 0),
+            communication_disabled_until=payload.get("communication_disabled_until", 0),
+            user=self.deserialize_user(payload.get("user")),
+            unusual_dm_activity_until=payload.get("unusual_dm_activity_until")
         )
 
     @staticmethod
@@ -94,7 +80,7 @@ class EntityFactory:
             public_flags=payload.get("public_flags", 0),
             avatar_decoration_data=payload.get("avatar_decoration_data", 0),
             verified=payload.get("verified", False),
-            member=self.deserialize_member(**payload.get("member")) if payload.get("member") is not None else None,
+            member=self.deserialize_member(payload.get("member")) if payload.get("member") is not None else None,
             email=payload.get("email"),
             bot=payload.get("bot", False),
             system=payload.get("system", False),
@@ -122,7 +108,7 @@ class EntityFactory:
             user = self.deserialize_user(user)
 
         if (member := payload.get("member")) is not None:
-            member = self.deserialize_member(**member)
+            member = self.deserialize_member(member)
 
         return Interaction(
             name=payload.get("name"),
@@ -152,7 +138,7 @@ class EntityFactory:
             guild_id=Snowflake(payload.get("guild_id", 0)),
             channel_id=Snowflake(payload.get("channel_id", 0)),
             user_id=Snowflake(payload.get("user_id", 0)),
-            member=self.deserialize_member(**payload.get("member")) if payload.get("member") is not None else None,
+            member=self.deserialize_member(payload.get("member")) if payload.get("member") is not None else None,
             session_id=payload.get("session_id"),
             deaf=payload.get("deaf", False),
             mute=payload.get("mute", False),
@@ -162,6 +148,14 @@ class EntityFactory:
             self_video=payload.get("self_video", False),
             suppress=payload.get("suppress", False),
             request_to_speak_timestamp=iso_to_datetime(payload.get("request_to_speak_timestamp"))
+        )
+
+    @staticmethod
+    def deserialize_voice_server(payload: MutableJsonBuilder | Dict) -> VoiceServer:
+        return VoiceServer(
+            token=payload.get("token"),
+            guild_id=Snowflake(payload.get("guild_id")),
+            endpoint=payload.get("endpoint")
         )
 
     def deserialize_thread(self, payload: MutableJsonBuilder | Dict | None) -> Thread | None:
@@ -306,7 +300,7 @@ class EntityFactory:
             type=payload.get("reaction_type"),
             message_id=Snowflake(payload.get("message_id")),
             message_author_id=Snowflake(payload.get("message_author_id")),
-            member=self.deserialize_member(**payload.get("member")) if payload.get("member") is not None else None,
+            member=self.deserialize_member(payload.get("member")) if payload.get("member") is not None else None,
             emoji=PartialReaction(**payload.get("emoji")) if payload.get("emoji") is not None else None,
             channel_id=Snowflake(payload.get("channel_id")),
             burst=payload.get("burst", False),
@@ -377,7 +371,7 @@ class EntityFactory:
             embeds = [self.deserialize_embed(embed) for embed in embeds]
 
         if (member := payload.get("member")) is not None:
-            member = self.deserialize_member(**member)
+            member = self.deserialize_member(member)
 
         if (attachments := payload.get("attachments")) is not None:
             attachments = [self.deserialize_attachment(attachment) for attachment in attachments]
@@ -472,9 +466,42 @@ class EntityFactory:
             attachments=attachments
         )
 
+    def serialize_slash_option(self, option: SlashOption) -> Dict:
+        body = MutableJsonBuilder()
+
+        if (options := option.options) is not None:
+            options = [self.serialize_slash_option(opt) for opt in options]
+
+        body.put("name", option.name.lower())
+        body.put("description", option.description)
+        body.put("min_value", option.min_value)
+        body.put("max_value", option.max_value)
+        body.put("min_length", option.min_length)
+        body.put("max_length", option.max_length)
+        body.put("autocomplete", option.autocomplete)
+        body.put("channel_types", option.channel_types)
+        body.put("options", options)
+        body.put("choices", option.choices)
+        body.put("required", option.required)
+        body.put("type", option.option_type.value)
+
+        return body.asdict()
+
     def deserialize_guild(self, payload: MutableJsonBuilder | Dict | None) -> Guild | None:
         if payload is None:
             return
+
+        if (channels := payload.get("channels")) is not None:
+            channels = [self._channel_converter.get(
+                ChannelType(channel_data["type"]),
+                self._channel_converter[ChannelType.GUILD_TEXT]
+            )(channel_data) for channel_data in channels]
+
+        if (roles := payload.get("roles")) is not None:
+            roles = [self.deserialize_role(role) for role in roles]
+
+        if (emojis := payload.get("emojis")) is not None:
+            emojis = [self.deserialize_emoji(emoji) for emoji in emojis]
 
         return Guild(
             id=Snowflake(payload["id"]),
@@ -488,13 +515,7 @@ class EntityFactory:
             stage_instances=payload.get("stage_instances", []),
             unavailable=payload.get("unavailable", False),
             embedded_activities=payload.get("embedded_activities", []),
-            channels=[
-                self._channel_converter.get(
-                    ChannelType(channel_data["type"]),
-                    self._channel_converter[ChannelType.GUILD_TEXT]
-                )(channel_data)
-                for channel_data in payload.get("channels", [])
-            ],
+            channels=channels,
             guild_scheduled_events=payload.get("guild_scheduled_events", []),
             guild_hashes=payload.get("guild_hashes", []),
             lazy=payload.get("lazy", False),
@@ -502,11 +523,11 @@ class EntityFactory:
             joined_at=payload.get("joined_at", None),
             member_count=payload.get("member_count", 0),
             presences=payload.get("presences", []),
-            members=[self.deserialize_member(**member_data) for member_data in payload.get("members", [])],
+            members=[self.deserialize_member(member_data) for member_data in payload.get("members", [])],
             large=payload.get("large", False),
             permissions=payload.get("permissions", None),
-            roles=payload.get("roles", []),
-            emojis=payload.get("emojis", []),
+            roles=roles,
+            emojis=emojis,
             icon=payload.get("icon", None),
             icon_hash=payload.get("icon_hash", None),
             splash=payload.get("splash", None),
@@ -567,13 +588,12 @@ class EntityFactory:
             create_timestamp=iso_to_datetime(payload.get("create_timestamp"))
         )
 
-    @staticmethod
-    def _deserialize_interaction_data(payload: MutableJsonBuilder | Dict | None) -> InteractionData | None:
+    def _deserialize_interaction_data(self, payload: MutableJsonBuilder | Dict | None) -> InteractionData | None:
         if payload is None:
             return
 
-        if (choices := payload.get("options")) is not None:
-            choices = [ChoiceResponse(**choice) for choice in choices]
+        if (options := payload.get("options")) is not None:
+            options = [self._deserialize_interaction_data_option(option) for option in options]
 
         return InteractionData(
             id=Snowflake(payload.get("id", 0)),
@@ -584,7 +604,7 @@ class EntityFactory:
             option_type=payload.get("option_type"),
             guild_id=Snowflake(payload.get("guild_id", 0)),
             value=payload.get("value"),
-            options=choices,
+            options=options,
             focused=payload.get("focused"),
             components=payload.get("components"),
             resolved=payload.get("resolved")
@@ -594,9 +614,21 @@ class EntityFactory:
     def _deserialize_component(payload: MutableJsonBuilder | Dict) -> Component:
         return Component(**payload)
 
+    def _deserialize_interaction_data_option(self, payload: MutableJsonBuilder | Dict) -> InteractionDataOption:
+        if (options := payload.get("options")) is not None:
+            options = [self._deserialize_interaction_data_option(option) for option in options]
+
+        return InteractionDataOption(
+            name=payload.get("name"),
+            value=payload.get("value"),
+            type=SlashOptionType(payload.get("type", 0)),
+            focused=payload.get("focused"),
+            options=options
+        )
+
     def _deserialize_reaction(self, payload: MutableJsonBuilder | Dict) -> Reaction:
         if (member := payload.get("member")) is not None:
-            member = self.deserialize_member(**member)
+            member = self.deserialize_member(member)
 
         return Reaction(
             user_id=Snowflake(payload.get("user_id", 0)),

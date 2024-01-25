@@ -198,15 +198,11 @@ class EventFactory:
             message=message
         )
 
-    def deserialize_message_edit_event(
-        self,
-        old_message: entities.Message,
-        new_message: entities.Message
-    ) -> events.MessageEditEvent:
+    def deserialize_message_edit_event(self, payload: MutableJsonBuilder | Dict) -> events.MessageEditEvent:
         return events.MessageEditEvent(
             cache_manager=self.cache,
-            old_message=old_message,
-            new_message=new_message
+            old_message=self.cache.get_message(entities.Snowflake(payload.get("id"))),
+            new_message=self.entity_factory.deserialize_message(payload)
         )
 
     def deserialize_guild_create_event(self, payload: MutableJsonBuilder | Dict) -> events.GuildCreateEvent:

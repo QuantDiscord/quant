@@ -11,7 +11,7 @@ if TYPE_CHECKING:
 
 from ..action_row import ActionRow
 from quant.entities.message_flags import MessageFlags
-from .choice_response import ChoiceResponse
+from .choice_response import InteractionDataOption
 from ..message import Message
 from ..channel import Channel
 from .application_command_option import ApplicationCommandOptionType
@@ -66,7 +66,7 @@ class InteractionData(BaseModel):
     option_type: ApplicationCommandOptionType = attrs.field(default=0)
     guild_id: int | Snowflake | None = attrs.field(default=None)
     value: str | int | bool = attrs.field(default=None)
-    options: List[ChoiceResponse] = attrs.field(default=None)
+    options: List[InteractionDataOption] = attrs.field(default=None)
     focused: bool = attrs.field(default=False)
     components: ActionRow = attrs.field(default=None)
     resolved: Dict = attrs.field(default=None)

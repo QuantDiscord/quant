@@ -4,17 +4,18 @@ from typing import List, TYPE_CHECKING
 
 if TYPE_CHECKING:
     from quant.entities.factory.entity_factory import EntityFactory
+    from quant.entities.user import User
+    from quant.entities.message import Message
 
 from quant.api.entities.component import Component
 from quant.entities.snowflake import Snowflake
 from quant.utils.json_builder import MutableJsonBuilder
 from quant.entities.voice_state_update import VoiceState
-from quant.entities.user import User
 from quant.entities.guild import Guild
 from quant.entities.emoji import Emoji, Reaction
-from quant.entities.message import Message
 from quant.entities.channel import Channel
 from quant.utils.cache.cacheable import CacheableType
+from quant.entities.roles import GuildRole
 
 
 class CacheManager:
@@ -24,6 +25,7 @@ class CacheManager:
     __cached_emojis: MutableJsonBuilder[Snowflake, Emoji | Reaction] = MutableJsonBuilder()
     __cached_components: List[Component] = []
     __cached_channels: MutableJsonBuilder[Snowflake, Channel] = MutableJsonBuilder()
+    __cached_roles: MutableJsonBuilder[Snowflake, GuildRole] = MutableJsonBuilder()
 
     def __init__(self, cacheable: CacheableType | None = None) -> None:
         self.cacheable = cacheable.value if cacheable is not None else None
@@ -52,6 +54,9 @@ class CacheManager:
 
     def add_channel(self, channel: Channel):
         self.__cached_channels.put(channel.id, channel)
+
+    def add_role(self, role: GuildRole):
+        self.__cached_roles.put(role.id, role)
 
     def get_user(self, user_id: int) -> User | None:
         """Get user from cache."""
@@ -100,6 +105,9 @@ class CacheManager:
         return [state for state in guild.voice_states
                 if state.guild_id == state.guild_id and state.user_id == user_id][0]
 
+    def get_role(self, role_id: Snowflake | int) -> GuildRole:
+        return self.__cached_roles[role_id]
+
 
 class CacheHandlers(CacheManager):
     def __init__(self, factory: EntityFactory) -> None:
@@ -110,7 +118,7 @@ class CacheHandlers(CacheManager):
         self.add_user(self.entity_factory.deserialize_user(kwargs))
 
     def handle_message(self, **kwargs) -> None:
-        self.add_message(Message(**kwargs))
+        self.add_message(self.entity_factory.deserialize_message(kwargs))
 
     def handle_guild(self, **kwargs) -> None:
         guild_object = self.entity_factory.deserialize_guild(kwargs)
@@ -120,7 +128,10 @@ class CacheHandlers(CacheManager):
             self.add_channel(channel)
 
         for emoji in guild_object.emojis:
-            self.add_emoji(self.entity_factory.deserialize_emoji(emoji))
+            self.add_emoji(emoji)
+
+        for role in guild_object.roles:
+            self.add_role(role)
 
     def handle_guild_delete(self, **kwargs) -> None:
         del self.__cached_guilds[int(kwargs["id"])]

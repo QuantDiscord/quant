@@ -1,5 +1,9 @@
 import asyncio
 
+import aiohttp
+from typing_extensions import Self
+
+from quant.impl.events.bot.ready_event import ShardReadyEvent
 from quant.entities.intents import Intents
 from .gateway import Gateway
 
@@ -11,6 +15,20 @@ class Shard:
         self.gateway: Gateway | None = None
         self.intents = intents
 
-    async def run(self, token: str) -> None:
-        ...
-    # pozor
+    async def start(self, token: str) -> Self:
+        self.gateway = Gateway(
+            token=token,
+            intents=self.intents,
+            shard_id=self.shard_id,
+            num_shards=self.num_shards
+        )
+
+        asyncio.create_task(self.gateway.start())
+
+        event = ShardReadyEvent()
+        event.shard_id = self.shard_id
+        await self.gateway.event_controller.dispatch(event)
+        return self
+
+    async def close(self) -> None:
+        asyncio.create_task(self.gateway.close())

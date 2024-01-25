@@ -32,7 +32,7 @@ from .interactions import (
     InteractionResponse,
     InteractionCallbackType,
     InteractionCallbackData,
-    ChoiceResponse,
+    InteractionDataOption,
     ApplicationCommandOptionType,
     SlashOption,
     SlashOptionType
@@ -77,7 +77,7 @@ __all__ = (
     "WebhookTypes",
     "Intents",
     "ApplicationCommandOptionType",
-    "ChoiceResponse",
+    "InteractionDataOption",
     "Interaction",
     "InteractionCallbackData",
     "InteractionCallbackType",

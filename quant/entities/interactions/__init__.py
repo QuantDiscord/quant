@@ -6,7 +6,7 @@ from .slash_option import *
 
 __all__ = (
     "ApplicationCommandOptionType",
-    "ChoiceResponse",
+    "InteractionDataOption",
     "Component",
     "Interaction",
     "InteractionCallbackData",

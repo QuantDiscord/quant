@@ -57,3 +57,23 @@ class EventController:
     async def when_message_create(self, payload: MutableJsonBuilder | Dict) -> None:
         event = self.factory.deserialize_message_create_event(payload)
         await self.dispatch(event)
+
+    async def when_message_delete(self, payload: MutableJsonBuilder | Dict) -> None:
+        event = self.factory.deserialize_message_delete_event(payload)
+        await self.dispatch(event)
+
+    async def when_message_update(self, payload: MutableJsonBuilder | Dict) -> None:
+        event = self.factory.deserialize_message_edit_event(payload)
+        await self.dispatch(event)
+
+    async def when_voice_state_update(self, payload: MutableJsonBuilder | Dict) -> None:
+        event = self.factory.entity_factory.deserialize_voice_state(payload)
+        await self.dispatch(event)
+
+    async def when_voice_server_update(self, payload: MutableJsonBuilder | Dict) -> None:
+        event = self.factory.entity_factory.deserialize_voice_server(payload)
+        await self.dispatch(event)
+
+    async def when_channel_create(self, payload: MutableJsonBuilder | Dict) -> None:
+        event = self.factory.entity_factory.deserialize_channel(payload)
+        await self.dispatch(event)

@@ -15,7 +15,6 @@ import json
 import attrs
 import aiohttp
 
-from quant.impl.events.types import EventTypes
 from quant.entities.activity import Activity, ActivityStatus
 from quant.entities.snowflake import Snowflake
 from quant.impl.core.route import DISCORD_WS_URL
@@ -59,7 +58,8 @@ class Gateway:
         intents: Intents,
         api_version: int = 10,
         shard_id: int = 0,
-        num_shards: int = 1
+        num_shards: int = 1,
+        session: aiohttp.ClientSession | None = None
     ) -> None:
         self.token = token
         self.api_version = api_version
@@ -76,7 +76,11 @@ class Gateway:
         self.loop = get_loop()
 
         self.latency = None
-        self.session = None
+
+        if session is not None:
+            self.session = session
+        else:
+            self.session = None
 
         self.raw_payload = IdentifyPayload(
             token=token,
@@ -155,7 +159,9 @@ class Gateway:
         return logging.getLogger(__name__)
 
     async def start(self) -> None:
-        self.session = aiohttp.ClientSession()
+        if self.session is None:
+            self.session = aiohttp.ClientSession()
+
         self.websocket_connection = await self.session.ws_connect(
             DISCORD_WS_URL.uri.url_string.format(self.api_version)
         )
@@ -165,7 +171,7 @@ class Gateway:
         self.zlib_decompressed_object = zlib.decompressobj()
         self.buffer = bytearray()
 
-        self.get_logger.info("websocket connected")
+        self.get_logger.info("websocket connecting...")
         await self.send_identify()
         self.loop.create_task(self.read_websocket())
         await self.keep_alive_check()
@@ -212,7 +218,7 @@ class Gateway:
                 await self.websocket_connection.close(code=4000)
                 await self.error_reconnect(code=4000)
             case OpCode.HELLO:
-                await self.send_hello(received_data)
+                await self.send_hello(received_data["d"])
             case OpCode.HEARTBEAT_ACK:
                 self.latency = time.perf_counter() - self._previous_heartbeat
             case OpCode.RECONNECT:
@@ -289,7 +295,7 @@ class Gateway:
         self.loop.create_task(self.send_heartbeat(interval))
 
     async def send_hello(self, data: Dict) -> None:
-        interval = data["d"]["heartbeat_interval"] / 1000
+        interval = data["heartbeat_interval"] / 1000
         await asyncio.sleep((interval - 2000) / 1000)
 
         self.loop.create_task(self.send_heartbeat(interval))

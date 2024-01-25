@@ -59,11 +59,14 @@ def embed(
     timestamp: datetime | None = None,
     color: str | int | None = None,
     footer: EmbedFooter | None = None,
-    image: EmbedImage | None = None,
-    thumbnail: EmbedThumbnail | None = None,
+    image: EmbedImage | str | None = None,
+    thumbnail: EmbedThumbnail | str | None = None,
     author: EmbedAuthor | None = None,
     fields: List[EmbedField] | None = None,
 ) -> Embed:
+    if isinstance(image, str):
+        image = EmbedImage(url=image, proxy_url=None, width=1024, height=1024)
+
     return Embed(
         title=title,
         description=description,

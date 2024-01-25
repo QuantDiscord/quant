@@ -1,5 +1,6 @@
 import re
 import warnings
+from urllib.parse import urlencode
 from typing import List, Any, Dict, Tuple
 
 import attrs
@@ -11,7 +12,9 @@ from quant.entities.message import MessageReference
 from quant.entities.interactions.slash_option import SlashOption
 from quant.api.core.rest_aware import RESTAware
 from quant.entities.snowflake import Snowflake
+from quant.entities.member import GuildMember
 from quant.entities.guild import Guild
+from quant.entities.user import User
 from quant.entities.roles import GuildRole
 from quant.entities.emoji import Emoji
 from quant.entities.invite import Invite
@@ -42,7 +45,9 @@ from quant.impl.core.route import (
     GET_GUILD_INVITES,
     GET_GUILD_ROLES,
     CREATE_GUILD_ROLES,
-    DELETE_GUILD_ROLE
+    DELETE_GUILD_ROLE,
+    GET_GUILD_MEMBERS,
+    GET_USER
 )
 from quant.entities.message import Message, Attachment
 from quant.entities.embeds import Embed
@@ -469,7 +474,7 @@ class RESTImpl(RESTAware):
             body.put("guild_id", guild_id)
 
         if options is not None:
-            body.put("options", [option.as_json() for option in options])
+            body.put("options", [self.entity_factory.serialize_slash_option(option) for option in options])
 
         if nsfw:
             body.put("nsfw", nsfw)
@@ -632,6 +637,20 @@ class RESTImpl(RESTAware):
         )
         return [Invite(**integration) for integration in await response.json()]
 
+    async def fetch_guild_members(
+        self,
+        guild_id: Snowflake | int,
+        limit: int = 1,
+        after: Snowflake = Snowflake(0)
+    ) -> List[GuildMember]:
+        method, url = self._build_url(
+            route=GET_GUILD_MEMBERS,
+            data={"guild_id": guild_id},
+            query_params={"limit": limit, "after": after}
+        )
+        response = await self.http.send_request(method=method, url=url)
+        return [self.entity_factory.deserialize_member(member) for member in await response.json()]
+
     async def fetch_guild_roles(self, guild_id: Snowflake | int) -> List[GuildRole]:
         method, url = self._build_url(
             route=GET_GUILD_ROLES,
@@ -639,6 +658,14 @@ class RESTImpl(RESTAware):
         )
         response = await self.http.send_request(method=method, url=url)
         return [self.entity_factory.deserialize_role(role) for role in await response.json()]
+
+    async def fetch_user(self, user_id: Snowflake | int) -> User:
+        method, url = self._build_url(
+            route=GET_USER,
+            data={"user_id": user_id}
+        )
+        response = await self.http.send_request(method=method, url=url)
+        return self.entity_factory.deserialize_user(await response.json())
 
     @staticmethod
     def _parse_emoji(emoji: str | Emoji | Snowflake | int) -> str:
@@ -650,7 +677,12 @@ class RESTImpl(RESTAware):
             if data is not None else route.uri.url_string
 
         if query_params is not None:
-            for param, value in query_params.items():
-                url += f"?{param}={value}"
+            if '?' in url:
+                separator = '&'
+            else:
+                separator = '?'
+
+            query_string = urlencode(query_params)
+            url += f"{separator}{query_string}"
 
         return route.method, url

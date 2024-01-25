@@ -1,5 +1,4 @@
 from typing import Final
-import enum
 
 
 class _DynamicEnum:

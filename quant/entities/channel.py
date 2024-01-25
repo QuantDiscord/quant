@@ -1,13 +1,21 @@
+from __future__ import annotations
+
 from enum import Enum
 from datetime import datetime
-from typing import Any, List
+from typing import Any, List, TYPE_CHECKING
 
 import attrs
+
+if TYPE_CHECKING:
+    from .user import User
+    from .message import MessageReference, Attachment, MessageFlags, Message
 
 from .emoji import Reaction
 from .model import BaseModel
 from .snowflake import Snowflake
-from .user import User
+from .embeds import Embed
+from .allowed_mentions import AllowedMentions
+from .action_row import ActionRow
 
 
 class ChannelType(int, Enum):
@@ -62,6 +70,39 @@ class Channel(BaseModel):
     default_thread_rate_limit_per_user: int = attrs.field(default=0)
     default_sort_order: int = attrs.field(default=0)
     default_forum_layout: int = attrs.field(default=0)
+
+    async def send_message(
+        self,
+        content: Any = None,
+        nonce: str | int = None,
+        tts: bool = False,
+        embed: Embed = None,
+        embeds: List[Embed] = None,
+        allowed_mentions: AllowedMentions = None,
+        message_reference: MessageReference | None = None,
+        components: ActionRow | None = None,
+        sticker_ids: List = None,
+        files=None,
+        payload_json: str = None,
+        attachments: List[Attachment] = None,
+        flags: MessageFlags | int | None = None
+    ) -> Message:
+        return await self.client.rest.create_message(
+            channel_id=self.id,
+            content=str(content),
+            nonce=nonce,
+            tts=tts,
+            embed=embed,
+            embeds=embeds,
+            allowed_mentions=allowed_mentions,
+            message_reference=message_reference,
+            components=components,
+            sticker_ids=sticker_ids,
+            files=files,
+            payload_json=payload_json,
+            attachments=attachments,
+            flags=flags
+        )
 
 
 @attrs.define(kw_only=True)
