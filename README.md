@@ -47,7 +47,7 @@ client = Client(token="Bot YOUR_DISCORD_BOT_TOKEN")
 # Echo bot
 async def slash_command_callback(context: InteractionContext) -> None:
     text = await context.get_option("text")
-    await context.interaction.respond(content=text.value)
+    await context.interaction.respond(content=text)
 
 
 command = SlashCommand(
