@@ -2,6 +2,7 @@ import enum
 
 
 class ComponentType(enum.Enum):
+    NONE = 0
     ACTION_ROW = 1
     BUTTON = 2
     STRING_SELECT = 3

@@ -6,7 +6,7 @@ import attrs
 from .snowflake import Snowflake
 from .model import BaseModel
 from .user import User
-from quant.utils.attrs_extensions import execute_converters
+
 
 
 class IntegrationExpireBehaviours(enum.Enum):
@@ -30,7 +30,7 @@ class IntegrationApplicationObject(BaseModel):
     bot: User | None = attrs.field(default=None, converter=User.as_dict)
 
 
-@attrs.define(kw_only=True, field_transformer=execute_converters)
+@attrs.define(kw_only=True)
 class Integration:
     integration_id: Snowflake = attrs.field(alias="id", default=0)
     integration_name: str = attrs.field(default=None, alias="name")

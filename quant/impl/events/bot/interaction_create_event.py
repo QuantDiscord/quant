@@ -1,13 +1,16 @@
-from quant.entities.interactions.interaction import Interaction
-from quant.impl.events.event import Event
+import attrs
+from typing_extensions import Self
+
 from quant.impl.events.types import EventTypes
+from quant.entities.interactions.interaction import Interaction
+from quant.impl.events.event import DiscordEvent
 
 
-class InteractionCreateEvent(Event):
-    API_EVENT_NAME: EventTypes = EventTypes.INTERACTION_CREATE
+@attrs.define(kw_only=True)
+class InteractionCreateEvent(DiscordEvent):
+    event_api_name: EventTypes = attrs.field(default=EventTypes.INTERACTION_CREATE)
+    interaction: Interaction = attrs.field(default=None)
 
-    interaction: Interaction
-
-    def process_event(self, _, **kwargs):
+    def emit(self, *args, **kwargs) -> Self:
         self.interaction = Interaction(**kwargs)
         return self

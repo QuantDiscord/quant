@@ -1,18 +1,32 @@
+from typing import TypeVar
 from abc import ABC, abstractmethod
 
+import attrs
 from typing_extensions import Self
 
+from quant.impl.events.types import EventTypes
 from quant.utils.cache.cache_manager import CacheManager
-from .types import EventTypes
 
 
-class Event(ABC):
-    API_EVENT_NAME: EventTypes
+class Event:
+    async def call(self) -> None:
+        ...
 
+    def emit(self, *args, **kwargs) -> Self:
+        ...
+
+
+class InternalEvent(ABC, Event):
+    T = TypeVar("T")
+
+    @staticmethod
     @abstractmethod
-    def process_event(self, cache_manager: CacheManager, **kwargs) -> Self: ...
+    def build(event: T, *args, **kwargs) -> T:
+        ...
 
 
-class InternalEvent(ABC):
-    @abstractmethod
-    def process_event(self, cache_manager: CacheManager, **kwargs) -> Self: ...
+@attrs.define
+class DiscordEvent(Event):
+    event_api_name: EventTypes = attrs.field()
+    cache_manager: CacheManager = attrs.field()
+

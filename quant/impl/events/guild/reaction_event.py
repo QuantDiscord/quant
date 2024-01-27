@@ -1,28 +1,24 @@
+import attrs
+from typing_extensions import Self
+
+from quant.impl.events.types import EventTypes
 from quant.entities.emoji import Reaction
-from quant.impl.events import EventTypes
-from quant.impl.events.event import Event
-from quant.utils.cache.cache_manager import CacheManager
+from quant.impl.events.event import DiscordEvent
 
 
-class ReactionAddEvent(Event):
-    API_EVENT_NAME = EventTypes.MESSAGE_REACTION_ADD
+@attrs.define(kw_only=True)
+class ReactionAddEvent(DiscordEvent):
+    event_api_name: EventTypes = attrs.field(default=EventTypes.MESSAGE_REACTION_ADD)
+    reaction: Reaction = attrs.field(default=None)
 
-    reaction: Reaction
-
-    def process_event(self, cache_manager: CacheManager, **kwargs):
-        self.reaction = Reaction(**kwargs)
-
-        cache_manager.add_emoji(self.reaction)
+    def emit(self, *args, **kwargs) -> Self:
         return self
 
 
-class ReactionRemoveEvent(Event):
-    API_EVENT_NAME = EventTypes.MESSAGE_REACTION_REMOVE
+@attrs.define(kw_only=True)
+class ReactionRemoveEvent(DiscordEvent):
+    event_api_name: EventTypes = attrs.field(default=EventTypes.MESSAGE_REACTION_REMOVE)
+    reaction: Reaction = attrs.field(default=None)
 
-    reaction: Reaction
-
-    def process_event(self, cache_manager: CacheManager, **kwargs):
-        self.reaction = Reaction(**kwargs)
-
-        cache_manager.add_emoji(self.reaction)
+    def emit(self, *args, **kwargs) -> Self:
         return self

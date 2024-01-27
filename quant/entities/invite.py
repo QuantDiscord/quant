@@ -8,7 +8,6 @@ from .guild import Guild
 from .channel import Channel
 from .user import User
 from .snowflake import Snowflake
-from quant.utils.attrs_extensions import execute_converters
 
 
 class InviteTargetType(enum.Enum):
@@ -17,15 +16,15 @@ class InviteTargetType(enum.Enum):
     EMBEDDED_APPLICATION = 2
 
 
-@attrs.define(kw_only=True, field_transformer=execute_converters)
+@attrs.define(kw_only=True)
 class Invite:
     code: str
     guild_id: Snowflake | None = attrs.field(default=None)
-    guild: Guild | None = attrs.field(default=None, converter=Guild.as_dict)
-    channel: Channel | None = attrs.field(default=None, converter=Channel.as_dict)
-    inviter: User | None = attrs.field(default=None, converter=User.as_dict)
-    target_type: int | None = attrs.field(default=0, converter=InviteTargetType)
-    target_user: User | None = attrs.field(default=None, converter=User.as_dict)
+    guild: Guild | None = attrs.field(default=None)
+    channel: Channel | None = attrs.field(default=None)
+    inviter: User | None = attrs.field(default=None)
+    target_type: int | None = attrs.field(default=0)
+    target_user: User | None = attrs.field(default=None)
     target_application: InviteTargetType | None = attrs.field(default=None)
     approximate_presence_count: int | None = attrs.field(default=0)
     approximate_member_count: int | None = attrs.field(default=0)

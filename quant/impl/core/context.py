@@ -1,14 +1,18 @@
+from __future__ import annotations
+
 from typing import List, TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
     from quant.impl.core.client import Client
     from quant.entities.interactions.interaction import Interaction
-    from quant.entities.message import Message
+    from quant.entities.interactions.choice_response import InteractionDataOption
+    from quant.entities.message import Message, Attachment, MessageReference, MessageFlags
     from quant.entities.button import Button
 
 from quant.entities.action_row import ActionRow
 from quant.entities.embeds import Embed
 from quant.entities.allowed_mentions import AllowedMentions
+from quant.utils.parser import parse_option_type
 
 
 class BaseContext:
@@ -25,17 +29,14 @@ class BaseContext:
         embed: Embed = None,
         embeds: List[Embed] = None,
         allowed_mentions: AllowedMentions = None,
-        message_reference=None,
-        components: List[ActionRow] = None,
+        message_reference: MessageReference | None = None,
+        components: ActionRow | None = None,
         sticker_ids: List = None,
         files=None,
         payload_json: str = None,
-        attachments: List = None,
-        flags: int = None
-    ):
-        if components is not None:
-            components = [component.as_json() for component in components]
-
+        attachments: List[Attachment] = None,
+        flags: MessageFlags | int | None = None
+    ) -> Message:
         return await self.client.rest.create_message(
             channel_id=channel_id if channel_id is not None else self.original_message.channel_id,
             content=str(content),
@@ -54,14 +55,22 @@ class BaseContext:
         )
 
 
-class MessageCommandContext(BaseContext):
-    ...
-
-
 class InteractionContext:
     def __init__(self, client, interaction) -> None:
         self.client: Client = client
         self.interaction: Interaction = interaction
+
+    async def get_option(self, name: str) -> Any | InteractionDataOption | None:
+        interaction_options = self.interaction.data.options
+        if interaction_options is None:
+            return
+
+        options = list(filter(lambda x: x.name.lower() == name.lower(), interaction_options))
+        if len(options) == 0:
+            return
+
+        option = options[0]
+        return await parse_option_type(self.client, self.interaction, option.type, int(option.value))
 
 
 class ButtonContext(InteractionContext):

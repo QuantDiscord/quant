@@ -1,14 +1,17 @@
+from __future__ import annotations
+
 import enum
 from typing import Any, List, TYPE_CHECKING, Dict
 
 import attrs
 
 if TYPE_CHECKING:
-    from quant.entities.message import Message
+    from quant.entities.message import Message, Attachment
+    from quant.entities.guild import Guild
 
 from ..action_row import ActionRow
 from quant.entities.message_flags import MessageFlags
-from .choice_response import ChoiceResponse
+from .choice_response import InteractionDataOption
 from ..message import Message
 from ..channel import Channel
 from .application_command_option import ApplicationCommandOptionType
@@ -16,11 +19,11 @@ from quant.entities.modal.modal import ModalInteractionCallbackData
 from quant.entities.snowflake import Snowflake
 from quant.entities.user import User
 from quant.entities.modal.modal import Modal
+from quant.entities.interactions.component_types import ComponentType
 from quant.entities.embeds import Embed
 from quant.entities.allowed_mentions import AllowedMentions
 from quant.entities.member import GuildMember
 from quant.entities.model import BaseModel
-from quant.utils.attrs_extensions import execute_converters
 
 
 class InteractionCallbackType(enum.Enum):
@@ -44,27 +47,28 @@ class InteractionType(enum.Enum):
 
 @attrs.define(kw_only=True)
 class InteractionCallbackData(BaseModel):
-    tts: bool = attrs.field(default=False)
-    content: str = attrs.field(default=None)
-    embeds: List[Embed] = attrs.field(default=None)
-    allowed_mentions: AllowedMentions = attrs.field(default=None)
-    flags: int = attrs.field(default=0)
-    components: ActionRow = attrs.field(default=None, converter=ActionRow.as_json)
-    attachments: Any = attrs.field(default=None)
+    tts: bool = attrs.field()
+    content: str | None = attrs.field()
+    embeds: List[Embed] | None = attrs.field()
+    allowed_mentions: AllowedMentions | None = attrs.field()
+    flags: MessageFlags | int | None = attrs.field()
+    components: ActionRow | None = attrs.field()
+    attachments: List[Attachment] | None = attrs.field()
 
 
 @attrs.define(kw_only=True)
 class InteractionData(BaseModel):
-    interaction_id: Snowflake = attrs.field(default=0, alias="id")
-    component_type: int = attrs.field(default=0)
-    interaction_type: int = attrs.field(default=None, alias="type")
+    id: Snowflake = attrs.field(default=0)
+    component_type: ComponentType = attrs.field(default=0)
+    type: int = attrs.field(default=None)
     custom_id: str = attrs.field(default=None)
     name: str = attrs.field(default=None)
     option_type: ApplicationCommandOptionType = attrs.field(default=0)
+    guild_id: int | Snowflake | None = attrs.field(default=None)
     value: str | int | bool = attrs.field(default=None)
-    options: List[ChoiceResponse] = attrs.field(default=None, converter=ChoiceResponse.as_dict_iter)
+    options: List[InteractionDataOption] = attrs.field(default=None)
     focused: bool = attrs.field(default=False)
-    components: ActionRow = attrs.field(default=None, converter=ActionRow)
+    components: ActionRow = attrs.field(default=None)
     resolved: Dict = attrs.field(default=None)
 
 
@@ -74,32 +78,31 @@ class InteractionResponse(BaseModel):
     interaction_response_data: InteractionCallbackData = attrs.field(default=None)
 
 
-@attrs.define(kw_only=True, field_transformer=execute_converters)
+@attrs.define(kw_only=True)
 class Interaction(BaseModel):
-    interaction_name: str = attrs.field(alias="name", default=None)
-    interaction_id: Snowflake = attrs.field(alias="id", default=0)
+    name: str = attrs.field(default=None)
+    id: Snowflake = attrs.field(default=0)
     application_id: Snowflake = attrs.field(default=0)
-    interaction_type: InteractionType = attrs.field(
-        alias="type",
+    type: InteractionType = attrs.field(
         default=InteractionType.PING,
         converter=InteractionType
     )
-    interaction_data: InteractionData = attrs.field(alias="data", default=None, converter=InteractionData.as_dict)
+    data: InteractionData = attrs.field(default=None)
     guild_id: Snowflake = attrs.field(default=0)
-    channel: Channel = attrs.field(default=None, converter=Channel.as_dict)
+    channel: Channel = attrs.field(default=None)
     channel_id: Snowflake = attrs.field(default=0)
-    member: GuildMember | None = attrs.field(default=None, converter=GuildMember.as_dict)
-    user: User | None = attrs.field(default=None, converter=User.as_dict)
-    interaction_token: str = attrs.field(default=None, alias="token")
+    member: GuildMember | None = attrs.field(default=None)
+    user: User | None = attrs.field(default=None)
+    token: str = attrs.field(default=None)
     version: int = attrs.field(default=-1)
     app_permissions: str = attrs.field(default=None)
     locale: str = attrs.field(default=None)
     guild_locale: str = attrs.field(default=None)
     entitlements: List[Any] = attrs.field(default=None)
     entitlement_sku_ids: Any = attrs.field(default=None)
-    message: Message = attrs.field(default=None, converter=Message.as_dict)
-    _guild: Any = attrs.field(default=None, repr=False, alias="guild")
-    _authorizing_integration_owners: Any = attrs.field(default=None, alias="authorizing_integration_owners")
+    message: Message = attrs.field(default=None)
+    guild: Guild = attrs.field(default=None)
+    _authorizing_integration_owners: Any = attrs.field(default=None)
 
     async def respond(
         self,
@@ -109,8 +112,8 @@ class Interaction(BaseModel):
         embeds: List[Embed] | None = None,
         allowed_mentions: AllowedMentions | None = None,
         flags: MessageFlags | int = 0,
-        components: "ActionRow" = None,
-        attachments: List[Any] = None
+        components: ActionRow = None,
+        attachments: List[Attachment] = None
     ) -> None:
         if embed is not None:
             embeds = [embed]
@@ -126,8 +129,8 @@ class Interaction(BaseModel):
                 components=components,
                 attachments=attachments
             ),
-            self.interaction_id,
-            self.interaction_token
+            self.id,
+            self.token
         )
 
     async def respond_modal(self, modal: Modal):
@@ -138,13 +141,13 @@ class Interaction(BaseModel):
                 title=modal.title,
                 components=[ActionRow([component.components for component in modal.components])]
             ),
-            self.interaction_id,
-            self.interaction_token
+            self.id,
+            self.token
         )
 
     async def fetch_initial_response(self):
         return await self.client.rest.fetch_initial_interaction_response(
-            self.client.client_id, self.interaction_token
+            self.client.client_id, self.token
         )
 
     async def edit_interaction(
@@ -156,11 +159,11 @@ class Interaction(BaseModel):
         components: "ActionRow" = None,
         files: List[Any] | None = None,
         payload_json: str | None = None,
-        attachments: Any | None = None
-    ):
+        attachments: List[Attachment] | None = None
+    ) -> Message:
         return await self.client.rest.edit_original_interaction_response(
             application_id=self.client.client_id,
-            interaction_token=self.interaction_token,
+            interaction_token=self.token,
             content=content,
             embed=embed,
             embeds=embeds,
@@ -169,4 +172,20 @@ class Interaction(BaseModel):
             files=files,
             payload_json=payload_json,
             attachments=attachments
+        )
+
+    async def deferred(self, flags: MessageFlags | int | None = None) -> None:
+        await self.client.rest.create_interaction_response(
+            interaction_type=InteractionCallbackType.DEFERRED_CHANNEL_MESSAGE_WITH_SOURCE,
+            interaction_data=InteractionCallbackData(
+                tts=False,
+                content=None,
+                embeds=None,
+                allowed_mentions=None,
+                flags=flags,
+                components=None,
+                attachments=None
+            ),
+            interaction_id=self.id,
+            interaction_token=self.token
         )

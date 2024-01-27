@@ -1,8 +1,16 @@
 from .action_row import ActionRow
-from .activity import Activity, ActivityBuilder, ActivityFlags, ActivityType, ActivityStatus, ActivityAssets
+from .activity import (
+    Activity,
+    ActivityBuilder,
+    ActivityFlags,
+    ActivityType,
+    ActivityStatus,
+    ActivityAssets,
+    ActivityData
+)
 from .allowed_mentions import AllowedMentions, AllowedMentionsTypes
 from .button import Button, ButtonStyle
-from .channel import Channel
+from .channel import Channel, Thread, ThreadMetadata, ChannelType, VoiceChannel
 from .embeds import *
 from .emoji import Emoji, Reaction, PartialReaction
 from .guild import Guild
@@ -24,15 +32,16 @@ from .interactions import (
     InteractionResponse,
     InteractionCallbackType,
     InteractionCallbackData,
-    ChoiceResponse,
+    InteractionDataOption,
     ApplicationCommandOptionType,
     SlashOption,
     SlashOptionType
 )
-from .message import Message, MessageReference
+from .message import Message, MessageReference, Attachment
 
 
 __all__ = (
+    "Attachment",
     "ActionRow",
     "Activity",
     "ActivityFlags",
@@ -40,6 +49,7 @@ __all__ = (
     "ActivityType",
     "ActivityAssets",
     "ActivityStatus",
+    "ActivityData",
     "AllowedMentions",
     "AllowedMentionsTypes",
     "Button",
@@ -67,7 +77,7 @@ __all__ = (
     "WebhookTypes",
     "Intents",
     "ApplicationCommandOptionType",
-    "ChoiceResponse",
+    "InteractionDataOption",
     "Interaction",
     "InteractionCallbackData",
     "InteractionCallbackType",
@@ -81,5 +91,10 @@ __all__ = (
     "ModalInteractionCallbackData",
     "TextInput",
     "TextInputStyle",
-    "Invite"
+    "Invite",
+    "Thread",
+    "ThreadMetadata",
+    "ChannelType",
+    "VoiceChannel",
+    "embed"
 )

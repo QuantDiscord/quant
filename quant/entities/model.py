@@ -10,8 +10,3 @@ class BaseModel:
     @classmethod
     def set_client(cls, client):
         cls.client: Client = client
-
-    @classmethod
-    def as_dict(cls, data: dict):
-        if data is not None:
-            return cls(**data)  # type: ignore

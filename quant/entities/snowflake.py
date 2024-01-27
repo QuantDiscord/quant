@@ -8,12 +8,18 @@ class SnowflakeException(Exception):
 class Snowflake(int):
     DISCORD_EPOCH = 14_200_704_000_00
 
-    def __new__(cls, object_id: int):
-        return super().__new__(cls, object_id)
+    def __new__(cls, object_id: int | str | None):
+        if object_id is None:
+            return Snowflake(0)
 
-    def __init__(self, object_id: int) -> None:
-        self.object_id = object_id
-        self.timestamp = ((object_id >> 22) + self.DISCORD_EPOCH) / 1000
+        return super().__new__(cls, int(object_id))
+
+    def __init__(self, object_id: int | str | None) -> None:
+        if object_id is None:
+            object_id = 0
+
+        self.object_id = int(object_id)
+        self.timestamp = ((self.object_id >> 22) + self.DISCORD_EPOCH) / 1000
         self.increment = 0
 
     def generate_snowflake(

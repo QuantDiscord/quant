@@ -1,8 +1,22 @@
-import enum
 from typing import Final
 
 
-class EventTypes(str, enum.Enum):
+class _DynamicEnum:
+    _values = {}
+
+    def __init__(self, value):
+        self.value = value
+        _DynamicEnum._values[value] = self
+
+    def __str__(self):
+        return self.value
+
+    @classmethod
+    def get(cls, value):
+        return cls._values.get(value, None)
+
+
+class EventTypes(_DynamicEnum):
     MESSAGE_CREATE: Final[str] = "MESSAGE_CREATE"
     MESSAGE_DELETE: Final[str] = "MESSAGE_DELETE"
     MESSAGE_UPDATE: Final[str] = "MESSAGE_UPDATE"
@@ -15,3 +29,6 @@ class EventTypes(str, enum.Enum):
     VOICE_STATE_UPDATE: Final[str] = "VOICE_STATE_UPDATE"
     VOICE_SERVER_UPDATE: Final[str] = "VOICE_SERVER_UPDATE"
     CHANNEL_CREATE: Final[str] = "CHANNEL_CREATE"
+    PRESENCE_UPDATE: Final[str] = "PRESENCE_UPDATE"
+    TYPING_START: Final[str] = "TYPING_START"
+    GUILD_MEMBER_ADD: Final[str] = "GUILD_MEMBER_ADD"

@@ -6,9 +6,12 @@ from quant.entities.guild import Guild
 from quant.entities.emoji import Emoji
 from quant.entities.interactions.interaction import InteractionCallbackType, InteractionCallbackData
 from quant.entities.allowed_mentions import AllowedMentions
-from quant.entities.message import Message
+from quant.entities.message import Message, Attachment
 from quant.entities.embeds import Embed
 from quant.entities.webhook import Webhook
+from quant.entities.snowflake import Snowflake
+from quant.entities.action_row import ActionRow
+from quant.entities.invite import Invite
 
 
 class RESTAware(ABC):
@@ -26,7 +29,7 @@ class RESTAware(ABC):
         components: List[Any] = None,
         files: List[Any] = None,
         payload_json: str = None,
-        attachments: List[Any] = None,
+        attachments: List[Attachment] = None,
         flags: int = None,
         thread_name: str = None
     ) -> None:
@@ -70,7 +73,7 @@ class RESTAware(ABC):
         sticker_ids: List = None,
         files=None,
         payload_json: str = None,
-        attachments: List = None,
+        attachments: List[Attachment] = None,
         flags: int = None
     ):
         raise NotImplementedError
@@ -122,8 +125,90 @@ class RESTAware(ABC):
         default_permissions: bool = False,
         dm_permissions: bool = False,
         default_member_permissions: str = None,
-        guild_id: int | None = None,
         options: List[SlashOption] = None,
         nsfw: bool = False
     ) -> None:
+        raise NotImplementedError
+
+    @abstractmethod
+    async def create_guild_application_command(
+        self,
+        application_id: int,
+        name: str,
+        description: str,
+        guild_id: int | Snowflake,
+        default_permissions: bool = False,
+        dm_permissions: bool = False,
+        default_member_permissions: str = None,
+        options: List[SlashOption] = None,
+        nsfw: bool = False
+    ) -> None:
+        raise NotImplementedError
+
+
+    @abstractmethod
+    async def fetch_initial_interaction_response(self, application_id: int, interaction_token: str) -> Message:
+        raise NotImplementedError
+
+    @abstractmethod
+    async def edit_message(
+        self,
+        channel_id: Snowflake | int,
+        message_id: Snowflake | int,
+        content: str | None = None,
+        embed: Embed | None = None,
+        embeds: List[Embed] | None = None,
+        flags: int | None = None,
+        allowed_mentions: AllowedMentions | None = None,
+        components: ActionRow | None = None
+    ) -> Message:  # TODO: File uploading later
+        raise NotImplementedError
+
+    @abstractmethod
+    async def delete_all_reactions(self, channel_id: Snowflake, message_id: Snowflake) -> None:
+        raise NotImplementedError
+
+    @abstractmethod
+    async def delete_all_reactions_for_emoji(
+        self,
+        guild_id: Snowflake | int,
+        channel_id: Snowflake | int,
+        message_id: Snowflake | int,
+        emoji: str | Snowflake | Emoji
+    ):
+        raise NotImplementedError
+
+    @abstractmethod
+    async def edit_original_interaction_response(
+        self,
+        application_id: int | Snowflake,
+        interaction_token: str,
+        content: str | None = None,
+        embed: Embed | None = None,
+        embeds: List[Embed] | None = None,
+        allowed_mentions: AllowedMentions | None = None,
+        components: ActionRow | None = None,
+        files: List[Any] | None = None,
+        payload_json: str | None = None,
+        attachments: List[Attachment] | None = None,
+        thread_id: int | Snowflake | None = None
+    ) -> Message:
+        raise NotImplementedError
+
+    @abstractmethod
+    async def fetch_invite(
+        self,
+        invite_code: str,
+        with_counts: bool = False,
+        with_expiration: bool = False,
+        guild_scheduled_event_id: Snowflake | None = None
+    ) -> Invite:
+        raise NotImplementedError
+
+    @abstractmethod
+    async def delete_invite(self, invite_code: str, reason: str | None = None) -> Invite:
+        raise NotImplementedError
+
+    @abstractmethod
+    async def fetch_guild_invites(self, guild_id: Snowflake) -> List[Invite]:
         raise NotImplementedError

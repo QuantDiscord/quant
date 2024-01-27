@@ -53,6 +53,10 @@ CREATE_GUILD_BAN: Final[Route] = Route("PUT", URI("/guilds/{guild_id}/bans/{user
 GET_INVITE: Final[Route] = Route("GET", URI("/invites/{invite_code}"))
 DELETE_INVITE: Final[Route] = Route("DELETE", URI("/invites/{invite_code}"))
 GET_GUILD_INVITES: Final[Route] = Route("GET", URI("/guilds/{guild_id}/invites"))
+GET_GUILD_ROLES: Final[Route] = Route("GET", URI("/guilds/{guild_id}/roles"))
+CREATE_GUILD_ROLES: Final[Route] = Route("POST", URI("/guilds/{guild_id}/roles"))
+DELETE_GUILD_ROLE: Final[Route] = Route("DELETE", URI("/guilds/{guild_id}/roles/{role_id}"))
+GET_GUILD_MEMBERS: Final[Route] = Route("GET", URI("/guilds/{guild_id}/members"))
 
 # Interactions
 CREATE_INTERACTION_RESPONSE: Final[Route] = Route(
@@ -68,8 +72,16 @@ DELETE_ORIGINAL_INTERACTION_RESPONSE: Final[Route] = Route(
     "DELETE", URI("/webhooks/{application_id}/{interaction_token}/messages/@original")
 )
 CREATE_APPLICATION_COMMAND: Final[Route] = Route("POST", URI("/applications/{application_id}/commands"))
+CREATE_GUILD_APPLICATION_COMMAND: Final[Route] = Route(
+    "POST", URI("/applications/{application_id}/guilds/{guild_id}/commands")
+)
+
 
 # Followups later
 
 # Channels
 GET_CHANNEL_MESSAGES: Final[Route] = Route("GET", URI("/channels/{channel_id}/messages"))
+
+# User
+GET_CURRENT_USER: Final[Route] = Route("GET", URI("/users/@me"))
+GET_USER: Final[Route] = Route("GET", URI("/users/{user_id}"))

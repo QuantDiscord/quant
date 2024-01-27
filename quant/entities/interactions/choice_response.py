@@ -3,18 +3,13 @@ from typing_extensions import Self
 
 import attrs
 
+from .slash_option import SlashOptionType
+
 
 @attrs.define(kw_only=True)
-class ChoiceResponse:
+class InteractionDataOption:
     name: str = attrs.field()
-    value: str = attrs.field(default=None)
-    option_type: int = attrs.field(alias="type", converter=int)
-    options: List[Self] | Dict = attrs.field(
-        default=None,
-        converter=lambda x: [ChoiceResponse(**i) for i in x] if x is not None else x
-    )
-
-    @classmethod
-    def as_dict_iter(cls, data) -> List[Self] | None:
-        if data is not None:
-            return [cls(**choice) for choice in data]
+    value: str = attrs.field()
+    type: SlashOptionType = attrs.field()
+    options: List[Self] | Dict = attrs.field()
+    focused: bool = attrs.field()

@@ -1,14 +1,15 @@
+import attrs
+from typing_extensions import Self
+
 from quant.impl.events.types import EventTypes
 from quant.entities.voice_server_update import VoiceServer
-from quant.impl.events.event import Event
-from quant.utils.cache.cache_manager import CacheManager
+from quant.impl.events.event import DiscordEvent
 
 
-class VoiceServerUpdateEvent(Event):
-    API_EVENT_NAME = EventTypes.VOICE_SERVER_UPDATE
+@attrs.define(kw_only=True)
+class VoiceServerUpdateEvent(DiscordEvent):
+    event_api_name: EventTypes = attrs.field(default=EventTypes.VOICE_SERVER_UPDATE)
+    state: VoiceServer = attrs.field(default=None)
 
-    state: VoiceServer
-
-    def process_event(self, cache_manager: CacheManager, **kwargs):
-        self.state = VoiceServer(**kwargs)
+    def emit(self, *args, **kwargs) -> Self:
         return self

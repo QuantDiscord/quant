@@ -6,7 +6,7 @@ import attrs
 from quant.entities.snowflake import Snowflake
 
 
-def iso_to_datetime(time: str = None):
+def iso_to_datetime(time: str = None) -> datetime | None:
     if time is None:
         return
 
@@ -24,11 +24,11 @@ def int_converter(data: Any = None) -> int | Snowflake:
     return int(data)
 
 
-def to_snowflake(data: str = None) -> int | Snowflake:
+def to_snowflake(data: str = None) -> Snowflake:
     return Snowflake(int(data))
 
 
-def execute_converters(_, fields: List[attrs.Attribute]):
+def execute_converters(_, fields: List[attrs.Attribute]) -> List[attrs.Attribute]:
     converters = {
         datetime: iso_to_datetime,
         'datetime': iso_to_datetime,

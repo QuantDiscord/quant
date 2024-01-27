@@ -6,21 +6,20 @@ import attrs
 from quant.entities.model import BaseModel
 
 from .snowflake import Snowflake
-from quant.utils.attrs_extensions import execute_converters
 
 
-@attrs.define(field_transformer=execute_converters)
+@attrs.define
 class User(BaseModel):
     username: str = attrs.field()
-    user_id: Snowflake = attrs.field(alias="id", default=0)
+    id: Snowflake = attrs.field(default=0)
     discriminator: str | None = attrs.field(default=None)
     display_name: str | None = attrs.field(default=None)
     global_name: str | None = attrs.field(default=None)
     avatar: str | None = attrs.field(default=None)
-    is_bot: bool = attrs.field(alias="bot", default=False)
-    is_system: bool = attrs.field(alias="system", default=False)
+    bot: bool = attrs.field(default=False)
+    system: bool = attrs.field(default=False)
     mfa_enabled: bool = attrs.field(default=False)
-    banner_hash: str = attrs.field(alias="banner", default=None)
+    banner: str = attrs.field(default=None)
     accent_color: int | None = attrs.field(default=None)
     banner_color: int | None = attrs.field(default=None)
     avatar_decoration: str | None = attrs.field(default=None)
@@ -31,14 +30,7 @@ class User(BaseModel):
     avatar_decoration_data: Any = attrs.field(default=None)
     verified: bool = attrs.field(default=False)
     _email: str = attrs.field(default=None, alias="email", repr=False)
-    member: Any = attrs.field(alias="member", default=None)
+    member: Any = attrs.field(default=None)
 
-    @classmethod
-    def as_dict(cls, data) -> Self | None:
-        if data is not None:
-            return cls(**data)
-
-    @classmethod
-    def as_dict_iter(cls, data):
-        if data is not None:
-            return [cls(**user_data) for user_data in data]
+    def get_avatar(self) -> str:
+        return f"https://cdn.discordapp.com/avatars/{self.id}/{self.avatar}.png?size=1024"
