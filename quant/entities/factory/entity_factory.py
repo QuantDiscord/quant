@@ -492,7 +492,11 @@ class EntityFactory:
         body.put("options", options)
         body.put("choices", option.choices)
         body.put("required", option.required)
-        body.put("type", option.option_type.value)
+
+        if option.option_type is not None:
+            body.put("type", option.option_type.value)
+        else:
+            body.put("type", SlashOptionType.STRING.value)
 
         return body.asdict()
 

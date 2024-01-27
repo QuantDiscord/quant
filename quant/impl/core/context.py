@@ -70,7 +70,7 @@ class InteractionContext:
             return
 
         option = options[0]
-        return await parse_option_type(self.client, self.interaction, option.type, int(option.value))
+        return await parse_option_type(self.client, self.interaction, option.type, option.value)
 
 
 class ButtonContext(InteractionContext):
