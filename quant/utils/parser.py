@@ -6,6 +6,7 @@ if TYPE_CHECKING:
     from quant.impl.core.client import Client
     from quant.entities.interactions.interaction import Interaction
 
+from quant.entities.permissions import Permissions
 from quant.entities.interactions.slash_option import SlashOptionType
 
 
@@ -26,3 +27,12 @@ async def parse_option_type(
             return guild.get_channel(value)
         case _:
             return value
+
+
+def decode_permissions(permission_value: int) -> Permissions:
+    decoded_permissions = Permissions(0)
+    for permission in Permissions:
+        if permission_value & permission.value == permission.value:  # type: ignore
+            decoded_permissions |= permission
+
+    return decoded_permissions

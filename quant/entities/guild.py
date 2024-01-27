@@ -14,6 +14,7 @@ from .voice_state_update import VoiceState
 from .model import BaseModel
 from .snowflake import Snowflake
 from .roles import GuildRole
+from .permissions import Permissions
 
 
 @attrs.define
@@ -39,7 +40,7 @@ class Guild(BaseModel):
     presences: List[Any] = attrs.field()
     members: List[GuildMember] = attrs.field()
     large: bool = attrs.field()
-    permissions: str = attrs.field()
+    permissions: Permissions = attrs.field()
     roles: List[GuildRole] = attrs.field()
     emojis: List[Any] = attrs.field()
     icon: str = attrs.field()

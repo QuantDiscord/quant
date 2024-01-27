@@ -33,7 +33,7 @@ class EventFactory:
         self.added_listeners: Dict[EventT, Callable] = {}
         self._listener_transformer: Dict[str, EventT] = {}
         self.cache = cache_manager
-        self.entity_factory = entities.factory.EntityFactory()
+        self.entity_factory = entities.factory.EntityFactory(self.cache)
 
     # TODO: а оно нужно вообще?
     def build_event(self, received_type: EventTypes, **details) -> EventT | None:
@@ -142,7 +142,7 @@ class EventFactory:
             cache_manager=self.cache,
             reaction=entities.Reaction(
                 user_id=user_id,
-                reaction_type=reaction_type,
+                type=reaction_type,
                 message_id=message_id,
                 message_author_id=message_author_id,
                 channel_id=channel_id,
@@ -171,7 +171,7 @@ class EventFactory:
             cache_manager=self.cache,
             reaction=entities.Reaction(
                 user_id=user_id,
-                reaction_type=reaction_type,
+                type=reaction_type,
                 message_id=message_id,
                 message_author_id=message_author_id,
                 channel_id=channel_id,

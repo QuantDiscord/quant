@@ -59,8 +59,8 @@ class Client:
             num_shards=num_shards
         )
         self.loop = asyncio.get_event_loop()
-        self.rest = RESTImpl(self.gateway.token)
         self.cache = self.gateway.cache
+        self.rest = RESTImpl(self.gateway.token, cache=self.cache)
         self.client_id: int = self._decode_token_to_id()
         self.event_factory = self.gateway.event_factory
         self.event_controller = self.gateway.event_controller

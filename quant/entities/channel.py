@@ -16,6 +16,7 @@ from .snowflake import Snowflake
 from .embeds import Embed
 from .allowed_mentions import AllowedMentions
 from .action_row import ActionRow
+from .permissions import Permissions
 
 
 class ChannelType(int, Enum):
@@ -61,7 +62,7 @@ class Channel(BaseModel):
     member_count: int = attrs.field(default=0)
     member: Any = attrs.field(default=None)
     default_auto_archive_duration: int = attrs.field(default=0)
-    permissions: str = attrs.field(default=None)
+    permissions: Permissions = attrs.field(default=None)
     flags: int = attrs.field(default=0)
     total_message_sent: int = attrs.field(default=0)
     available_tags: List[Any] = attrs.field(default=None)

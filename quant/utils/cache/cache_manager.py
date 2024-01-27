@@ -124,14 +124,14 @@ class CacheHandlers(CacheManager):
         guild_object = self.entity_factory.deserialize_guild(kwargs)
         self.add_guild(guild_object)
 
+        for role in guild_object.roles:
+            self.add_role(role)
+
         for channel in guild_object.channels:
             self.add_channel(channel)
 
         for emoji in guild_object.emojis:
             self.add_emoji(emoji)
-
-        for role in guild_object.roles:
-            self.add_role(role)
 
     def handle_guild_delete(self, **kwargs) -> None:
         del self.__cached_guilds[int(kwargs["id"])]

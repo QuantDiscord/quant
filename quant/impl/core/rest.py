@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import re
 import warnings
 from urllib.parse import urlencode
@@ -53,13 +55,14 @@ from quant.entities.message import Message, Attachment
 from quant.entities.embeds import Embed
 from quant.entities.webhook import Webhook
 from quant.utils.json_builder import MutableJsonBuilder
+from quant.utils.cache.cache_manager import CacheManager
 
 
 class RESTImpl(RESTAware):
-    def __init__(self, token: str) -> None:
+    def __init__(self, token: str, cache: CacheManager) -> None:
         self.http = HttpManagerImpl(authorization=token)
         self.token = token
-        self.entity_factory = EntityFactory()
+        self.entity_factory = EntityFactory(cache)
 
     def _build_payload(
         self,
