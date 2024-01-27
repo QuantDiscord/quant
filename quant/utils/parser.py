@@ -24,7 +24,7 @@ async def parse_option_type(
         case SlashOptionType.ROLE:
             return guild.get_role(int(value))
         case SlashOptionType.CHANNEL:
-            return guild.get_channel(value)
+            return guild.get_channel(int(value))
         case _:
             return value
 
