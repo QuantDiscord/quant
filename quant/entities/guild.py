@@ -8,6 +8,7 @@ import attrs
 if TYPE_CHECKING:
     from .invite import Invite
 
+from .user import User
 from .channel import Channel
 from .member import GuildMember
 from .voice_state_update import VoiceState
@@ -115,6 +116,13 @@ class Guild(BaseModel):
             delete_message_seconds=delete_message_seconds
         )
 
+    async def kick(self, member: Snowflake | int | GuildMember, reason: str | None = None) -> None:
+        await self.client.rest.remove_guild_member(
+            user_id=member.user.id,
+            guild_id=self.id,
+            reason=reason
+        )
+
     async def fetch_invites(self) -> List[Invite]:
         return await self.client.rest.fetch_guild_invites(guild_id=self.id)
 
@@ -123,3 +131,28 @@ class Guild(BaseModel):
 
     def get_channel(self, channel_id: Snowflake | int) -> Channel:
         return self.client.cache.get_channel(channel_id=channel_id)
+
+    async def modify_member(
+        self,
+        member: Snowflake | int | GuildMember | User,
+        nick: str | None = None,
+        roles: List[Snowflake | int] | None = None,
+        mute: bool | None = None,
+        deaf: bool | None = None,
+        move_channel_id: Snowflake | int | None = None,
+        communication_disabled_until: datetime.datetime | None = None,
+        flags: int | None = None,
+        reason: str | None = None
+    ) -> GuildMember:
+        return await self.client.rest.modify_guild_member(
+            user_id=member if not isinstance(member, (GuildMember, User)) else member.id,
+            guild_id=self.id,
+            nick=nick,
+            roles=roles,
+            mute=mute,
+            deaf=deaf,
+            move_channel_id=move_channel_id,
+            communication_disabled_until=communication_disabled_until,
+            flags=flags,
+            reason=reason
+        )

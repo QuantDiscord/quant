@@ -17,10 +17,16 @@ class URI:
 
 @attrs.define
 class Route:
-    method: Literal["GET", "POST", "PUT", "DELETE", "PATCH"]
+    method: str
     uri: URI
     api_version: int = 10
 
+
+GET: Final[str] = "GET"
+DELETE: Final[str] = "DELETE"
+PATCH: Final[str] = "PATCH"
+PUT: Final[str] = "PUT"
+POST: Final[str] = "POST"
 
 _ROUTE_FIELDS = attrs.fields(Route)
 DISCORD_MAIN_API_URL: Final[str] = "https://discord.com/api/v{}".format(_ROUTE_FIELDS.api_version.default)
@@ -30,58 +36,59 @@ DISCORD_WS_URL: Final[Route] = Route(
 )
 
 # Messages
-GET_MESSAGE: Final[Route] = Route("GET", URI("/channels/{channel_id}/messages/{message_id}"))
-CREATE_MESSAGE: Final[Route] = Route("POST", URI("/channels/{}/messages"))
-EDIT_MESSAGE: Final[Route] = Route("PATCH", URI("/channels/{channel_id}/messages/{message_id}"))
-DELETE_MESSAGE: Final[Route] = Route("DELETE", URI("/channels/{channel_id}/messages/{message_id}"))
-CREATE_REACTION: Final[Route] = Route("PUT", URI("/channels/{channel_id}/messages/{message_id}/reactions/{emoji}/@me"))
-GET_GUILD_EMOJI: Final[Route] = Route("GET", URI("/guilds/{guild_id}/emojis/{emoji_id}"))
-DELETE_ALL_REACTIONS: Final[Route] = Route("DELETE", URI("/channels/{channel_id}/messages/{message_id}/reactions"))
+GET_MESSAGE: Final[Route] = Route(GET, URI("/channels/{channel_id}/messages/{message_id}"))
+CREATE_MESSAGE: Final[Route] = Route(POST, URI("/channels/{}/messages"))
+EDIT_MESSAGE: Final[Route] = Route(PATCH, URI("/channels/{channel_id}/messages/{message_id}"))
+DELETE_MESSAGE: Final[Route] = Route(DELETE, URI("/channels/{channel_id}/messages/{message_id}"))
+CREATE_REACTION: Final[Route] = Route(PUT, URI("/channels/{channel_id}/messages/{message_id}/reactions/{emoji}/@me"))
+GET_GUILD_EMOJI: Final[Route] = Route(GET, URI("/guilds/{guild_id}/emojis/{emoji_id}"))
+DELETE_ALL_REACTIONS: Final[Route] = Route(DELETE, URI("/channels/{channel_id}/messages/{message_id}/reactions"))
 DELETE_ALL_REACTION_FOR_EMOJI: Final[Route] = Route(
-    "DELETE", URI("/channels/{channel_id}/messages/{message_id}/reactions/{emoji}")
+    DELETE, URI("/channels/{channel_id}/messages/{message_id}/reactions/{emoji}")
 )
 
 # Webhooks
-CREATE_WEBHOOK: Final[Route] = Route("POST", URI("/channels/{channel_id}/webhooks"))
-GET_CHANNEL_WEBHOOKS: Final[Route] = Route("GET", URI("/channels/{channel_id}/webhooks"))
+CREATE_WEBHOOK: Final[Route] = Route(POST, URI("/channels/{channel_id}/webhooks"))
+GET_CHANNEL_WEBHOOKS: Final[Route] = Route(GET, URI("/channels/{channel_id}/webhooks"))
 
 # Guilds
-GET_GUILD: Final[Route] = Route("GET", URI("/guilds/{guild_id}"))
-CREATE_GUILD: Final[Route] = Route("POST", URI("/guilds"))
-DELETE_GUILD: Final[Route] = Route("DELETE", URI("/guilds/{guild_id}"))
-CREATE_GUILD_BAN: Final[Route] = Route("PUT", URI("/guilds/{guild_id}/bans/{user_id}"))
-GET_INVITE: Final[Route] = Route("GET", URI("/invites/{invite_code}"))
-DELETE_INVITE: Final[Route] = Route("DELETE", URI("/invites/{invite_code}"))
-GET_GUILD_INVITES: Final[Route] = Route("GET", URI("/guilds/{guild_id}/invites"))
-GET_GUILD_ROLES: Final[Route] = Route("GET", URI("/guilds/{guild_id}/roles"))
-CREATE_GUILD_ROLES: Final[Route] = Route("POST", URI("/guilds/{guild_id}/roles"))
-DELETE_GUILD_ROLE: Final[Route] = Route("DELETE", URI("/guilds/{guild_id}/roles/{role_id}"))
-GET_GUILD_MEMBERS: Final[Route] = Route("GET", URI("/guilds/{guild_id}/members"))
+GET_GUILD: Final[Route] = Route(GET, URI("/guilds/{guild_id}"))
+CREATE_GUILD: Final[Route] = Route(POST, URI("/guilds"))
+DELETE_GUILD: Final[Route] = Route(DELETE, URI("/guilds/{guild_id}"))
+CREATE_GUILD_BAN: Final[Route] = Route(PUT, URI("/guilds/{guild_id}/bans/{user_id}"))
+GET_INVITE: Final[Route] = Route(GET, URI("/invites/{invite_code}"))
+DELETE_INVITE: Final[Route] = Route(DELETE, URI("/invites/{invite_code}"))
+GET_GUILD_INVITES: Final[Route] = Route(GET, URI("/guilds/{guild_id}/invites"))
+GET_GUILD_ROLES: Final[Route] = Route(GET, URI("/guilds/{guild_id}/roles"))
+CREATE_GUILD_ROLES: Final[Route] = Route(POST, URI("/guilds/{guild_id}/roles"))
+DELETE_GUILD_ROLE: Final[Route] = Route(DELETE, URI("/guilds/{guild_id}/roles/{role_id}"))
+GET_GUILD_MEMBERS: Final[Route] = Route(GET, URI("/guilds/{guild_id}/members"))
+MODIFY_GUILD_MEMBER: Final[Route] = Route(PATCH, URI("/guilds/{guild_id}/members/{user_id}"))
+REMOVE_GUILD_MEMBER: Final[Route] = Route(DELETE, URI("/guilds/{guild_id}/members/{user_id}"))
 
 # Interactions
 CREATE_INTERACTION_RESPONSE: Final[Route] = Route(
-    "POST", URI("/interactions/{interaction_id}/{interaction_token}/callback")
+    POST, URI("/interactions/{interaction_id}/{interaction_token}/callback")
 )
 GET_ORIGINAL_INTERACTION_RESPONSE: Final[Route] = Route(
-    "GET", URI("/webhooks/{application_id}/{interaction_token}/messages/@original")
+    GET, URI("/webhooks/{application_id}/{interaction_token}/messages/@original")
 )
 EDIT_ORIGINAL_INTERACTION_RESPONSE: Final[Route] = Route(
-    "PATCH", URI("/webhooks/{application_id}/{interaction_token}/messages/@original")
+    PATCH, URI("/webhooks/{application_id}/{interaction_token}/messages/@original")
 )
 DELETE_ORIGINAL_INTERACTION_RESPONSE: Final[Route] = Route(
-    "DELETE", URI("/webhooks/{application_id}/{interaction_token}/messages/@original")
+    DELETE, URI("/webhooks/{application_id}/{interaction_token}/messages/@original")
 )
 CREATE_APPLICATION_COMMAND: Final[Route] = Route("POST", URI("/applications/{application_id}/commands"))
 CREATE_GUILD_APPLICATION_COMMAND: Final[Route] = Route(
-    "POST", URI("/applications/{application_id}/guilds/{guild_id}/commands")
+    POST, URI("/applications/{application_id}/guilds/{guild_id}/commands")
 )
-
 
 # Followups later
 
 # Channels
-GET_CHANNEL_MESSAGES: Final[Route] = Route("GET", URI("/channels/{channel_id}/messages"))
+GET_CHANNEL_MESSAGES: Final[Route] = Route(GET, URI("/channels/{channel_id}/messages"))
 
 # User
-GET_CURRENT_USER: Final[Route] = Route("GET", URI("/users/@me"))
-GET_USER: Final[Route] = Route("GET", URI("/users/{user_id}"))
+GET_CURRENT_USER: Final[Route] = Route(GET, URI("/users/@me"))
+GET_USER: Final[Route] = Route(GET, URI("/users/{user_id}"))

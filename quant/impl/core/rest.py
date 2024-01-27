@@ -1,9 +1,10 @@
 from __future__ import annotations
 
+import datetime
 import re
 import warnings
 from urllib.parse import urlencode
-from typing import List, Any, Dict, Tuple
+from typing import List, Any, Dict, Tuple, Final
 
 import attrs
 
@@ -49,13 +50,17 @@ from quant.impl.core.route import (
     CREATE_GUILD_ROLES,
     DELETE_GUILD_ROLE,
     GET_GUILD_MEMBERS,
-    GET_USER
+    GET_USER,
+    MODIFY_GUILD_MEMBER,
+    REMOVE_GUILD_MEMBER
 )
 from quant.entities.message import Message, Attachment
 from quant.entities.embeds import Embed
 from quant.entities.webhook import Webhook
 from quant.utils.json_builder import MutableJsonBuilder
 from quant.utils.cache.cache_manager import CacheManager
+
+X_AUDIT_LOG_REASON: Final[str] = "X-Audit-Log-Reason"
 
 
 class RESTImpl(RESTAware):
@@ -168,16 +173,17 @@ class RESTImpl(RESTAware):
 
     async def create_webhook(self, channel_id: int, name: str, avatar: str = None, reason: str = None) -> Webhook:
         headers = MutableJsonBuilder()
+        method, url = self._build_url(
+            route=CREATE_WEBHOOK,
+            data={"channel_id": channel_id}
+        )
 
         if reason is not None:
-            headers.put("X-Audit-Log-Reason", reason)
+            headers.put(X_AUDIT_LOG_REASON, reason)
 
         payload = {"name": name, "avatar": avatar}
         webhook_data = await self.http.send_request(
-            CREATE_WEBHOOK.method,
-            CREATE_WEBHOOK.uri.url_string.format(channel_id=channel_id),
-            headers=headers,
-            data=payload
+            method=method, url=url, headers=headers, data=payload
         )
         return Webhook(**await webhook_data.json())
 
@@ -207,7 +213,7 @@ class RESTImpl(RESTAware):
         emoji = await self.fetch_emoji(guild_id=guild_id, emoji=emoji)
 
         if reason is not None:
-            headers.update({"X-Audit-Log-Reason": reason})
+            headers.update({X_AUDIT_LOG_REASON: reason})
 
         await self.http.send_request(
             CREATE_REACTION.method,
@@ -226,7 +232,7 @@ class RESTImpl(RESTAware):
         headers = {}
 
         if reason is not None:
-            headers.update({"X-Audit-Log-Reason": reason})
+            headers.update({X_AUDIT_LOG_REASON: reason})
 
         await self.http.send_request(
             DELETE_MESSAGE.method,
@@ -367,7 +373,7 @@ class RESTImpl(RESTAware):
             warnings.warn("Option \"delete_message_days\" deprecated in Discord API", category=DeprecationWarning)
 
         if reason is not None:
-            headers.update({"X-Audit-Log-Reason": reason})
+            headers.update({X_AUDIT_LOG_REASON: reason})
 
         await self.http.send_request(
             CREATE_GUILD_BAN.method,
@@ -375,6 +381,23 @@ class RESTImpl(RESTAware):
             headers=headers,
             data=payload
         )
+
+    async def remove_guild_member(
+        self,
+        user_id: Snowflake | int,
+        guild_id: Snowflake | int,
+        reason: str | None = None
+    ) -> None:
+        method, url = self._build_url(
+            route=REMOVE_GUILD_MEMBER,
+            data={"user_id": user_id, "guild_id": guild_id}
+        )
+        headers = MutableJsonBuilder()
+
+        if reason is not None:
+            headers.put(X_AUDIT_LOG_REASON, reason)
+
+        await self.http.send_request(method=method, url=url, headers=headers)
 
     async def create_interaction_response(
         self,
@@ -622,7 +645,7 @@ class RESTImpl(RESTAware):
         headers = {}
 
         if reason is not None:
-            headers['X-Audit-Log-Reason'] = reason
+            headers[X_AUDIT_LOG_REASON] = reason
 
         response = await self.http.send_request(
             method=method, url=url, headers=headers
@@ -669,6 +692,46 @@ class RESTImpl(RESTAware):
         )
         response = await self.http.send_request(method=method, url=url)
         return self.entity_factory.deserialize_user(await response.json())
+
+    async def modify_guild_member(
+        self,
+        user_id: Snowflake | int,
+        guild_id: Snowflake | int,
+        nick: str | None = None,
+        roles: List[Snowflake | int] | None = None,
+        mute: bool | None = None,
+        deaf: bool | None = None,
+        move_channel_id: Snowflake | int | None = None,
+        communication_disabled_until: datetime.datetime | None = None,
+        flags: int | None = None,
+        reason: str | None = None
+    ) -> GuildMember:
+        headers = MutableJsonBuilder()
+        payload = MutableJsonBuilder()
+        method, url = self._build_url(route=MODIFY_GUILD_MEMBER, data={"user_id": user_id, "guild_id": guild_id})
+
+        if nick is not None:
+            payload.put("nick", nick)
+
+        if roles is not None:
+            payload.put("roles", roles)
+
+        if move_channel_id is not None:
+            payload.put("mute", mute)
+            payload.put("deaf", deaf)
+            payload.put("channel_id", move_channel_id)
+
+        if communication_disabled_until is not None:
+            payload.put("communication_disabled_until", communication_disabled_until)
+
+        if flags is not None:
+            payload.put("flags", flags)
+
+        if reason is not None:
+            headers.put(X_AUDIT_LOG_REASON, reason)
+
+        response = await self.http.send_request(method=method, url=url, data=payload)
+        return self.entity_factory.deserialize_member(await response.json())
 
     @staticmethod
     def _parse_emoji(emoji: str | Emoji | Snowflake | int) -> str:

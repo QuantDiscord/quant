@@ -20,9 +20,9 @@ async def parse_option_type(
 
     match option_type:
         case SlashOptionType.USER:
-            return await client.rest.fetch_user(value)
+            return await client.rest.fetch_user(int(value))
         case SlashOptionType.ROLE:
-            return guild.get_role(value)
+            return guild.get_role(int(value))
         case SlashOptionType.CHANNEL:
             return guild.get_channel(value)
         case _:

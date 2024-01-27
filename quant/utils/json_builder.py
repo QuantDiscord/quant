@@ -33,6 +33,9 @@ class MutableJsonBuilder(Mapping[KT, VT]):
     def __len__(self) -> int:
         return len(self._json_data)
 
+    def __repr__(self) -> str:
+        return f"<MutableJsonBuilder {self._json_data}>"
+
     def get_first_element(self) -> tuple[Any, Any]:
         return [(key, value) for key, value in self._json_data.items()][0]
 
