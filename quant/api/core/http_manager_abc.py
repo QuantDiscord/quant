@@ -15,10 +15,10 @@ class HttpManager(ABC):
 
     @abstractmethod
     async def send_request(
-            self,
-            method: str, url: str,
-            data: Dict[str, Any] | MutableJsonBuilder[str, Any] = None,
-            headers: Dict[str, str] | MutableJsonBuilder[str, Any] = None,
-            content_type: str = None
+        self,
+        method: str, url: str,
+        data: Dict[str, Any] | MutableJsonBuilder[str, Any] = None,
+        headers: Dict[str, str] | MutableJsonBuilder[str, Any] = None,
+        content_type: str = None
     ) -> ClientResponse | None:
         raise NotImplementedError

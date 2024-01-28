@@ -37,6 +37,7 @@ from .interactions import (
     SlashOption,
     SlashOptionType
 )
+from .permissions import Permissions
 from .message import Message, MessageReference, Attachment
 
 
@@ -96,5 +97,6 @@ __all__ = (
     "ThreadMetadata",
     "ChannelType",
     "VoiceChannel",
-    "embed"
+    "embed",
+    "Permissions"
 )

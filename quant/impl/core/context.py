@@ -8,6 +8,7 @@ if TYPE_CHECKING:
     from quant.entities.interactions.choice_response import InteractionDataOption
     from quant.entities.message import Message, Attachment, MessageReference, MessageFlags
     from quant.entities.button import Button
+    from quant.entities.user import User
 
 from quant.entities.action_row import ActionRow
 from quant.entities.embeds import Embed
@@ -19,6 +20,10 @@ class BaseContext:
     def __init__(self, client, message) -> None:
         self.original_message: Message = message
         self.client: Client = client
+
+    @property
+    def author(self) -> User:
+        return self.original_message.author
 
     async def send_message(
         self,
@@ -59,6 +64,10 @@ class InteractionContext:
     def __init__(self, client, interaction) -> None:
         self.client: Client = client
         self.interaction: Interaction = interaction
+
+    @property
+    def author(self) -> User:
+        return self.interaction.member
 
     async def get_option(self, name: str) -> Any | InteractionDataOption | None:
         interaction_options = self.interaction.data.options
