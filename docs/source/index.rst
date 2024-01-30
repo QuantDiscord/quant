@@ -1,6 +1,7 @@
 Welcome to Quant!
 ==============================
 
+.. py:currentmodule:: quant
 
 # Quant - Discord API Framework
 
