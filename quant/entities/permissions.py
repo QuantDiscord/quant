@@ -50,3 +50,6 @@ class Permissions(Flag):
     CREATE_EVENTS = 1 << 44
     USE_EXTERNAL_SOUNDS = 1 << 45
     SEND_VOICE_MESSAGES = 1 << 46
+
+    def __repr__(self) -> str:
+        return f"Permissions <{self.value}>"

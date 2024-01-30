@@ -9,6 +9,7 @@ if TYPE_CHECKING:
     from quant.entities.message import Message, Attachment, MessageReference, MessageFlags
     from quant.entities.button import Button
     from quant.entities.user import User
+    from quant.entities.member import GuildMember
 
 from quant.entities.action_row import ActionRow
 from quant.entities.embeds import Embed
@@ -66,7 +67,7 @@ class InteractionContext:
         self.interaction: Interaction = interaction
 
     @property
-    def author(self) -> User:
+    def author(self) -> GuildMember:
         return self.interaction.member
 
     async def get_option(self, name: str) -> Any | InteractionDataOption | None:

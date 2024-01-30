@@ -217,3 +217,6 @@ class EventFactory:
             cache_manager=self.cache,
             interaction=interaction
         )
+
+    def deserialize_ready_event(self, _: MutableJsonBuilder | Dict) -> events.ReadyEvent:
+        return events.ReadyEvent(cache_manager=self.cache)

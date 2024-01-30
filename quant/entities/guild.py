@@ -95,8 +95,7 @@ class Guild(BaseModel):
         await self.client.rest.delete_guild(self.id)
 
     async def fetch_member(self, member_id: Snowflake | int) -> GuildMember:
-        members = await self.fetch_members()
-        return [i for i in members if i.user.id == member_id][0]
+        return await self.client.rest.fetch_guild_member(guild_id=self.id, user_id=member_id)
 
     async def fetch_members(self, limit: int = 1000, after: Snowflake | int = Snowflake(0)) -> List[GuildMember]:
         return await self.client.rest.fetch_guild_members(guild_id=self.id, limit=limit, after=after)

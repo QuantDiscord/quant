@@ -51,6 +51,7 @@ from quant.impl.core.route import (
     DELETE_GUILD_ROLE,
     GET_GUILD_MEMBERS,
     GET_USER,
+    GET_GUILD_MEMBER,
     MODIFY_GUILD_MEMBER,
     REMOVE_GUILD_MEMBER
 )
@@ -692,6 +693,14 @@ class RESTImpl(RESTAware):
         )
         response = await self.http.send_request(method=method, url=url)
         return self.entity_factory.deserialize_user(await response.json())
+
+    async def fetch_guild_member(self, guild_id: Snowflake | int, user_id: Snowflake | int) -> GuildMember:
+        method, url = self._build_url(
+            route=GET_GUILD_MEMBER,
+            data={"guild_id": guild_id, "user_id": user_id}
+        )
+        response = await self.http.send_request(method=method, url=url)
+        return self.entity_factory.deserialize_member(await response.json())
 
     async def modify_guild_member(
         self,

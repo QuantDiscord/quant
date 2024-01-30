@@ -46,6 +46,10 @@ class EventController:
             callback = getattr(self, f"when_{event_name.lower()}")
             await callback(details)
 
+    async def when_ready(self, payload: MutableJsonBuilder | Dict) -> None:
+        event = self.factory.deserialize_ready_event(payload)
+        await self.dispatch(event)
+
     async def when_guild_create(self, payload: MutableJsonBuilder | Dict) -> None:
         event = self.factory.deserialize_guild_create_event(payload)
         await self.dispatch(event)

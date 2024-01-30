@@ -32,7 +32,15 @@ async def parse_option_type(
 def decode_permissions(permission_value: int) -> Permissions:
     decoded_permissions = Permissions(0)
     for permission in Permissions:
-        if permission_value & permission.value == permission.value:  # type: ignore
+        try:
+            value = permission.value
+        except TypeError:
+            value = permission.value()
+
+        if permission_value & value == Permissions.ADMINISTRATOR.value:
+            return Permissions.ADMINISTRATOR
+
+        if permission_value & value == permission.value:
             decoded_permissions |= permission
 
     return decoded_permissions

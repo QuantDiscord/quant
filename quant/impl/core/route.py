@@ -63,6 +63,7 @@ GET_GUILD_ROLES: Final[Route] = Route(GET, URI("/guilds/{guild_id}/roles"))
 CREATE_GUILD_ROLES: Final[Route] = Route(POST, URI("/guilds/{guild_id}/roles"))
 DELETE_GUILD_ROLE: Final[Route] = Route(DELETE, URI("/guilds/{guild_id}/roles/{role_id}"))
 GET_GUILD_MEMBERS: Final[Route] = Route(GET, URI("/guilds/{guild_id}/members"))
+GET_GUILD_MEMBER: Final[Route] = Route(GET, URI("/guilds/{guild_id}/members/{user_id}"))
 MODIFY_GUILD_MEMBER: Final[Route] = Route(PATCH, URI("/guilds/{guild_id}/members/{user_id}"))
 REMOVE_GUILD_MEMBER: Final[Route] = Route(DELETE, URI("/guilds/{guild_id}/members/{user_id}"))
 
