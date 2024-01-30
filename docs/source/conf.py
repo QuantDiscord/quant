@@ -3,7 +3,7 @@
 # -- Project information
 
 project = 'Quant'
-copyright = '2023, MagM1go and contributors'
+copyright = '2024, MagM1go and contributors'
 author = 'MagM1go'
 
 release = '0.1'
@@ -30,6 +30,8 @@ templates_path = ['_templates']
 # -- Options for HTML output
 
 html_theme = 'sphinx_rtd_theme'
+pygments_style = "monokai"
+default_dark_mode = True
 
 # -- Options for EPUB output
 epub_show_urls = 'footnote'
