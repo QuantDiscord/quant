@@ -6,14 +6,15 @@ from aiohttp import ClientSession, ClientResponse
 
 from quant.api.core.http_manager_abc import HttpManager
 from quant.entities.http_codes import HttpCodes
-from quant.impl.core.exceptions.http_exception import Forbidden, InternalServerError
+from quant.impl.core.exceptions.http_exception import Forbidden, InternalServerError, RateLimitExceeded
 from quant.impl.core.exceptions.library_exception import DiscordException
 from quant.utils.json_builder import MutableJsonBuilder
 
 
 class HttpManagerImpl(HttpManager):
-    def __init__(self, authorization: str | None = None) -> None:
+    def __init__(self, authorization: str | None = None, max_retries: int = 3) -> None:
         self.authorization = authorization
+        self.max_retries = max_retries
 
     async def _perform_json_request(
         self,
@@ -96,6 +97,8 @@ class HttpManagerImpl(HttpManager):
                 raise Forbidden("Not enough permissions")
             case HttpCodes.INTERNAL_SERVER_ERROR:
                 raise InternalServerError(f"Something went wrong on the server\n{request_text_data}")
+            case HttpCodes.TOO_MANY_REQUESTS:
+                raise RateLimitExceeded(f"You're being ratelimited, retry after {request_json_data['retry_after']}")
 
         if request.ok or request_json_data['code'] != 50006:
             return request
@@ -110,8 +113,38 @@ class HttpManagerImpl(HttpManager):
         headers: Dict[str, str] | MutableJsonBuilder[str, Any] | None = None,
         content_type: str = None
     ) -> ClientResponse | None:
+        retry_attempts = 0
+
+        while retry_attempts < self.max_retries:
+            response = await self._send_performed_request(
+                method=method,
+                url=url,
+                data=data,
+                headers=headers,
+                content_type=content_type
+            )
+
+            if response is None:
+                return
+
+            if response.ok:
+                return response
+
+            retry_attempts += 1
+            await asyncio.sleep(2 ** retry_attempts)
+
+        raise RateLimitExceeded("Failed ratelimit request")
+
+    async def _send_performed_request(
+        self,
+        method: str,
+        url: str,
+        data: Dict[str, Any] | MutableJsonBuilder[str, Any] = None,
+        headers: Dict[str, str] | MutableJsonBuilder[str, Any] | None = None,
+        content_type: str = None
+    ) -> ClientResponse | None:
         if isinstance(data, MutableJsonBuilder) or isinstance(headers, MutableJsonBuilder):
-            return await self._perform_json_request(
+            response = await self._perform_json_request(
                 method=method,
                 url=url,
                 data=data,
@@ -119,10 +152,12 @@ class HttpManagerImpl(HttpManager):
                 content_type=content_type
             )
         else:
-            return await self._perform_dict_request(
+            response = await self._perform_dict_request(
                 method=method,
                 url=url,
                 data=data,
                 headers=headers,
                 content_type=content_type
             )
+
+        return response
