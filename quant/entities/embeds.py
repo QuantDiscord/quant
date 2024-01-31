@@ -1,6 +1,7 @@
 from typing import List, Any
 from datetime import datetime
 
+import attrs
 from attrs import define, asdict, field
 
 
@@ -32,6 +33,7 @@ class EmbedImage:
     proxy_url: str | None = None
     height: int | None = None
     width: int | None = None
+    placeholder_version: int = attrs.field(default=None, repr=False)
 
 
 EmbedThumbnail = EmbedImage
