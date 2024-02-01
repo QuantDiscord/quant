@@ -44,13 +44,11 @@ class Client:
         self,
         token: str,
         intents: Intents = Intents.ALL_UNPRIVILEGED,
-        prefix: str = None,
         shard_id: int = 0,
         num_shards: int = 1
     ) -> None:
         self.my_user: User | None = None
         self.token = token
-        self.prefix = prefix
         self.intents = intents
         self.gateway: Gateway = Gateway(
             token=token,

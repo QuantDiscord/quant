@@ -12,13 +12,11 @@ So, if you catch some bugs you can create issue or join to support server (click
 Here's an example code showcasing how to use quant:
 
 ```python
-from quant import Client, Intents
-from quant.events import ReadyEvent
+from quant import Client, Intents, ReadyEvent
 
 client = Client(
     token="Bot YOUR_DISCORD_BOT_TOKEN",
-    intents=Intents.ALL,
-    prefix="!"
+    intents=Intents.ALL
 )
 
 
@@ -37,7 +35,6 @@ Replace `YOUR_DISCORD_BOT_TOKEN` with your actual Discord bot token.
 from quant import (
     Client,
     SlashCommand,
-    ApplicationCommandOption,
     InteractionContext
 )
 
@@ -52,11 +49,9 @@ async def slash_command_callback(context: InteractionContext) -> None:
 
 command = SlashCommand(
     name="say",
-    description="Say something",
-    options=[
-        ApplicationCommandOption(name="text", description="your text", required=True)
-    ]
+    description="Say something"
 )
+command.option(name="text", description="Your cool text", required=True)
 command.set_callback(slash_command_callback)
 
 client.run()

@@ -1,5 +1,7 @@
 from typing import Any, List
 
+import attrs
+
 from quant.entities.permissions import Permissions
 from quant.entities.interactions.slash_option import ApplicationCommandOption, SlashOptionType
 from quant.impl.core.context import BaseContext
@@ -7,10 +9,10 @@ from quant.entities.snowflake import Snowflake
 from quant.entities.interactions.application_command import ApplicationCommandTypes
 
 
+@attrs.define
 class Command:
-    def __init__(self, name: str, description: str) -> None:
-        self.name = name
-        self.description = description
+    name: str
+    description: str
 
     async def callback(self, context: BaseContext, *args) -> None:
         pass
@@ -52,20 +54,6 @@ class ApplicationCommandObject(Command):
     def mention(self) -> str:
         return f"</{self.name}:{self.id}>"
 
-
-class SlashCommand(ApplicationCommandObject):
-    def __init__(
-        self,
-        options: List[ApplicationCommandOption] = None,
-        guild_ids: List[Snowflake | int] | None = None,
-        **kwargs
-    ) -> None:
-        super().__init__(kwargs.get("name"), kwargs.get("description"), **kwargs)
-        if options is None:
-            self.options = []
-
-        self.guild_ids = guild_ids
-
     def option(
         self,
         name: str,
@@ -97,3 +85,17 @@ class SlashCommand(ApplicationCommandObject):
         )
         self.options.append(option)
         return option
+
+
+class SlashCommand(ApplicationCommandObject):
+    def __init__(
+        self,
+        options: List[ApplicationCommandOption] = None,
+        guild_ids: List[Snowflake | int] | None = None,
+        **kwargs
+    ) -> None:
+        super().__init__(kwargs.get("name"), kwargs.get("description"), **kwargs)
+        if options is None:
+            self.options = []
+
+        self.guild_ids = guild_ids
