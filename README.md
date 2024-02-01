@@ -54,6 +54,7 @@ command = SlashCommand(
 command.option(name="text", description="Your cool text", required=True)
 command.set_callback(slash_command_callback)
 
+client.add_slash_command(command)
 client.run()
 ```
 

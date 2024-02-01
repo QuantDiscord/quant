@@ -1,9 +1,4 @@
-from __future__ import annotations
-
-from typing import TYPE_CHECKING
-
-if TYPE_CHECKING:
-    from quant.entities.permissions import Permissions
+from quant.entities.permissions import Permissions
 
 __all__ = (
     "has_permissions",
@@ -11,4 +6,7 @@ __all__ = (
 
 
 def has_permissions(member_permissions: Permissions, needed_permissions: Permissions) -> bool:
+    if member_permissions == Permissions.ADMINISTRATOR or member_permissions & Permissions.ADMINISTRATOR:
+        return True
+
     return member_permissions.value & needed_permissions.value
