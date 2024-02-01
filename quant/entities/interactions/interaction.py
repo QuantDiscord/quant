@@ -14,7 +14,7 @@ from quant.entities.message_flags import MessageFlags
 from .choice_response import InteractionDataOption
 from ..message import Message
 from ..channel import Channel
-from .application_command_option import ApplicationCommandOptionType
+from .application_command import ApplicationCommandOptionType
 from quant.entities.modal.modal import ModalInteractionCallbackData
 from quant.entities.snowflake import Snowflake
 from quant.entities.user import User

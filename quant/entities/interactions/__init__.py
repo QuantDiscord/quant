@@ -1,4 +1,4 @@
-from .application_command_option import *
+from .application_command import *
 from .interaction import *
 from .choice_response import *
 from quant.api.entities.component import *
@@ -14,6 +14,6 @@ __all__ = (
     "InteractionType",
     "InteractionResponse",
     "InteractionData",
-    "SlashOption",
+    "ApplicationCommandOption",
     "SlashOptionType"
 )

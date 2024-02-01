@@ -66,6 +66,7 @@ GET_GUILD_MEMBERS: Final[Route] = Route(GET, URI("/guilds/{guild_id}/members"))
 GET_GUILD_MEMBER: Final[Route] = Route(GET, URI("/guilds/{guild_id}/members/{user_id}"))
 MODIFY_GUILD_MEMBER: Final[Route] = Route(PATCH, URI("/guilds/{guild_id}/members/{user_id}"))
 REMOVE_GUILD_MEMBER: Final[Route] = Route(DELETE, URI("/guilds/{guild_id}/members/{user_id}"))
+ADD_GUILD_MEMBER_ROLE: Final[Route] = Route(PUT, URI("/guilds/{guild_id}/members/{user_id}/roles/{role_id}"))
 
 # Interactions
 CREATE_INTERACTION_RESPONSE: Final[Route] = Route(
@@ -83,6 +84,9 @@ DELETE_ORIGINAL_INTERACTION_RESPONSE: Final[Route] = Route(
 CREATE_APPLICATION_COMMAND: Final[Route] = Route("POST", URI("/applications/{application_id}/commands"))
 CREATE_GUILD_APPLICATION_COMMAND: Final[Route] = Route(
     POST, URI("/applications/{application_id}/guilds/{guild_id}/commands")
+)
+GET_GUILD_APPLICATION_COMMANDS: Final[Route] = Route(
+    GET, URI("/applications/{application_id}/guilds/{guild_id}/commands")
 )
 
 # Followups later

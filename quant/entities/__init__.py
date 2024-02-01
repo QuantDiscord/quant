@@ -18,6 +18,7 @@ from .invite import Invite
 from .http_codes import HttpCodes
 from .intents import Intents
 from .member import GuildMember
+from .roles import GuildRole
 from .message_flags import MessageFlags
 from .snowflake import Snowflake
 from .user import User
@@ -34,7 +35,7 @@ from .interactions import (
     InteractionCallbackData,
     InteractionDataOption,
     ApplicationCommandOptionType,
-    SlashOption,
+    ApplicationCommandOption,
     SlashOptionType
 )
 from .permissions import Permissions
@@ -85,7 +86,7 @@ __all__ = (
     "InteractionType",
     "InteractionResponse",
     "InteractionData",
-    "SlashOption",
+    "ApplicationCommandOption",
     "SlashOptionType",
     "Modal",
     "ModalBackend",
@@ -98,5 +99,6 @@ __all__ = (
     "ChannelType",
     "VoiceChannel",
     "embed",
-    "Permissions"
+    "Permissions",
+    "GuildRole"
 )

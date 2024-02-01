@@ -1,8 +1,10 @@
-from typing import Dict, Any, List
+from typing import Any, List
 
-from quant.entities.interactions.slash_option import SlashOption, SlashOptionType
+from quant.entities.permissions import Permissions
+from quant.entities.interactions.slash_option import ApplicationCommandOption, SlashOptionType
 from quant.impl.core.context import BaseContext
 from quant.entities.snowflake import Snowflake
+from quant.entities.interactions.application_command import ApplicationCommandTypes
 
 
 class Command:
@@ -19,14 +21,46 @@ class Command:
         self.callback_func = coro
 
 
-class SlashCommand(Command):
+class ApplicationCommandObject(Command):
     def __init__(
         self,
-        options: List[SlashOption] = None,
-        guild_ids: List[Snowflake | int] | None = None,
+        cmd_id: Snowflake,
+        application_id: Snowflake,
+        dm_permissions: bool = False,
+        default_permission: bool = False,
+        nsfw: bool = False,
+        cmd_type: ApplicationCommandTypes = ApplicationCommandTypes.CHAT_INPUT,
+        guild_id: Snowflake | None = None,
+        options: List[ApplicationCommandOption] = None,
+        default_member_permissions: Permissions | None = None,
         **kwargs
     ) -> None:
         super().__init__(kwargs.get("name"), kwargs.get("description"))
+        if default_member_permissions is not None:
+            self.default_member_permissions = default_member_permissions.value
+
+        self.options = options
+        self.guild_id = guild_id
+        self.nsfw = nsfw
+        self.default_permission = default_permission
+        self.dm_permissions = dm_permissions
+        self.type = cmd_type
+        self.id = cmd_id
+        self.application_id = application_id
+
+    @property
+    def mention(self) -> str:
+        return f"</{self.name}:{self.id}>"
+
+
+class SlashCommand(ApplicationCommandObject):
+    def __init__(
+        self,
+        options: List[ApplicationCommandOption] = None,
+        guild_ids: List[Snowflake | int] | None = None,
+        **kwargs
+    ) -> None:
+        super().__init__(kwargs.get("name"), kwargs.get("description"), **kwargs)
         if options is None:
             self.options = []
 
@@ -42,12 +76,12 @@ class SlashCommand(Command):
         max_length: int | None = None,
         autocomplete: bool = False,
         channel_types: List[Any] | None = None,
-        options: List[SlashOption] | None = None,
+        options: List[ApplicationCommandOption] | None = None,
         choices: List[Any] | None = None,
         required: bool = False,
         option_type: SlashOptionType | None = None
-    ) -> SlashOption:
-        option = SlashOption(
+    ) -> ApplicationCommandOption:
+        option = ApplicationCommandOption(
             name=name,
             description=description,
             min_value=min_value,

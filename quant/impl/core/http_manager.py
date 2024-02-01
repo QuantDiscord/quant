@@ -40,7 +40,7 @@ class HttpManagerImpl(HttpManager):
                 headers.put("Content-Type", HttpManagerImpl.APPLICATION_JSON)
 
             headers = headers.asdict()
-            if data is None:
+            if data is None or len(data.asdict()) == 0:
                 request = await session.request(method=method, url=url, headers=headers)
             else:
                 request = await session.request(method=method, url=url, data=json.dumps(data.asdict()), headers=headers)
@@ -129,6 +129,9 @@ class HttpManagerImpl(HttpManager):
 
             if response.ok:
                 return response
+
+            if response.status == HttpCodes.BAD_REQUEST:
+                raise DiscordException("Illegal or bad request (probably library issue)")
 
             retry_attempts += 1
             await asyncio.sleep(2 ** retry_attempts)

@@ -7,6 +7,7 @@ import attrs
 
 if TYPE_CHECKING:
     from .user import User
+    from .guild import Guild
 
 from .snowflake import Snowflake
 from .model import BaseModel
@@ -31,8 +32,27 @@ class GuildMember(BaseModel):
     unusual_dm_activity_until: Any = attrs.field(default=None)
 
     @property
+    def mention(self) -> str:
+        return f"<@{self.user.id}>"
+
+    @property
     def id(self) -> Snowflake:
         return self.user.id
 
     def get_avatar(self) -> str:
         return f"https://cdn.discordapp.com/avatars/{self.id}/{self.avatar}.png?size=1024"
+
+    async def add_role(self, guild: Guild | Snowflake | int, role: GuildRole | Snowflake | int) -> None:
+        from .guild import Guild
+
+        if isinstance(guild, Guild):
+            guild = guild.id
+
+        if isinstance(role, GuildRole):
+            role = role.id
+
+        await self.client.rest.add_guild_member_role(
+            guild_id=guild,
+            role_id=role,
+            user_id=self.id
+        )

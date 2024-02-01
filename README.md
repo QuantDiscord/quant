@@ -37,7 +37,7 @@ Replace `YOUR_DISCORD_BOT_TOKEN` with your actual Discord bot token.
 from quant import (
     Client,
     SlashCommand,
-    SlashOption,
+    ApplicationCommandOption,
     InteractionContext
 )
 
@@ -54,7 +54,7 @@ command = SlashCommand(
     name="say",
     description="Say something",
     options=[
-        SlashOption(name="text", description="your text", required=True)
+        ApplicationCommandOption(name="text", description="your text", required=True)
     ]
 )
 command.set_callback(slash_command_callback)

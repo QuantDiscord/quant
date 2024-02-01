@@ -72,6 +72,10 @@ class Channel(BaseModel):
     default_sort_order: int = attrs.field(default=0)
     default_forum_layout: int = attrs.field(default=0)
 
+    @property
+    def mention(self) -> str:
+        return f"<#{self.id}>"
+
     async def send_message(
         self,
         content: Any = None,

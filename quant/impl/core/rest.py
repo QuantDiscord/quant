@@ -4,15 +4,18 @@ import datetime
 import re
 import warnings
 from urllib.parse import urlencode
-from typing import List, Any, Dict, Tuple, Final
+from typing import List, Any, Dict, Tuple, Final, TYPE_CHECKING
 
 import attrs
+
+if TYPE_CHECKING:
+    from quant.impl.core.commands import ApplicationCommandObject
 
 from quant.impl.core.route import Route
 from quant.entities.factory.entity_factory import EntityFactory
 from quant.entities.action_row import ActionRow
 from quant.entities.message import MessageReference
-from quant.entities.interactions.slash_option import SlashOption
+from quant.entities.interactions.slash_option import ApplicationCommandOption
 from quant.api.core.rest_aware import RESTAware
 from quant.entities.snowflake import Snowflake
 from quant.entities.member import GuildMember
@@ -53,7 +56,9 @@ from quant.impl.core.route import (
     GET_USER,
     GET_GUILD_MEMBER,
     MODIFY_GUILD_MEMBER,
-    REMOVE_GUILD_MEMBER
+    REMOVE_GUILD_MEMBER,
+    ADD_GUILD_MEMBER_ROLE,
+    GET_GUILD_APPLICATION_COMMANDS
 )
 from quant.entities.message import Message, Attachment
 from quant.entities.embeds import Embed
@@ -440,7 +445,7 @@ class RESTImpl(RESTAware):
         default_permissions: bool = False,
         dm_permissions: bool = False,
         default_member_permissions: str = None,
-        options: List[SlashOption] = None,
+        options: List[ApplicationCommandOption] = None,
         nsfw: bool = False
     ) -> None:
         body = MutableJsonBuilder({"name": name, "description": description})
@@ -459,7 +464,7 @@ class RESTImpl(RESTAware):
             body.put("default_member_permissions", default_member_permissions)
 
         if options is not None:
-            body.put("options", [option.as_json() for option in options])
+            body.put("options", [self.entity_factory.serialize_slash_option(option) for option in options])
 
         if nsfw:
             body.put("nsfw", nsfw)
@@ -479,7 +484,7 @@ class RESTImpl(RESTAware):
         default_permissions: bool = False,
         dm_permissions: bool = False,
         default_member_permissions: str = None,
-        options: List[SlashOption] = None,
+        options: List[ApplicationCommandOption] = None,
         nsfw: bool = False
     ) -> None:
         body = MutableJsonBuilder({"name": name, "description": description})
@@ -741,6 +746,40 @@ class RESTImpl(RESTAware):
 
         response = await self.http.send_request(method=method, url=url, data=payload)
         return self.entity_factory.deserialize_member(await response.json())
+
+    async def add_guild_member_role(
+        self,
+        guild_id: Snowflake | int,
+        user_id: Snowflake | int,
+        role_id: Snowflake | int
+    ) -> None:
+        method, url = self._build_url(
+            route=ADD_GUILD_MEMBER_ROLE,
+            data={"guild_id": guild_id, "user_id": user_id, "role_id": role_id}
+        )
+
+        await self.http.send_request(method=method, url=url)
+
+    async def fetch_guild_application_commands(
+        self,
+        application_id: Snowflake | int,
+        guild_id: Snowflake | int,
+        with_localizations: bool = False
+    ) -> List[ApplicationCommandObject]:
+        body = MutableJsonBuilder()
+
+        if with_localizations:
+            body.put("with_localizations", with_localizations)
+
+        method, url = self._build_url(
+            route=GET_GUILD_APPLICATION_COMMANDS,
+            data={"application_id": application_id, "guild_id": guild_id}
+        )
+        response = await self.http.send_request(
+            method=method, url=url, data=body
+        )
+
+        return [self.entity_factory.deserialize_application_command(cmd) for cmd in await response.json()]
 
     @staticmethod
     def _parse_emoji(emoji: str | Emoji | Snowflake | int) -> str:

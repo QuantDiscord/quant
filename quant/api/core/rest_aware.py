@@ -1,7 +1,7 @@
 from typing import List, Any, Dict
 from abc import ABC, abstractmethod
 
-from quant.entities.interactions.slash_option import SlashOption
+from quant.entities.interactions.slash_option import ApplicationCommandOption
 from quant.entities.guild import Guild
 from quant.entities.emoji import Emoji
 from quant.entities.interactions.interaction import InteractionCallbackType, InteractionCallbackData
@@ -125,7 +125,7 @@ class RESTAware(ABC):
         default_permissions: bool = False,
         dm_permissions: bool = False,
         default_member_permissions: str = None,
-        options: List[SlashOption] = None,
+        options: List[ApplicationCommandOption] = None,
         nsfw: bool = False
     ) -> None:
         raise NotImplementedError
@@ -140,7 +140,7 @@ class RESTAware(ABC):
         default_permissions: bool = False,
         dm_permissions: bool = False,
         default_member_permissions: str = None,
-        options: List[SlashOption] = None,
+        options: List[ApplicationCommandOption] = None,
         nsfw: bool = False
     ) -> None:
         raise NotImplementedError

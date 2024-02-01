@@ -37,6 +37,9 @@ def decode_permissions(permission_value: int) -> Permissions:
         except TypeError:
             value = permission.value()
 
+        if permission_value is None:
+            return Permissions.NONE
+
         if permission_value & value == Permissions.ADMINISTRATOR.value:
             return Permissions.ADMINISTRATOR
 

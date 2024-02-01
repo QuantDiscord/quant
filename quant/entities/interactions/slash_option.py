@@ -21,7 +21,7 @@ class SlashOptionType(enum.Enum):
 
 
 @attrs.define
-class SlashOption:
+class ApplicationCommandOption:
     name: str = attrs.field()
     description: str = attrs.field()
     min_value: int = attrs.field(default=None)

@@ -13,3 +13,9 @@ class ApplicationCommandOptionType(Enum):
     MENTIONABLE = 9
     NUMBER = 10
     ATTACHMENT = 11
+
+
+class ApplicationCommandTypes(Enum):
+    CHAT_INPUT = 1
+    USER = 2
+    MESSAGE = 3

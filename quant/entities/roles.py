@@ -20,3 +20,7 @@ class GuildRole:
     mentionable: bool = attrs.field()
     tags: List[Any] = attrs.field()
     flags: int = attrs.field()
+
+    @property
+    def mention(self) -> str:
+        return f"<@&{self.id}>"

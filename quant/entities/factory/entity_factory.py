@@ -7,6 +7,7 @@ import attrs
 if TYPE_CHECKING:
     from quant.utils.cache.cache_manager import CacheManager
 
+from quant.impl.core.commands import ApplicationCommandObject, ApplicationCommandTypes
 from quant.entities.message import Message, Attachment, MessageFlags
 from quant.entities.embeds import Embed, EmbedField, EmbedAuthor, EmbedImage, EmbedThumbnail, EmbedFooter
 from quant.entities.voice_state_update import VoiceState
@@ -19,7 +20,7 @@ from quant.entities.roles import GuildRole
 from quant.entities.user import User
 from quant.entities.emoji import Reaction, PartialReaction, Emoji
 from quant.entities.action_row import ActionRow
-from quant.entities.interactions.slash_option import SlashOptionType, SlashOption
+from quant.entities.interactions.slash_option import SlashOptionType, ApplicationCommandOption
 from quant.entities.interactions.component_types import ComponentType
 from quant.api.entities.component import Component
 from quant.entities.snowflake import Snowflake
@@ -372,6 +373,23 @@ class EntityFactory:
     def serialize_attachment(attachment: Attachment) -> Dict:
         return attrs.asdict(attachment)
 
+    def deserialize_application_command(self, payload: MutableJsonBuilder | Dict) -> ApplicationCommandObject:
+        if (options := payload.get("options")) is not None:
+            options = [self.deserialize_slash_option(option) for option in options]
+
+        return ApplicationCommandObject(
+            cmd_id=Snowflake(payload.get("id")),
+            cmd_type=ApplicationCommandTypes(payload.get("type")),
+            application_id=Snowflake(payload.get("application_id", 0)),
+            guild_id=Snowflake(payload.get("guild_id", 0)),
+            name=payload.get("name"),
+            description=payload.get("description"),
+            options=options,
+            default_member_permissions=decode_permissions(payload.get("default_member_permissions")),
+            dm_permissions=payload.get("dm_permissions"),
+            nsfw=payload.get("nsfw", False)
+        )
+
     def deserialize_message(self, payload: MutableJsonBuilder | Dict | None) -> Message | None:
         if payload is None:
             return
@@ -475,7 +493,25 @@ class EntityFactory:
             attachments=attachments
         )
 
-    def serialize_slash_option(self, option: SlashOption) -> Dict:
+    def deserialize_slash_option(self, payload: MutableJsonBuilder | Dict) -> ApplicationCommandOption:
+        if (options := payload.get("options")) is not None:
+            options = [self.deserialize_slash_option(options) for option in options]
+
+        return ApplicationCommandOption(
+            name=payload.get("name"),
+            description=payload.get("description"),
+            min_value=payload.get("min_value"),
+            max_value=payload.get("max_value"),
+            min_length=payload.get("min_length"),
+            max_length=payload.get("max_length"),
+            autocomplete=payload.get("autocomplete"),
+            channel_types=payload.get("channel_types"),
+            options=options,
+            choices=payload.get("choices"),
+            required=payload.get("required")
+        )
+
+    def serialize_slash_option(self, option: ApplicationCommandOption) -> Dict:
         body = MutableJsonBuilder()
 
         if (options := option.options) is not None:

@@ -8,9 +8,9 @@ import attrs
 if TYPE_CHECKING:
     from .invite import Invite
 
+from .member import GuildMember
 from .user import User
 from .channel import Channel
-from .member import GuildMember
 from .voice_state_update import VoiceState
 from .model import BaseModel
 from .snowflake import Snowflake
