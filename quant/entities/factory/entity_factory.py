@@ -43,11 +43,20 @@ class EntityFactory:
     def serialize_member(member: GuildMember) -> Dict[str, Any]:
         return attrs.asdict(member)
 
-    def deserialize_member(self, payload: MutableJsonBuilder | Dict) -> GuildMember:
+    def deserialize_member(
+        self,
+        payload: MutableJsonBuilder | Dict,
+        guild_id: Snowflake | int | None = None
+    ) -> GuildMember:
         if (roles := payload.get("roles")) is not None:
             roles = [self.cache.get_role(Snowflake(role)) for role in roles]
 
+        if (user := payload.get("user")) is not None:
+            user = self.deserialize_user(user)
+
         return GuildMember(
+            user=user,
+            guild_id=guild_id,
             deaf=payload.get("deaf", False),
             mute=payload.get("mute", False),
             flags=payload.get("flags", 0),
@@ -59,7 +68,6 @@ class EntityFactory:
             joined_at=iso_to_datetime(payload.get("joined_at")),
             premium_since=payload.get("premium_since", 0),
             communication_disabled_until=payload.get("communication_disabled_until", 0),
-            user=self.deserialize_user(payload.get("user")),
             unusual_dm_activity_until=payload.get("unusual_dm_activity_until")
         )
 
@@ -117,7 +125,7 @@ class EntityFactory:
             user = self.deserialize_user(user)
 
         if (member := payload.get("member")) is not None:
-            member = self.deserialize_member(member)
+            member = self.deserialize_member(member, Snowflake(payload.get("guild_id")))
 
         return Interaction(
             name=payload.get("name"),
@@ -147,7 +155,7 @@ class EntityFactory:
             guild_id=Snowflake(payload.get("guild_id", 0)),
             channel_id=Snowflake(payload.get("channel_id", 0)),
             user_id=Snowflake(payload.get("user_id", 0)),
-            member=self.deserialize_member(payload.get("member")) if payload.get("member") is not None else None,
+            member=self.deserialize_member(payload.get("member"), Snowflake(payload.get("guild_id", 0))) if payload.get("member") is not None else None,
             session_id=payload.get("session_id"),
             deaf=payload.get("deaf", False),
             mute=payload.get("mute", False),
@@ -310,7 +318,7 @@ class EntityFactory:
             type=payload.get("reaction_type"),
             message_id=Snowflake(payload.get("message_id")),
             message_author_id=Snowflake(payload.get("message_author_id")),
-            member=self.deserialize_member(payload.get("member")) if payload.get("member") is not None else None,
+            member=self.deserialize_member(payload.get("member"), Snowflake(payload.get("guild_id"))) if payload.get("member") is not None else None,
             emoji=PartialReaction(**payload.get("emoji")) if payload.get("emoji") is not None else None,
             channel_id=Snowflake(payload.get("channel_id")),
             burst=payload.get("burst", False),
@@ -398,7 +406,7 @@ class EntityFactory:
             embeds = [self.deserialize_embed(embed) for embed in embeds]
 
         if (member := payload.get("member")) is not None:
-            member = self.deserialize_member(member)
+            member = self.deserialize_member(member, Snowflake(payload.get("guild_id", 0)))
 
         if (attachments := payload.get("attachments")) is not None:
             attachments = [self.deserialize_attachment(attachment) for attachment in attachments]
@@ -572,7 +580,8 @@ class EntityFactory:
             joined_at=payload.get("joined_at", None),
             member_count=payload.get("member_count", 0),
             presences=payload.get("presences", []),
-            members=[self.deserialize_member(member_data) for member_data in payload.get("members", [])],
+            members=[self.deserialize_member(member_data, Snowflake(payload["id"]))
+                     for member_data in payload.get("members", [])],
             large=payload.get("large", False),
             permissions=decode_permissions(int(payload.get("permissions", 0))),
             roles=roles,
@@ -676,8 +685,11 @@ class EntityFactory:
         )
 
     def _deserialize_reaction(self, payload: MutableJsonBuilder | Dict) -> Reaction:
+        if (guild_id := payload.get("guild_id")) is not None:
+            guild_id = Snowflake(guild_id)
+
         if (member := payload.get("member")) is not None:
-            member = self.deserialize_member(member)
+            member = self.deserialize_member(member, guild_id=guild_id)
 
         return Reaction(
             user_id=Snowflake(payload.get("user_id", 0)),
@@ -688,6 +700,6 @@ class EntityFactory:
             emoji=payload.get("emoji"),
             channel_id=Snowflake(payload.get("channel_id", 0)),
             burst=payload.get("color"),
-            guild_id=Snowflake(payload.get("guild_id", 0)),
+            guild_id=guild_id,
             burst_colors=payload.get("burst_colors")
         )

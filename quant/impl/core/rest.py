@@ -681,7 +681,7 @@ class RESTImpl(RESTAware):
             query_params={"limit": limit, "after": after}
         )
         response = await self.http.send_request(method=method, url=url)
-        return [self.entity_factory.deserialize_member(member) for member in await response.json()]
+        return [self.entity_factory.deserialize_member(member, guild_id=guild_id) for member in await response.json()]
 
     async def fetch_guild_roles(self, guild_id: Snowflake | int) -> List[GuildRole]:
         method, url = self._build_url(
@@ -705,7 +705,7 @@ class RESTImpl(RESTAware):
             data={"guild_id": guild_id, "user_id": user_id}
         )
         response = await self.http.send_request(method=method, url=url)
-        return self.entity_factory.deserialize_member(await response.json())
+        return self.entity_factory.deserialize_member(await response.json(), guild_id=guild_id)
 
     async def modify_guild_member(
         self,
@@ -745,7 +745,7 @@ class RESTImpl(RESTAware):
             headers.put(X_AUDIT_LOG_REASON, reason)
 
         response = await self.http.send_request(method=method, url=url, data=payload)
-        return self.entity_factory.deserialize_member(await response.json())
+        return self.entity_factory.deserialize_member(await response.json(), guild_id=guild_id)
 
     async def add_guild_member_role(
         self,

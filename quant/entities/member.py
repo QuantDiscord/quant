@@ -7,10 +7,9 @@ import attrs
 
 if TYPE_CHECKING:
     from .user import User
-    from .guild import Guild
 
-from .snowflake import Snowflake
 from .model import BaseModel
+from .snowflake import Snowflake
 from .roles import GuildRole
 from .permissions import Permissions
 
@@ -29,6 +28,7 @@ class GuildMember(BaseModel):
     premium_since: int | None = attrs.field(default=0)
     communication_disabled_until: int | None = attrs.field(default=0)
     user: User = attrs.field(default=None)
+    guild_id: Snowflake | int = attrs.field()
     unusual_dm_activity_until: Any = attrs.field(default=None)
 
     @property
@@ -42,17 +42,12 @@ class GuildMember(BaseModel):
     def get_avatar(self) -> str:
         return f"https://cdn.discordapp.com/avatars/{self.id}/{self.avatar}.png?size=1024"
 
-    async def add_role(self, guild: Guild | Snowflake | int, role: GuildRole | Snowflake | int) -> None:
-        from .guild import Guild
-
-        if isinstance(guild, Guild):
-            guild = guild.id
-
+    async def add_role(self, role: GuildRole | Snowflake | int) -> None:
         if isinstance(role, GuildRole):
             role = role.id
 
         await self.client.rest.add_guild_member_role(
-            guild_id=guild,
+            guild_id=self.guild_id,
             role_id=role,
             user_id=self.id
         )
