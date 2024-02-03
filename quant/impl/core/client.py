@@ -47,7 +47,7 @@ class Client:
         shard_id: int = 0,
         num_shards: int = 1
     ) -> None:
-        self.my_user: User | None = None
+        self.me: User | None = None
         self.token = token
         self.intents = intents
         self.gateway: Gateway = Gateway(
@@ -90,17 +90,18 @@ class Client:
 
         self.gateway.loop.run_forever()
 
+    async def run_shards(self, num_shards: int) -> None:
+        shard_tasks = [Shard(num_shards=num_shards, shard_id=shard_id).start(self.token) for shard_id in
+                       range(num_shards)]
+        await asyncio.gather(*shard_tasks)
+
     def run_with_shards(self, num_shards: int, loop: asyncio.AbstractEventLoop = None) -> None:
         BaseModel.set_client(self)
 
         if loop is not None:
             self.gateway.loop = loop
 
-        for shard_id in range(num_shards):
-            shard = Shard(num_shards=num_shards, shard_id=shard_id)
-            print(shard)
-            asyncio.ensure_future(shard.start(self.token), loop=self.gateway.loop)
-
+        asyncio.ensure_future(self.run_shards(num_shards), loop=self.gateway.loop)
         self.gateway.loop.run_forever()
 
     async def set_activity(self, activity: ActivityData) -> None:
@@ -264,4 +265,4 @@ class Client:
             raise e
 
     async def _set_client_user_on_ready(self, _: ReadyEvent) -> None:
-        self.my_user = self.cache.get_users()[0]
+        self.me = self.cache.get_users()[0]

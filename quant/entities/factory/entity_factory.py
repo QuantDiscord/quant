@@ -26,7 +26,7 @@ from quant.api.entities.component import Component
 from quant.entities.snowflake import Snowflake
 from quant.utils.json_builder import MutableJsonBuilder
 from quant.utils.attrs_extensions import iso_to_datetime
-from quant.utils.parser import decode_permissions
+from quant.utils.parser import parse_permissions
 
 
 class EntityFactory:
@@ -61,7 +61,7 @@ class EntityFactory:
             mute=payload.get("mute", False),
             flags=payload.get("flags", 0),
             pending=payload.get("pending"),
-            permissions=decode_permissions(int(payload.get("permissions", 0))),
+            permissions=parse_permissions(int(payload.get("permissions", 0))),
             nick=payload.get("nick"),
             avatar=payload.get("avatar"),
             roles=roles,
@@ -207,7 +207,7 @@ class EntityFactory:
             thread_metadata=self._deserialize_thread_metadata(payload.get("thread_metadata")),
             member=payload.get("member"),
             default_auto_archive_duration=payload.get("default_auto_archive_duration", 0),
-            permissions=decode_permissions(int(payload.get("permissions", 0))),
+            permissions=parse_permissions(int(payload.get("permissions", 0))),
             flags=payload.get("flags", 0),
             total_message_sent=payload.get("total_message_sent", 0),
             available_tags=payload.get("available_tags"),
@@ -247,7 +247,7 @@ class EntityFactory:
             last_pin_timestamp=iso_to_datetime(payload.get("last_pin_timestamp")),
             message_count=payload.get("message_count", 0),
             member=payload.get("member"),
-            permissions=decode_permissions(int(payload.get("permissions", 0))),
+            permissions=parse_permissions(int(payload.get("permissions", 0))),
             flags=payload.get("flags", 0),
             total_message_sent=payload.get("total_message_sent", 0),
             default_reaction_emoji=[self._deserialize_reaction({"emoji": reaction_data}) for reaction_data in
@@ -282,7 +282,7 @@ class EntityFactory:
             last_pin_timestamp=iso_to_datetime(payload.get("last_pin_timestamp")),
             message_count=payload.get("message_count", 0),
             member=payload.get("member"),
-            permissions=decode_permissions(int(payload.get("permissions", 0))),
+            permissions=parse_permissions(int(payload.get("permissions", 0))),
             flags=payload.get("flags", 0),
             total_message_sent=payload.get("total_message_sent", 0),
             default_reaction_emoji=[self.deserialize_reaction({"emoji": reaction_data}) for reaction_data in
@@ -336,7 +336,7 @@ class EntityFactory:
             icon=payload.get("icon"),
             unicode_emoji=payload.get("unicode_emoji"),
             position=payload.get("position"),
-            permissions=decode_permissions(int(payload.get("permissions", -1))),
+            permissions=parse_permissions(int(payload.get("permissions", -1))),
             managed=payload.get("managed", False),
             mentionable=payload.get("mentionable", False),
             tags=payload.get("tags"),
@@ -393,7 +393,7 @@ class EntityFactory:
             name=payload.get("name"),
             description=payload.get("description"),
             options=options,
-            default_member_permissions=decode_permissions(payload.get("default_member_permissions")),
+            default_member_permissions=parse_permissions(payload.get("default_member_permissions")),
             dm_permissions=payload.get("dm_permissions"),
             nsfw=payload.get("nsfw", False)
         )
@@ -583,7 +583,7 @@ class EntityFactory:
             members=[self.deserialize_member(member_data, Snowflake(payload["id"]))
                      for member_data in payload.get("members", [])],
             large=payload.get("large", False),
-            permissions=decode_permissions(int(payload.get("permissions", 0))),
+            permissions=parse_permissions(int(payload.get("permissions", 0))),
             roles=roles,
             emojis=emojis,
             icon=payload.get("icon", None),

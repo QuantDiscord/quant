@@ -40,7 +40,7 @@ async def on_voice_server_update(event: quant.VoiceServerUpdateEvent) -> None:
 async def on_ready_callback(_: quant.ReadyEvent) -> None:
     builder = (
         lavasnek_rs.LavalinkBuilder(
-            client.my_user.user_id, os.getenv("TOKEN")
+            client.me.user_id, os.getenv("TOKEN")
         )
         .set_host("127.0.0.1")
         .set_port(8081)

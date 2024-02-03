@@ -29,7 +29,7 @@ async def parse_option_type(
             return value
 
 
-def decode_permissions(permission_value: int) -> Permissions:
+def parse_permissions(permission_value: int) -> Permissions:
     decoded_permissions = Permissions(0)
     for permission in Permissions:
         try:
