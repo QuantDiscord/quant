@@ -3,4 +3,4 @@ from .impl import *
 from .utils import has_permissions
 
 
-__version__ = "1.1"
+__version__ = "1.5"

@@ -70,7 +70,8 @@ class Client:
             num_shards=num_shards,
             client=self
         )
-        
+        self._gateway_info: GatewayInfo = self.loop.run_until_complete(self.rest.get_gateway())
+
         self._modals: Dict[str, Modal] = {}
         self._buttons: Dict[str, Button] = {}
         self._slash_commands: Dict[str, SlashCommand] = {}
@@ -114,8 +115,7 @@ class Client:
         self.loop.run_forever()
 
     def run_autoshard(self, loop: asyncio.AbstractEventLoop = None) -> None:
-        gateway_info: GatewayInfo = self.loop.run_until_complete(self.rest.get_gateway())
-        self.run_with_shards(shard_count=gateway_info.shards, loop=loop)
+        self.run_with_shards(shard_count=self._gateway_info.shards, loop=loop)
 
     async def set_activity(self, activity: ActivityData, shard_id: int = 0) -> None:
         shard = self.shards[shard_id]
