@@ -33,7 +33,7 @@ class ApplicationCommandObject(Command):
         nsfw: bool = False,
         cmd_type: ApplicationCommandTypes = ApplicationCommandTypes.CHAT_INPUT,
         guild_id: Snowflake | None = None,
-        options: List[ApplicationCommandOption] = None,
+        options: List[ApplicationCommandOption] = [],
         default_member_permissions: Permissions | None = None,
         **kwargs
     ) -> None:
@@ -94,6 +94,5 @@ class SlashCommand(ApplicationCommandObject):
         guild_ids: List[Snowflake | int] = [],
         **kwargs
     ) -> None:
-        super().__init__(kwargs.get("name"), kwargs.get("description"), **kwargs)
-        self.options = options
+        super().__init__(kwargs.get("name"), kwargs.get("description"), options=options, **kwargs)
         self.guild_ids = guild_ids
