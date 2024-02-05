@@ -50,27 +50,20 @@ class Channel(BaseModel):
     theme_color: str = attrs.field(default=None, repr=False)
     icon_emoji: str = attrs.field(default=None, repr=False)
     template: str = attrs.field(default=None, repr=False)
-    last_message_id: Snowflake = attrs.field(default=0)
-    rate_limit_per_user: int = attrs.field(default=0)
     icon: str = attrs.field(default=None)
     owner_id: Snowflake = attrs.field(default=0)
     application_id: Snowflake = attrs.field(default=0)
     managed: bool = attrs.field(default=False)
     parent_id: Snowflake = attrs.field(default=0)
-    last_pin_timestamp: datetime = attrs.field(default=None)
-    message_count: int = attrs.field(default=0)
     member_count: int = attrs.field(default=0)
     member: Any = attrs.field(default=None)
     default_auto_archive_duration: int = attrs.field(default=0)
     permissions: Permissions = attrs.field(default=None)
     flags: int = attrs.field(default=0)
-    total_message_sent: int = attrs.field(default=0)
-    available_tags: List[Any] = attrs.field(default=None)
-    applied_tags: List[Snowflake] = attrs.field(default=None)
-    default_reaction_emoji: List[Reaction] = attrs.field(default=None)
+    # Is forum
+    # default_reaction_emoji: List[Reaction] = attrs.field(default=None)
     default_thread_rate_limit_per_user: int = attrs.field(default=0)
     default_sort_order: int = attrs.field(default=0)
-    default_forum_layout: int = attrs.field(default=0)
 
     @property
     def mention(self) -> str:
@@ -121,18 +114,27 @@ class ThreadMetadata:
 
 
 @attrs.define(kw_only=True)
-class Thread(Channel):
+class VoiceChannel(Channel):
+    bitrate: int = attrs.field(default=0)
+    user_limit: int = attrs.field(default=0)
+    rtc_region: str = attrs.field(default=None)
+    video_quality_mode: int = attrs.field(default=0)
+
+
+@attrs.define(kw_only=True)
+class TextChannel(Channel):
+    last_message_id: Snowflake = attrs.field(default=0)
+    rate_limit_per_user: int = attrs.field(default=0)
+    last_pin_timestamp: datetime = attrs.field(default=None)
+
+
+@attrs.define(kw_only=True)
+class Thread(TextChannel):
+    total_message_sent: int = attrs.field()
+    message_count: int = attrs.field()
     available_tags: List[Any] = attrs.field()
     applied_tags: List[Snowflake] = attrs.field()
     thread_metadata: ThreadMetadata = attrs.field()
     default_auto_archive_duration: datetime = attrs.field()
     member_count: int = attrs.field()
     recipients: List[User] = attrs.field(default=None)
-
-
-@attrs.define(kw_only=True)
-class VoiceChannel(Channel):
-    bitrate: int = attrs.field(default=0)
-    user_limit: int = attrs.field(default=0)
-    rtc_region: str = attrs.field(default=None)
-    video_quality_mode: int = attrs.field(default=0)

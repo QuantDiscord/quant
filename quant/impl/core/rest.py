@@ -11,6 +11,7 @@ import attrs
 if TYPE_CHECKING:
     from quant.impl.core.commands import ApplicationCommandObject
 
+from quant.entities.gateway import GatewayInfo, SessionStartLimitObject
 from quant.impl.core.route import Route
 from quant.entities.factory.entity_factory import EntityFactory
 from quant.entities.action_row import ActionRow
@@ -58,7 +59,8 @@ from quant.impl.core.route import (
     MODIFY_GUILD_MEMBER,
     REMOVE_GUILD_MEMBER,
     ADD_GUILD_MEMBER_ROLE,
-    GET_GUILD_APPLICATION_COMMANDS
+    GET_GUILD_APPLICATION_COMMANDS,
+    GATEWAY_BOT
 )
 from quant.entities.message import Message, Attachment
 from quant.entities.embeds import Embed
@@ -780,6 +782,17 @@ class RESTImpl(RESTAware):
         )
 
         return [self.entity_factory.deserialize_application_command(cmd) for cmd in await response.json()]
+
+    async def get_gateway(self) -> GatewayInfo:
+        method, url = self._build_url(route=GATEWAY_BOT)
+        response = await self.http.send_request(method=method, url=url)
+        payload = await response.json()
+
+        return GatewayInfo(
+            url=payload.get("url"),
+            shards=payload.get("shards"),
+            session_start_limit=SessionStartLimitObject(**payload.get("session_start_limit"))
+        )
 
     @staticmethod
     def _parse_emoji(emoji: str | Emoji | Snowflake | int) -> str:

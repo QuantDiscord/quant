@@ -31,9 +31,12 @@ POST: Final[str] = "POST"
 _ROUTE_FIELDS = attrs.fields(Route)
 DISCORD_MAIN_API_URL: Final[str] = "https://discord.com/api/v{}".format(_ROUTE_FIELDS.api_version.default)
 DISCORD_WS_URL: Final[Route] = Route(
-    "GET", URI("wss://gateway.discord.gg/?v={}&encoding=json&compress=zlib-stream".format(_ROUTE_FIELDS.api_version.default),
-               auto_format=False)
+    "GET", URI(
+        "wss://gateway.discord.gg/?v={}&encoding=json&compress=zlib-stream".format(_ROUTE_FIELDS.api_version.default),
+        auto_format=False
+    )
 )
+GATEWAY_BOT: Final[Route] = Route("GET", URI("/gateway/bot"))
 
 # Messages
 GET_MESSAGE: Final[Route] = Route(GET, URI("/channels/{channel_id}/messages/{message_id}"))

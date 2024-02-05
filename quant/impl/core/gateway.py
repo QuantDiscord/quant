@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import sys
 import enum
 import time
@@ -7,6 +9,7 @@ from typing import (
     Dict,
     NoReturn,
     List,
+    TYPE_CHECKING
 )
 import asyncio
 from traceback import print_exception
@@ -15,13 +18,13 @@ import json
 import attrs
 import aiohttp
 
+if TYPE_CHECKING:
+    from quant.impl.core.client import Client
+
 from quant.entities.activity import Activity, ActivityStatus
 from quant.entities.snowflake import Snowflake
 from quant.impl.core.route import DISCORD_WS_URL
 from quant.entities.intents import Intents
-from quant.entities.factory.event_factory import EventFactory
-from quant.entities.factory.event_controller import EventController
-from quant.utils.cache.cache_manager import CacheManager
 from quant.utils.asyncio_utils import get_loop
 
 
@@ -54,14 +57,13 @@ class Gateway:
 
     def __init__(
         self,
-        token: str,
         intents: Intents,
+        client: Client,
         api_version: int = 10,
         shard_id: int = 0,
         num_shards: int = 1,
-        session: aiohttp.ClientSession | None = None
+        session: aiohttp.ClientSession | None = None,
     ) -> None:
-        self.token = token
         self.api_version = api_version
         self.websocket_connection: None | aiohttp.ClientWebSocketResponse = None
         self.ws_connected = False
@@ -69,21 +71,22 @@ class Gateway:
         self.session_id = None
         self._previous_heartbeat = 0
         self._mobile_status = False
-        self.cache = CacheManager()
-        self.event_factory = EventFactory(self.cache)
-        self.event_controller = EventController(self.event_factory)
 
         self.loop = get_loop()
 
         self.latency = None
+
+        self.client = client
 
         if session is not None:
             self.session = session
         else:
             self.session = None
 
+        self.shard_id = shard_id
+        self.shard_count = num_shards
         self.raw_payload = IdentifyPayload(
-            token=token,
+            token=client.token,
             properties={
                 "os": sys.platform,
                 "browser": "Discord iOS" if self._mobile_status else "quant",
@@ -171,7 +174,7 @@ class Gateway:
         self.zlib_decompressed_object = zlib.decompressobj()
         self.buffer = bytearray()
 
-        self.get_logger.info("websocket connecting...")
+        self.get_logger.info(f"Connecting to shard with ID %s", self.shard_id)
         await self.send_identify()
         self.loop.create_task(self.read_websocket())
         await self.keep_alive_check()
@@ -212,8 +215,8 @@ class Gateway:
                 received_event_type = received_data["t"]
                 event_details = received_data["d"]
 
-                self.event_factory.cache_item(received_event_type, **event_details)
-                await self.event_controller.dispatch(received_event_type, event_details)
+                self.client.event_factory.cache_item(received_event_type, **event_details)
+                await self.client.event_controller.dispatch(received_event_type, event_details)
             case OpCode.INVALID_SESSION:
                 await self.websocket_connection.close(code=4000)
                 await self.error_reconnect(code=4000)
@@ -260,7 +263,7 @@ class Gateway:
             return
 
         payload = self.create_payload(OpCode.RESUME, {
-            "token": self.token,
+            "token": self.client.token,
             "session_id": self.session_id,
             "seq": self.sequence
         })
@@ -271,7 +274,6 @@ class Gateway:
             return await self.resume_connection()
 
         await self._send(self.create_payload(OpCode.IDENTIFY, self.identify_payload))
-        self.get_logger.info("bot identified")
 
     async def close(self, code: int = 4000):
         self.get_logger.info("Connection closing, code: %s", code)

@@ -52,7 +52,7 @@ class EventFactory:
             event.emit(*args)
             return event.build(event, *args)
 
-    def add_event(self, event: EventT, callback: Callable) -> None:
+    def add_event(self, event: Any, callback: Callable) -> None:
         self.added_listeners[event] = callback
 
         if not hasattr(event, "event_api_name"):

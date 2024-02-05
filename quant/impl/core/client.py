@@ -7,15 +7,22 @@ from typing import (
     Coroutine,
     Callable,
     Any,
+    List,
     Dict,
     overload,
     TypeVar,
     TYPE_CHECKING
 )
 
+from quant.entities.factory import EventFactory
+from quant.entities.factory.event_controller import EventController
+from quant.utils.cache.cache_manager import CacheManager
+
 if TYPE_CHECKING:
     from quant.entities.button import Button
 
+from quant.entities.gateway import GatewayInfo
+from quant.utils.asyncio_utils import get_loop
 from quant.entities.interactions.component_types import ComponentType
 from quant.impl.core.shard import Shard
 from quant.entities.interactions.interaction import Interaction
@@ -48,20 +55,21 @@ class Client:
         num_shards: int = 1
     ) -> None:
         self.me: User | None = None
+        self.shards: List[Shard] = []
         self.token = token
         self.intents = intents
+        self.loop = get_loop()
+        self.cache = CacheManager()
+        self.event_factory = EventFactory(self.cache)
+        self.event_controller = EventController(self.event_factory)
+        self.rest = RESTImpl(token, cache=self.cache)
+        self.client_id: int = self._decode_token_to_id()
         self.gateway: Gateway = Gateway(
-            token=token,
             intents=self.intents,
             shard_id=shard_id,
-            num_shards=num_shards
+            num_shards=num_shards,
+            client=self
         )
-        self.loop = asyncio.get_event_loop()
-        self.cache = self.gateway.cache
-        self.rest = RESTImpl(self.gateway.token, cache=self.cache)
-        self.client_id: int = self._decode_token_to_id()
-        self.event_factory = self.gateway.event_factory
-        self.event_controller = self.gateway.event_controller
         
         self._modals: Dict[str, Modal] = {}
         self._buttons: Dict[str, Button] = {}
@@ -84,33 +92,34 @@ class Client:
         BaseModel.set_client(self)
 
         if loop is not None:
-            self.gateway.loop = loop
+            self.loop = loop
 
-        asyncio.ensure_future(self.gateway.start(), loop=loop or self.gateway.loop)
+        shard = Shard(num_shards=1, shard_id=0, intents=self.intents)
+        asyncio.ensure_future(shard.start(loop=self.loop, client=self), loop=self.loop)
 
-        self.gateway.loop.run_forever()
+        self.loop.run_forever()
 
-    async def run_shards(self, num_shards: int) -> None:
-        shard_tasks = [Shard(num_shards=num_shards, shard_id=shard_id).start(self.token) for shard_id in
-                       range(num_shards)]
-        await asyncio.gather(*shard_tasks)
-
-    def run_with_shards(self, num_shards: int, loop: asyncio.AbstractEventLoop = None) -> None:
+    def run_with_shards(self, shard_count: int, loop: asyncio.AbstractEventLoop = None) -> None:
         BaseModel.set_client(self)
 
         if loop is not None:
-            self.gateway.loop = loop
+            self.loop = loop
 
-        asyncio.ensure_future(self.run_shards(num_shards), loop=self.gateway.loop)
-        self.gateway.loop.run_forever()
+        for shard_id in range(shard_count):
+            shard = Shard(num_shards=shard_count, shard_id=shard_id, intents=self.intents)
+            asyncio.ensure_future(shard.start(loop=self.loop, client=self), loop=self.loop)
 
-    async def set_activity(self, activity: ActivityData) -> None:
-        await self.gateway.send_presence(
-            activity=activity.activity,
-            status=activity.status,
-            since=activity.since,
-            afk=activity.afk
-        )
+            self.loop.run_until_complete(asyncio.sleep(5))
+
+        self.loop.run_forever()
+
+    def run_autoshard(self, loop: asyncio.AbstractEventLoop = None) -> None:
+        gateway_info: GatewayInfo = self.loop.run_until_complete(self.rest.get_gateway())
+        self.run_with_shards(shard_count=gateway_info.shards, loop=loop)
+
+    async def set_activity(self, activity: ActivityData, shard_id: int = 0) -> None:
+        shard = self.shards[shard_id]
+        await shard.send_presence(activity=activity)
 
     @overload
     def add_listener(self, event: T, coro: _Coroutine) -> None:
@@ -134,21 +143,21 @@ class Client:
         if not issubclass(event, Event):
             raise DiscordException(f"Subclass of event {event} must be BaseEvent")
 
-        self.gateway.event_factory.add_event(event, coro)
+        self.event_factory.add_event(event, coro)
 
     def _add_listener_from_coro(self, coro: _Coroutine) -> None:
         if inspect.iscoroutine(coro):
             raise DiscordException("Callback function must be coroutine")
 
-        annotations = inspect.getmembers(coro)[0]
+        func_annotations = inspect.getmembers(coro)[0]
         try:
-            event_type: Event = list(annotations[1].values())[0]
+            event_type: Event = list(func_annotations[1].values())[0]
 
             # idk why linter warning there
             if not issubclass(event_type, (InternalEvent, Event, DiscordEvent)):  # type: ignore
                 raise DiscordException(f"{event_type.__name__} must be subclass of Event")
 
-            self.gateway.event_factory.add_event(event_type, coro)
+            self.event_factory.add_event(event_type, coro)
         except IndexError:
             raise DiscordException(f"You must provide which event you need {coro}")
 
@@ -171,7 +180,7 @@ class Client:
                         description=command.description,
                         options=command.options,
                         guild_id=guild_id
-                    ), loop=self.gateway.loop)
+                    ), loop=self.loop)
                 continue
 
             asyncio.ensure_future(self.rest.create_application_command(
@@ -179,7 +188,7 @@ class Client:
                 name=command.name,
                 description=command.description,
                 options=command.options,
-            ), loop=self.gateway.loop)
+            ), loop=self.loop)
 
     def add_modal(self, *modals: Modal) -> None:
         for modal in modals:
@@ -257,8 +266,8 @@ class Client:
             await self.handle_message_components(interaction)
             await self.handle_modal_submit(interaction)
         except Exception as e:
-            await self.gateway.event_controller.dispatch(
-                self.gateway.event_factory.build_from_class(
+            await self.event_controller.dispatch(
+                self.event_factory.build_from_class(
                     QuantExceptionEvent(), InteractionContext(self, interaction), e
                 )
             )

@@ -13,7 +13,7 @@ from quant.entities.embeds import Embed, EmbedField, EmbedAuthor, EmbedImage, Em
 from quant.entities.voice_state_update import VoiceState
 from quant.entities.voice_server_update import VoiceServer
 from quant.entities.interactions.interaction import InteractionData, InteractionType, Interaction, InteractionDataOption, InteractionCallbackData
-from quant.entities.channel import Channel, Thread, ThreadMetadata, ChannelType, VoiceChannel
+from quant.entities.channel import Channel, Thread, ThreadMetadata, ChannelType, VoiceChannel, TextChannel
 from quant.entities.guild import Guild
 from quant.entities.guild import GuildMember
 from quant.entities.roles import GuildRole
@@ -32,10 +32,10 @@ from quant.utils.parser import parse_permissions
 class EntityFactory:
     def __init__(self, cache: CacheManager) -> None:
         self._channel_converter: Dict[ChannelType, Callable] = {
-            ChannelType.GUILD_TEXT: self.deserialize_channel,
+            ChannelType.GUILD_TEXT: self.deserialize_text_channel,
             ChannelType.GUILD_VOICE: self.deserialize_voice_channel,
             ChannelType.PUBLIC_THREAD: self.deserialize_thread,
-            ChannelType.PRIVATE_THREAD: self.deserialize_thread
+            ChannelType.PRIVATE_THREAD: self.deserialize_thread,
         }
         self.cache = cache
 
@@ -127,13 +127,16 @@ class EntityFactory:
         if (member := payload.get("member")) is not None:
             member = self.deserialize_member(member, Snowflake(payload.get("guild_id")))
 
+        if (channel := payload.get("channel")) is not None:
+            channel = self._channel_converter.get(ChannelType(channel["type"]), self.deserialize_channel)(channel)
+
         return Interaction(
             name=payload.get("name"),
             id=Snowflake(payload.get("id", 0)),
             application_id=Snowflake(payload.get("application_id")),
             data=self._deserialize_interaction_data(payload.get("data")),
             guild_id=Snowflake(payload.get("guild_id")),
-            channel=self.deserialize_channel(payload.get("channel")),
+            channel=channel,
             channel_id=Snowflake(payload.get("channel_id")),
             token=payload.get("token"),
             guild=self.deserialize_guild(payload.get("guild")),
@@ -212,11 +215,41 @@ class EntityFactory:
             total_message_sent=payload.get("total_message_sent", 0),
             available_tags=payload.get("available_tags"),
             applied_tags=[Snowflake(tag) for tag in payload.get("applied_tags", [])],
-            default_reaction_emoji=[Reaction(emoji=reaction_data) for reaction_data in
-                                    payload.get("default_reaction_emoji", [])],
+            default_thread_rate_limit_per_user=payload.get("default_thread_rate_limit_per_user", 0),
+            default_sort_order=payload.get("default_sort_order", 0)
+        )
+
+    def deserialize_text_channel(self, payload: MutableJsonBuilder| Dict | None) -> TextChannel | None:
+        if payload is None:
+            return
+
+        return TextChannel(
+            id=Snowflake(payload.get("id", 0)),
+            type=ChannelType(payload.get("type", 0)),
+            guild_id=Snowflake(payload.get("guild_id", 0)),
+            position=payload.get("position", 0),
+            permission_overwrites=payload.get("permission_overwrites"),
+            name=payload.get("name"),
+            topic=payload.get("topic"),
+            nsfw=payload.get("nsfw", False),
+            version=payload.get("version"),
+            status=payload.get("status"),
+            theme_color=payload.get("theme_color"),
+            icon_emoji=payload.get("icon_emoji"),
+            template=payload.get("template"),
+            icon=payload.get("icon", None),
+            owner_id=Snowflake(payload.get("owner_id", 0)),
+            application_id=Snowflake(payload.get("application_id", 0)),
+            managed=payload.get("managed", False),
+            parent_id=Snowflake(payload.get("parent_id", 0)),
+            member=payload.get("member"),
+            permissions=parse_permissions(int(payload.get("permissions", 0))),
+            flags=payload.get("flags", 0),
             default_thread_rate_limit_per_user=payload.get("default_thread_rate_limit_per_user", 0),
             default_sort_order=payload.get("default_sort_order", 0),
-            default_forum_layout=payload.get("default_forum_layout", 0)
+            last_message_id=Snowflake(payload.get("last_message_id", 0)),
+            rate_limit_per_user=payload.get("rate_limit_per_user", 0),
+            last_pin_timestamp=iso_to_datetime(payload.get("last_pin_timestamp")),
         )
 
     def deserialize_channel(self, payload: MutableJsonBuilder | Dict | None) -> Channel | None:
@@ -237,24 +270,16 @@ class EntityFactory:
             theme_color=payload.get("theme_color"),
             icon_emoji=payload.get("icon_emoji"),
             template=payload.get("template"),
-            last_message_id=Snowflake(payload.get("last_message_id", 0)),
-            rate_limit_per_user=payload.get("rate_limit_per_user", 0),
             icon=payload.get("icon", None),
             owner_id=Snowflake(payload.get("owner_id", 0)),
             application_id=Snowflake(payload.get("application_id", 0)),
             managed=payload.get("managed", False),
             parent_id=Snowflake(payload.get("parent_id", 0)),
-            last_pin_timestamp=iso_to_datetime(payload.get("last_pin_timestamp")),
-            message_count=payload.get("message_count", 0),
             member=payload.get("member"),
             permissions=parse_permissions(int(payload.get("permissions", 0))),
             flags=payload.get("flags", 0),
-            total_message_sent=payload.get("total_message_sent", 0),
-            default_reaction_emoji=[self._deserialize_reaction({"emoji": reaction_data}) for reaction_data in
-                                    payload.get("default_reaction_emoji", [])],
             default_thread_rate_limit_per_user=payload.get("default_thread_rate_limit_per_user", 0),
-            default_sort_order=payload.get("default_sort_order", 0),
-            default_forum_layout=payload.get("default_forum_layout", 0)
+            default_sort_order=payload.get("default_sort_order", 0)
         )
 
     def deserialize_voice_channel(self, payload: MutableJsonBuilder | Dict) -> VoiceChannel:
@@ -272,24 +297,16 @@ class EntityFactory:
             theme_color=payload.get("theme_color"),
             icon_emoji=payload.get("icon_emoji"),
             template=payload.get("template"),
-            last_message_id=Snowflake(payload.get("last_message_id", 0)),
-            rate_limit_per_user=payload.get("rate_limit_per_user", 0),
             icon=payload.get("icon", None),
             owner_id=Snowflake(payload.get("owner_id", 0)),
             application_id=Snowflake(payload.get("application_id", 0)),
             managed=payload.get("managed", False),
             parent_id=Snowflake(payload.get("parent_id", 0)),
-            last_pin_timestamp=iso_to_datetime(payload.get("last_pin_timestamp")),
-            message_count=payload.get("message_count", 0),
             member=payload.get("member"),
             permissions=parse_permissions(int(payload.get("permissions", 0))),
             flags=payload.get("flags", 0),
-            total_message_sent=payload.get("total_message_sent", 0),
-            default_reaction_emoji=[self.deserialize_reaction({"emoji": reaction_data}) for reaction_data in
-                                    payload.get("default_reaction_emoji", [])],
             default_thread_rate_limit_per_user=payload.get("default_thread_rate_limit_per_user", 0),
             default_sort_order=payload.get("default_sort_order", 0),
-            default_forum_layout=payload.get("default_forum_layout", 0),
             bitrate=int(payload.get("bitrate", 0)),
             user_limit=int(payload.get("user_limit", 0)),
             rtc_region=payload.get("rtc_region"),
@@ -549,9 +566,8 @@ class EntityFactory:
             return
 
         if (channels := payload.get("channels")) is not None:
-            text_channel = self._channel_converter[ChannelType.GUILD_TEXT]
             channels = [self._channel_converter.get(
-                ChannelType(channel_data["type"]), text_channel
+                ChannelType(channel_data["type"]), self.deserialize_channel
             )(channel_data) for channel_data in channels]
 
         if (roles := payload.get("roles")) is not None:
