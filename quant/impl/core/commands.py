@@ -9,10 +9,10 @@ from quant.entities.snowflake import Snowflake
 from quant.entities.interactions.application_command import ApplicationCommandTypes
 
 
-@attrs.define
 class Command:
-    name: str
-    description: str
+    def __init__(self, name: str, description: str) -> None:
+        self.name = name
+        self.description = description
 
     async def callback(self, context: BaseContext, *args) -> None:
         pass
@@ -98,4 +98,5 @@ class SlashCommand(ApplicationCommandObject):
         if options is None:
             self.options = []
 
-        self.guild_ids = guild_ids
+        if guild_ids is None:
+            self.guild_ids = []

@@ -63,6 +63,7 @@ class Gateway:
         shard_id: int = 0,
         num_shards: int = 1,
         session: aiohttp.ClientSession | None = None,
+        mobile: bool = False
     ) -> None:
         self.api_version = api_version
         self.websocket_connection: None | aiohttp.ClientWebSocketResponse = None
@@ -70,7 +71,6 @@ class Gateway:
         self.sequence = None
         self.session_id = None
         self._previous_heartbeat = 0
-        self._mobile_status = False
 
         self.loop = get_loop()
 
@@ -89,7 +89,7 @@ class Gateway:
             token=client.token,
             properties={
                 "os": sys.platform,
-                "browser": "Discord iOS" if self._mobile_status else "quant",
+                "browser": "Discord iOS" if mobile else "quant",
                 "device": "quant"
             },
             shard=[shard_id, num_shards],
@@ -331,14 +331,6 @@ class Gateway:
             payload.update({"s": sequence, "t": event_name})
 
         return json.dumps(payload)
-
-    @property
-    def mobile_status(self) -> bool:
-        return self._mobile_status
-
-    @mobile_status.setter
-    def mobile_status(self, value: bool):
-        self._mobile_status = value
 
     @staticmethod
     def create_new_loop() -> asyncio.AbstractEventLoop:

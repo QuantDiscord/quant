@@ -13,18 +13,26 @@ from .gateway import Gateway
 
 
 class Shard:
-    def __init__(self, num_shards: int, shard_id: int, intents: Intents = Intents.ALL_UNPRIVILEGED) -> None:
+    def __init__(
+        self,
+        num_shards: int,
+        shard_id: int,
+        intents: Intents = Intents.ALL_UNPRIVILEGED,
+        mobile: bool = False
+    ) -> None:
         self.shard_id = shard_id
         self.num_shards = num_shards
         self.gateway: Gateway | None = None
         self.intents = intents
+        self.mobile = mobile
 
     async def start(self, client: Client, loop: asyncio.AbstractEventLoop = None) -> None:
         self.gateway = Gateway(
             intents=self.intents,
             shard_id=self.shard_id,
             num_shards=self.num_shards,
-            client=client
+            client=client,
+            mobile=self.mobile
         )
 
         if loop is not None:

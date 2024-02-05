@@ -1,7 +1,7 @@
 ![https://discord.gg/MnECK7DJ6n](assets/banner.png)
 
-# **LIBRARY UNDER DEVELOPMENT**
-So, if you catch some bugs you can create issue or join to support server (click banner)
+> # **LIBRARY UNDER DEVELOPMENT**
+> So, if you catch some bugs you can create issue or join to support server (click banner)
 
 ## Example Usage
 
@@ -16,7 +16,7 @@ client = Client(
 )
 
 
-async def on_ready(event: ReadyEvent):
+async def on_ready(_: ReadyEvent):
     print('Bot is ready!')
 
 
@@ -31,10 +31,11 @@ Replace `YOUR_DISCORD_BOT_TOKEN` with your actual Discord bot token.
 from quant import (
     Client,
     SlashCommand,
-    InteractionContext
+    InteractionContext,
+    Intents
 )
 
-client = Client(token="Bot YOUR_DISCORD_BOT_TOKEN")
+client = Client(token="Bot YOUR_DISCORD_BOT_TOKEN", intents=Intents.ALL_MESSAGES)
 
 
 # Echo bot

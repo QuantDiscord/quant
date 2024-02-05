@@ -1,4 +1,4 @@
-from __future__ import annotations
+from __future__ import annotations as _
 
 import asyncio
 import base64
@@ -52,7 +52,8 @@ class Client:
         token: str,
         intents: Intents = Intents.ALL_UNPRIVILEGED,
         shard_id: int = 0,
-        num_shards: int = 1
+        num_shards: int = 1,
+        mobile: bool = False
     ) -> None:
         self.me: User | None = None
         self.shards: List[Shard] = []
@@ -68,8 +69,10 @@ class Client:
             intents=self.intents,
             shard_id=shard_id,
             num_shards=num_shards,
-            client=self
+            client=self,
+            mobile=mobile
         )
+        self.mobile = mobile
         self._gateway_info: GatewayInfo = self.loop.run_until_complete(self.rest.get_gateway())
 
         self._modals: Dict[str, Modal] = {}
@@ -95,7 +98,7 @@ class Client:
         if loop is not None:
             self.loop = loop
 
-        shard = Shard(num_shards=1, shard_id=0, intents=self.intents)
+        shard = Shard(num_shards=1, shard_id=0, intents=self.intents, mobile=self.mobile)
         asyncio.ensure_future(shard.start(loop=self.loop, client=self), loop=self.loop)
 
         self.loop.run_forever()
@@ -107,7 +110,7 @@ class Client:
             self.loop = loop
 
         for shard_id in range(shard_count):
-            shard = Shard(num_shards=shard_count, shard_id=shard_id, intents=self.intents)
+            shard = Shard(num_shards=shard_count, shard_id=shard_id, intents=self.intents, mobile=self.mobile)
             asyncio.ensure_future(shard.start(loop=self.loop, client=self), loop=self.loop)
 
             self.loop.run_until_complete(asyncio.sleep(5))
@@ -149,9 +152,9 @@ class Client:
         if inspect.iscoroutine(coro):
             raise DiscordException("Callback function must be coroutine")
 
-        func_annotations = inspect.getmembers(coro)[0]
+        annotations = inspect.getmembers(coro)[0]
         try:
-            event_type: Event = list(func_annotations[1].values())[0]
+            event_type: Event = list(annotations[1].values())[0]
 
             # idk why linter warning there
             if not issubclass(event_type, (InternalEvent, Event, DiscordEvent)):  # type: ignore

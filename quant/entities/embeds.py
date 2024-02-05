@@ -33,6 +33,7 @@ class EmbedImage:
     proxy_url: str | None = None
     height: int | None = None
     width: int | None = None
+    placeholder: str = attrs.field(default=None, repr=False)
     placeholder_version: int = attrs.field(default=None, repr=False)
 
 
