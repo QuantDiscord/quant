@@ -1,8 +1,4 @@
-<p align="center">
-    <a href="https://discord.gg/MnECK7DJ6n">
-        <img width="2100px" src="assets/banner.png" alt="banner">
-    </a>
-</p>
+![https://discord.gg/MnECK7DJ6n](assets/banner.png)
 
 # **LIBRARY UNDER DEVELOPMENT**
 So, if you catch some bugs you can create issue or join to support server (click banner)
