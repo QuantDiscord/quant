@@ -90,13 +90,10 @@ class ApplicationCommandObject(Command):
 class SlashCommand(ApplicationCommandObject):
     def __init__(
         self,
-        options: List[ApplicationCommandOption] = None,
-        guild_ids: List[Snowflake | int] | None = None,
+        options: List[ApplicationCommandOption] = [],
+        guild_ids: List[Snowflake | int] = [],
         **kwargs
     ) -> None:
         super().__init__(kwargs.get("name"), kwargs.get("description"), **kwargs)
-        if options is None:
-            self.options = []
-
-        if guild_ids is None:
-            self.guild_ids = []
+        self.options = options
+        self.guild_ids = guild_ids
