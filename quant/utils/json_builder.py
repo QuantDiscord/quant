@@ -1,7 +1,7 @@
 from typing import Any, Dict, Mapping, TypeVar, Iterator
 
 __all__ = (
-    'JSONObject'
+    'MutableJsonBuilder',
 )
 
 KT = TypeVar("KT")
