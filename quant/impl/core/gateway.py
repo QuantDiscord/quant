@@ -81,7 +81,7 @@ class Gateway:
         if session is not None:
             self.session = session
         else:
-            self.session = None
+            self.session = aiohttp.ClientSession()
 
         self.shard_id = shard_id
         self.shard_count = num_shards
@@ -162,19 +162,16 @@ class Gateway:
         return logging.getLogger(__name__)
 
     async def start(self) -> None:
-        if self.session is None:
-            self.session = aiohttp.ClientSession()
-
         self.websocket_connection = await self.session.ws_connect(
             DISCORD_WS_URL.uri.url_string.format(self.api_version)
         )
-
         self.ws_connected = True
 
-        self.zlib_decompressed_object = zlib.decompressobj()
-        self.buffer = bytearray()
-
-        self.get_logger.info(f"Connecting to shard with ID %s", self.shard_id)
+        self.get_logger.info(
+            "Connecting to shard with ID %s (total shard count: %s)",
+            self.shard_id,
+            len(self.client.shards)
+        )
         await self.send_identify()
         self.loop.create_task(self.read_websocket())
         await self.keep_alive_check()
@@ -254,6 +251,7 @@ class Gateway:
                 break
 
     async def _send(self, data) -> None:
+        print(self, self.websocket_connection)
         await self.websocket_connection.send_str(data)
 
     async def resume_connection(self):

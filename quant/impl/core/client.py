@@ -65,13 +65,7 @@ class Client:
         self.event_controller = EventController(self.event_factory)
         self.rest = RESTImpl(token, cache=self.cache)
         self.client_id: int = self._decode_token_to_id()
-        self.gateway: Gateway = Gateway(
-            intents=self.intents,
-            shard_id=shard_id,
-            num_shards=num_shards,
-            client=self,
-            mobile=mobile
-        )
+        self.gateway: Gateway | None = None
         self.mobile = mobile
         self._gateway_info: GatewayInfo = self.loop.run_until_complete(self.rest.get_gateway())
 
@@ -92,37 +86,46 @@ class Client:
         decoded_token = base64.b64decode(token + "==")
         return int(decoded_token.decode("utf8"))
 
-    def run(self, loop: asyncio.AbstractEventLoop = None) -> None:
+    async def _run_one_shard(self, shard_count: int, shard_id: int, loop: asyncio.AbstractEventLoop) -> None:
         BaseModel.set_client(self)
 
         if loop is not None:
             self.loop = loop
 
-        shard = Shard(num_shards=1, shard_id=0, intents=self.intents, mobile=self.mobile)
-        asyncio.ensure_future(shard.start(loop=self.loop, client=self), loop=self.loop)
+        shard = Shard(num_shards=shard_count, shard_id=shard_id, intents=self.intents, mobile=self.mobile)
+        await shard.start(client=self, loop=self.loop)
 
+    def run(self, loop: asyncio.AbstractEventLoop = None) -> None:
+        self._run_one_shard(shard_count=1, shard_id=0, loop=loop)
         self.loop.run_forever()
 
     def run_with_shards(self, shard_count: int, loop: asyncio.AbstractEventLoop = None) -> None:
-        BaseModel.set_client(self)
-
-        if loop is not None:
-            self.loop = loop
-
         for shard_id in range(shard_count):
-            shard = Shard(num_shards=shard_count, shard_id=shard_id, intents=self.intents, mobile=self.mobile)
-            asyncio.ensure_future(shard.start(loop=self.loop, client=self), loop=self.loop)
+            self.shards.append(Shard(
+                num_shards=shard_count,
+                shard_id=shard_id,
+                intents=self.intents,
+                mobile=self.mobile
+            ))
 
+        max_concurrency = self._gateway_info.session_start_limit.max_concurrency
+        for i in range(0, len(self.shards), max_concurrency):
+            queue_shards = self.shards[i:i + max_concurrency]
+            tasks = [
+                self._run_one_shard(
+                    shard_count=shard_count,
+                    shard_id=shard.shard_id,
+                    loop=loop
+                ) for shard in queue_shards
+            ]
+
+            self.loop.run_until_complete(asyncio.gather(*tasks))
             self.loop.run_until_complete(asyncio.sleep(5))
 
         self.loop.run_forever()
 
     def run_autoshard(self, loop: asyncio.AbstractEventLoop = None) -> None:
         self.run_with_shards(shard_count=self._gateway_info.shards, loop=loop)
-
-    async def set_activity(self, activity: ActivityData, shard_id: int = 0) -> None:
-        shard = self.shards[shard_id]
-        await shard.send_presence(activity=activity)
 
     @overload
     def add_listener(self, event: T, coro: _Coroutine) -> None:
@@ -175,7 +178,7 @@ class Client:
             self.slash_commands[command.name] = command
 
             guild_ids = command.guild_ids
-            if len(guild_ids) > 0:
+            if guild_ids:
                 for guild_id in guild_ids:
                     asyncio.ensure_future(self.rest.create_guild_application_command(
                         application_id=self.client_id if app_id is None else app_id,
@@ -218,6 +221,10 @@ class Client:
     @property
     def buttons(self) -> Dict[str, Button]:
         return self._buttons
+
+    @property
+    def gateway_info(self) -> GatewayInfo:
+        return self._gateway_info
 
     async def handle_application_command(self, interaction: Interaction) -> None:
         interaction_type = interaction.type
@@ -275,6 +282,24 @@ class Client:
                 )
             )
             raise e
+
+    async def set_activity(self, activity: ActivityData):
+        for shard in self.shards:
+            if shard.shard_id == 0:
+                await self.gateway.send_presence(
+                    activity=activity.activity,
+                    status=activity.status,
+                    since=activity.since,
+                    afk=activity.afk
+                )
+                continue
+
+            await shard.gateway.send_presence(
+                activity=activity.activity,
+                status=activity.status,
+                since=activity.since,
+                afk=activity.afk
+            )
 
     async def _set_client_user_on_ready(self, _: ReadyEvent) -> None:
         self.me = self.cache.get_users()[0]

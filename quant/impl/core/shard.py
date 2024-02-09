@@ -38,22 +38,14 @@ class Shard:
         if loop is not None:
             client.loop = loop
 
-        client.shards.append(self)
-
         asyncio.create_task(self.gateway.start())
 
+        if self.shard_id == 0:
+            client.gateway = self.gateway
+
         event = ShardReadyEvent()
-        event.shard_id = self.shard_id
+        event.shard = self
         await client.event_controller.dispatch(event)
-        await asyncio.sleep(5)
 
     async def close(self) -> None:
         asyncio.create_task(self.gateway.close())
-
-    async def send_presence(self, activity: ActivityData):
-        await self.gateway.send_presence(
-            activity=activity.activity,
-            status=activity.status,
-            since=activity.since,
-            afk=activity.afk
-        )

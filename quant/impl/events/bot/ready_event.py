@@ -1,6 +1,11 @@
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 import attrs
+
+if TYPE_CHECKING:
+    from quant.impl.core.shard import Shard
 
 from ..event import DiscordEvent, InternalEvent
 from ..types import EventTypes
@@ -16,11 +21,11 @@ class ReadyEvent(DiscordEvent):
 
 @attrs.define(kw_only=True)
 class ShardReadyEvent(InternalEvent):
-    shard_id: int = attrs.field(default=None)
+    shard: Shard = attrs.field(default=None)
 
     @staticmethod
     def build(event: ShardReadyEvent, *args, **kwargs) -> ShardReadyEvent:
-        event.shard_id = args[0]
+        event.shard = args[0]
         return event
 
     def emit(self, *args, **kwargs):
