@@ -251,7 +251,6 @@ class Gateway:
                 break
 
     async def _send(self, data) -> None:
-        print(self, self.websocket_connection)
         await self.websocket_connection.send_str(data)
 
     async def resume_connection(self):

@@ -96,7 +96,7 @@ class Client:
         await shard.start(client=self, loop=self.loop)
 
     def run(self, loop: asyncio.AbstractEventLoop = None) -> None:
-        self._run_one_shard(shard_count=1, shard_id=0, loop=loop)
+        asyncio.ensure_future(self._run_one_shard(shard_count=1, shard_id=0, loop=loop), loop=self.loop)
         self.loop.run_forever()
 
     def run_with_shards(self, shard_count: int, loop: asyncio.AbstractEventLoop = None) -> None:
