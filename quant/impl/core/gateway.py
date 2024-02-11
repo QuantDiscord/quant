@@ -170,7 +170,7 @@ class Gateway:
         self.get_logger.info(
             "Connecting to shard with ID %s (total shard count: %s)",
             self.shard_id,
-            len(self.client.shards)
+            len(self.client.shards) or 1
         )
         await self.send_identify()
         self.loop.create_task(self.read_websocket())
