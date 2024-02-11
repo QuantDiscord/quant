@@ -97,7 +97,7 @@ class Client:
 
     def run(self, loop: asyncio.AbstractEventLoop = None) -> None:
         asyncio.ensure_future(self._run_one_shard(shard_count=1, shard_id=0, loop=loop), loop=self.loop)
-        self.loop.run_forever()
+        self._run_forever()
 
     def run_with_shards(self, shard_count: int, loop: asyncio.AbstractEventLoop = None) -> None:
         for shard_id in range(shard_count):
@@ -122,10 +122,28 @@ class Client:
             self.loop.run_until_complete(asyncio.gather(*tasks))
             self.loop.run_until_complete(asyncio.sleep(5))
 
-        self.loop.run_forever()
+        self._run_forever()
 
     def run_autoshard(self, loop: asyncio.AbstractEventLoop = None) -> None:
         self.run_with_shards(shard_count=self._gateway_info.shards, loop=loop)
+
+    def _run_forever(self) -> None:
+        try:
+            self.loop.run_forever()
+        except KeyboardInterrupt:
+            self.gateway.get_logger.info("Shutting down bot")
+
+            for shard in self.shards:
+                if shard.shard_id == 0:
+                    self.loop.run_until_complete(self.gateway.close())
+                    continue
+
+                self.loop.run_until_complete(shard.gateway.close())
+                self.loop.close()
+
+                asyncio.set_event_loop(None)
+
+            self.gateway.get_logger.info("Goodbye. Bot terminated")
 
     @overload
     def add_listener(self, event: T, coro: _Coroutine) -> None:
