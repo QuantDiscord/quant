@@ -45,5 +45,5 @@ default_dark_mode = True
 epub_show_urls = 'footnote'
 
 rst_prolog = """
-.. |coro| replace: This is a |coroutine_link|_ function 
+.. |coro| replace:: This is a |coroutine_link|_ function 
 """
