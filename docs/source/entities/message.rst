@@ -1,6 +1,6 @@
 .. currentmodule:: quant.entities
 
-Message object
+Message Entity
 ------
 
 .. autoclass:: Message
