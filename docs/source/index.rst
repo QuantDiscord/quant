@@ -12,7 +12,6 @@ Quant created because why not?
     :maxdepth: 2
     :caption: Documentation
 
-    index
     start
     client
     entities/index
