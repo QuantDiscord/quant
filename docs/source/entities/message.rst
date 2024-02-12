@@ -1,4 +1,4 @@
-.. py::currentmodule:: quant.entities
+.. currentmodule:: quant.entities
 
 Message object
 ------
