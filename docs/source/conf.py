@@ -45,5 +45,7 @@ default_dark_mode = True
 epub_show_urls = 'footnote'
 
 rst_prolog = """
-.. |coro| replace:: This is a |coroutine_link|_ function 
+.. |coro| replace:: This is a |coroutine_link|_ function
+.. |coroutine_link| replace:: *coroutine*
+.. _coroutine_link: https://docs.python.org/3/library/asyncio-task.html#coroutine
 """
