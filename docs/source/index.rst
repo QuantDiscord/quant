@@ -13,5 +13,6 @@ Quant created because why not?
     :caption: Documentation
 
     index
+    start
     client
     entities/index

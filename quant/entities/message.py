@@ -147,6 +147,7 @@ class Message(BaseModel):
         flags: int | None = None
     ) -> Self:
         """|corofunc|
+
         Reply the message
         """
         return await self.client.rest.create_message(

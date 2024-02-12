@@ -1,3 +1,6 @@
+Client
+======
+
 .. currentmodule:: quant
 
 .. attributetable:: Client

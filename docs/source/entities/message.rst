@@ -1,4 +1,4 @@
-.. currentmodule:: quant.entities
+.. currentmodule:: quant
 
 Message Entity
 ------
@@ -6,4 +6,3 @@ Message Entity
 .. attributetable:: Message
 
 .. autoclass:: Message
-
