@@ -25,6 +25,78 @@ from .message_flags import MessageFlags
 
 @attrs.define(kw_only=True)
 class Message(BaseModel):
+    """
+    Represents a discord message.
+
+    Parameters
+    ----------
+    type: int
+        Message type.
+    timestamp: datetime
+        Timestamp of the message.
+    channel_id: Snowflake | None
+        ID of the channel where the message was sent.
+    position: Snowflake | None
+        Position of the message in the channel.
+    id: int | None
+        Unique ID of the message.
+    guild_id: Snowflake | None
+        ID of the guild where the message was sent.
+    member: GuildMember | None
+        Member who sent the message.
+    author: User | None
+        User who sent the message.
+    content: str | None
+        Content of the message.
+    nonce: str | int | None
+        Nonce of the message.
+    tts: bool | None
+        Whether the message is text-to-speech.
+    embeds: List[Embed] | None
+        List of embedded content in the message.
+    edited_timestamp: str
+        Timestamp when the message was edited.
+    mention_everyone: bool | None
+        Whether the message mentions everyone.
+    mentions: List[User] | None
+        List of users mentioned in the message.
+    mention_roles: List[Any] | None
+        List of roles mentioned in the message.
+    mention_channels: List[Any] | None
+        List of channels mentioned in the message.
+    message_reference: Any | None
+        Reference to another message.
+    components: ActionRow | None
+        Action row components in the message.
+    stickers: List[Any] | None
+        List of stickers in the message.
+    attachments: List[Attachment] | None
+        List of attachments in the message.
+    flags: int | None
+        Message flags.
+    referenced_message: Self | None
+        Reference to another message.
+    pinned: bool
+        Whether the message is pinned.
+    webhook_id: Snowflake | None
+        ID of the webhook that sent the message.
+    activity: Any | None
+        Activity associated with the message.
+    application: Any | None
+        Application associated with the message.
+    application_id: Snowflake | None
+        ID of the application associated with the message.
+    interaction: Interaction
+        Interaction associated with the message.
+    thread: Thread | None
+        Thread associated with the message.
+    sticker_items: List[Any] | None
+        List of sticker items in the message.
+    role_subscription_data: Any | None
+        Role subscription data associated with the message.
+    resolved: bool | None
+        Whether the message is resolved.
+    """
     type: int = attrs.field(default=None)
     timestamp: datetime = attrs.field(default=None)
     channel_id: Snowflake | None = attrs.field(default=None)

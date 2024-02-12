@@ -37,7 +37,7 @@ templates_path = ['_templates']
 
 # -- Options for HTML output
 
-html_theme = 'sphinx_rtd_theme'
+html_theme = 'furo'
 pygments_style = "monokai"
 default_dark_mode = True
 
