@@ -86,3 +86,6 @@ Quant is licensed under the MIT License. See the [LICENSE](https://github.com/Ma
 Thanks to JetBrains for open source license
 
 You can apply it [here](https://www.jetbrains.com/community/opensource/).
+
+[Hikari](https://github.com/hikari-py/hikari/) for inspiring
+[Melisa](https://github.com/MelisaDev/melisa) for help with docs

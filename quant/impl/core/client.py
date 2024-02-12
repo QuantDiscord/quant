@@ -51,8 +51,6 @@ class Client:
         self,
         token: str,
         intents: Intents = Intents.ALL_UNPRIVILEGED,
-        shard_id: int = 0,
-        num_shards: int = 1,
         mobile: bool = False
     ) -> None:
         self.me: User | None = None

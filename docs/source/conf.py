@@ -1,6 +1,11 @@
 # Configuration file for the Sphinx documentation builder.
 
 # -- Project information
+import sys
+import os
+
+sys.path.append(os.path.abspath("../.."))
+sys.path.append(os.path.abspath("extensions"))
 
 project = 'Quant'
 copyright = '2024, MagM1go and contributors'
