@@ -1,5 +1,6 @@
 .. currentmodule:: quant
 
+.. attributetable:: Client
+
 .. autoclass:: Client
 
-.. attributetable:: Client

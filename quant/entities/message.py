@@ -74,6 +74,9 @@ class Message(BaseModel):
         attachments: List[Attachment] | None = None,
         flags: int | None = None
     ) -> Self:
+        """|coroutine_link|
+        Reply the message
+        """
         return await self.client.rest.create_message(
             channel_id=self.channel_id,
             content=content,

@@ -12,5 +12,6 @@ Quant created because why not?
     :maxdepth: 2
     :caption: Documentation
 
+    index
     client
     entities/index

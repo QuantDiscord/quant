@@ -3,6 +3,7 @@
 Message Entity
 ------
 
+.. attributetable:: Message
+
 .. autoclass:: Message
 
-.. attributetable:: Message
