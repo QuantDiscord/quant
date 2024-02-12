@@ -172,10 +172,29 @@ class Message(BaseModel):
         )
 
     async def delete(self, *, reason: str = None, delete_after: int = 0) -> None:
+        """|coro|
+
+        Delete a message
+
+        Parameters
+        ----------
+        reason: :class:`str`
+            Message delete reason
+        delete_after: :class:`int`
+            Delete after specified time
+        """
         await asyncio.sleep(delete_after)
         await self.client.rest.delete_message(self.channel_id, self.id, reason)
 
     async def create_reaction(self, emoji: Emoji) -> None:
+        """|coro|
+
+        Add message reaction
+
+        Parameters
+        ----------
+        emoji: :class:`Emoji`
+        """
         await self.client.rest.create_reaction(emoji, self.guild_id, self.channel_id, self.id)
 
     async def edit_message(
@@ -187,6 +206,19 @@ class Message(BaseModel):
         allowed_mentions: AllowedMentions = None,
         components: ActionRow = None
     ) -> Self:
+        """|coro|
+
+        Edits message
+
+        Parameters
+        ----------
+        content: :class:`str`
+        embed: :class:`Embed`
+        embeds: :class:`Embeds`
+        flags: :class:`MessageFlags`
+        allowed_mentions: :class:`AllowedMentions`
+        components: :class:`ActionRow`
+        """
         return await self.client.rest.edit_message(
             channel_id=self.channel_id,
             message_id=self.id,
@@ -199,9 +231,21 @@ class Message(BaseModel):
         )
 
     async def remove_reactions(self) -> None:
+        """|coro|
+
+        Remove all message reactions
+        """
         await self.client.rest.delete_all_reactions(channel_id=self.channel_id, message_id=self.id)
 
     async def remove_reactions_by_emoji(self, emoji: int | Snowflake | Emoji) -> None:
+        """|coro|
+
+        Remove all reactions with similar emoji
+
+        Parameters
+        ---------
+        emoji: :class:`Snowflake | int | Emoji`
+        """
         await self.client.rest.delete_all_reactions_for_emoji(
             guild_id=self.guild_id,
             channel_id=self.channel_id,
