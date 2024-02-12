@@ -1,7 +1,5 @@
 from datetime import datetime
 
-from typing_extensions import Self
-
 import attrs
 
 from .snowflake import Snowflake

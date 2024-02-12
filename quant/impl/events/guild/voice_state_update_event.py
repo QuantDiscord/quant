@@ -1,5 +1,11 @@
+from __future__ import annotations as _
+
+from typing import TYPE_CHECKING
+
 import attrs
-from typing_extensions import Self
+
+if TYPE_CHECKING:
+    from typing_extensions import Self
 
 from quant.impl.events.types import EventTypes
 from quant.entities.voice_state_update import VoiceState

@@ -1,6 +1,10 @@
+from __future__ import annotations as _
+
 import enum
-from typing import List, Any
-from typing_extensions import Self
+from typing import List, Any, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from typing_extensions import Self
 
 import attrs
 

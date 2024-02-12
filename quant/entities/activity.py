@@ -1,7 +1,12 @@
+from __future__ import annotations as _
+
 import enum
+from typing import TYPE_CHECKING
 
 import attrs
-from typing_extensions import Self
+
+if TYPE_CHECKING:
+    from typing_extensions import Self
 
 
 class ActivityStatus(enum.Enum):

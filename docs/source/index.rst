@@ -1,14 +1,8 @@
 Welcome to Quant!
 ==============================
 
-.. py:currentmodule:: quant
-
 # Quant - Discord API Framework
 
 Quant is a Python framework designed to simplify interaction with the Discord API and facilitate the development of Discord bots.
 
 Quant created because why not?
-
-.. attributetable:: Client
-
-.. autoclass:: Client

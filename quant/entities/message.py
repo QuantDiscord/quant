@@ -2,12 +2,13 @@ from __future__ import annotations
 
 import asyncio
 from typing import Any, List, TYPE_CHECKING
-from typing_extensions import Self
+
 from datetime import datetime
 
 import attrs
 
 if TYPE_CHECKING:
+    from typing_extensions import Self
     from .interactions.interaction import Interaction
 
 from .user import User

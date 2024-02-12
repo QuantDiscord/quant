@@ -1,5 +1,9 @@
-from typing import List, Dict
-from typing_extensions import Self
+from __future__ import annotations as _
+
+from typing import List, Dict, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from typing_extensions import Self
 
 import attrs
 
