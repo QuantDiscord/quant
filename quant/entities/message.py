@@ -146,7 +146,7 @@ class Message(BaseModel):
         attachments: List[Attachment] | None = None,
         flags: int | None = None
     ) -> Self:
-        """|corofunc|
+        """|coro|
 
         Reply the message
         """
