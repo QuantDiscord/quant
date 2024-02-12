@@ -30,71 +30,71 @@ class Message(BaseModel):
 
     Parameters
     ----------
-    type: int
+    type: :class:`int`
         Message type.
-    timestamp: datetime
+    timestamp: :class:`datetime`
         Timestamp of the message.
-    channel_id: Snowflake | None
+    channel_id: :class:`Snowflake`
         ID of the channel where the message was sent.
-    position: Snowflake | None
+    position: :class:`Snowflake`
         Position of the message in the channel.
-    id: int | None
+    id: :class:`Snowflake`
         Unique ID of the message.
-    guild_id: Snowflake | None
+    guild_id: :class:`Snowflake`
         ID of the guild where the message was sent.
-    member: GuildMember | None
+    member: :class:`GuildMember`
         Member who sent the message.
-    author: User | None
+    author: :class:`User`
         User who sent the message.
-    content: str | None
+    content: :class:`str`
         Content of the message.
-    nonce: str | int | None
+    nonce: :class:`str`
         Nonce of the message.
-    tts: bool | None
+    tts: :class:`bool`
         Whether the message is text-to-speech.
-    embeds: List[Embed] | None
+    embeds: :class:`List[Embed]`
         List of embedded content in the message.
-    edited_timestamp: str
+    edited_timestamp: :class:`str`
         Timestamp when the message was edited.
-    mention_everyone: bool | None
+    mention_everyone: :class:`bool`
         Whether the message mentions everyone.
-    mentions: List[User] | None
+    mentions: :class:`List[User]`
         List of users mentioned in the message.
-    mention_roles: List[Any] | None
+    mention_roles: :class:`List[Any]`
         List of roles mentioned in the message.
-    mention_channels: List[Any] | None
+    mention_channels: :class:`List[Any]`
         List of channels mentioned in the message.
-    message_reference: Any | None
+    message_reference: :class:`Any`
         Reference to another message.
-    components: ActionRow | None
+    components: :class:`ActionRow`
         Action row components in the message.
-    stickers: List[Any] | None
+    stickers: :class:`List[Any]`
         List of stickers in the message.
-    attachments: List[Attachment] | None
+    attachments: :class:`List[Attachment]`
         List of attachments in the message.
-    flags: int | None
+    flags: :class:`int`
         Message flags.
-    referenced_message: Self | None
+    referenced_message: :class:`Self`
         Reference to another message.
-    pinned: bool
+    pinned: :class:`bool`
         Whether the message is pinned.
-    webhook_id: Snowflake | None
+    webhook_id: :class:`Snowflake`
         ID of the webhook that sent the message.
-    activity: Any | None
+    activity: :class:`Any`
         Activity associated with the message.
-    application: Any | None
+    application: :class:`Any`
         Application associated with the message.
-    application_id: Snowflake | None
+    application_id: :class:`Snowflake`
         ID of the application associated with the message.
-    interaction: Interaction
+    interaction: :class:`Interaction`
         Interaction associated with the message.
-    thread: Thread | None
+    thread: :class:`Thread`
         Thread associated with the message.
-    sticker_items: List[Any] | None
+    sticker_items: :class:`List[Any]`
         List of sticker items in the message.
-    role_subscription_data: Any | None
+    role_subscription_data: :class:`Any`
         Role subscription data associated with the message.
-    resolved: bool | None
+    resolved: :class:`bool`
         Whether the message is resolved.
     """
     type: int = attrs.field(default=None)
@@ -146,7 +146,7 @@ class Message(BaseModel):
         attachments: List[Attachment] | None = None,
         flags: int | None = None
     ) -> Self:
-        """|coroutine_link|
+        """|corofunc|
         Reply the message
         """
         return await self.client.rest.create_message(
