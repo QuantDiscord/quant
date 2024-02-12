@@ -4,8 +4,6 @@
 import sys
 import os
 
-from quant import __version__
-
 sys.path.append(os.path.abspath("../.."))
 sys.path.append(os.path.abspath("extensions"))
 
@@ -14,7 +12,7 @@ copyright = '2024, MagM1go and contributors'
 author = 'MagM1go'
 
 release = '0.1'
-version = __version__
+version = '1.5'
 
 # -- General configuration
 
