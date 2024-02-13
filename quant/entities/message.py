@@ -245,6 +245,7 @@ class Message(BaseModel):
         Parameters
         ---------
         emoji: :class:`Snowflake | int | Emoji`
+
         """
         await self.client.rest.delete_all_reactions_for_emoji(
             guild_id=self.guild_id,
