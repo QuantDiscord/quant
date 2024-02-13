@@ -1,12 +1,14 @@
-from typing import Any, List
+from typing import Any, List, TypeVar
 
 import attrs
 
 from quant.entities.permissions import Permissions
 from quant.entities.interactions.slash_option import ApplicationCommandOption, SlashOptionType
-from quant.impl.core.context import BaseContext
+from quant.impl.core.context import BaseContext, InteractionContext
 from quant.entities.snowflake import Snowflake
 from quant.entities.interactions.application_command import ApplicationCommandTypes
+
+ContextT = TypeVar("ContextT", bound=BaseContext | InteractionContext)
 
 
 class Command:
@@ -14,7 +16,7 @@ class Command:
         self.name = name
         self.description = description
 
-    async def callback(self, context: BaseContext, *args) -> None:
+    async def callback(self, context: ContextT, *args) -> None:
         pass
 
     callback_func = callback
@@ -95,6 +97,7 @@ class SlashCommand(ApplicationCommandObject):
         **kwargs
     ) -> None:
         super().__init__(kwargs.get("name"), kwargs.get("description"), **kwargs)
+
         if options is None:
             self.options = []
 
