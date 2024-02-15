@@ -73,7 +73,7 @@ class EventFactory:
         }
 
         if handler := handlers.get(event_name):
-            handler(**kwargs)  # type: ignore
+            handler(**kwargs)
 
     def deserialize_voice_state_update_event(
         self,

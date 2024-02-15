@@ -11,6 +11,15 @@ import attrs
 if TYPE_CHECKING:
     from quant.impl.core.commands import ApplicationCommandObject
 
+from quant.impl.core.route import (
+    Gateway as gateway_route,
+    Message as message_route,
+    WebHook as webhook_route,
+    Guild as guild_route,
+    Interaction as interaction_route,
+    Channel as channel_route,
+    User as user_route
+)
 from quant.entities.gateway import GatewayInfo, SessionStartLimitObject
 from quant.impl.core.route import Route
 from quant.entities.factory.entity_factory import EntityFactory
@@ -28,40 +37,6 @@ from quant.entities.invite import Invite
 from quant.entities.interactions.interaction import InteractionCallbackData, InteractionCallbackType
 from quant.entities.allowed_mentions import AllowedMentions
 from quant.impl.core.http_manager import HttpManagerImpl
-from quant.impl.core.route import (
-    CREATE_MESSAGE,
-    DELETE_MESSAGE,
-    CREATE_WEBHOOK,
-    GET_GUILD,
-    CREATE_GUILD,
-    DELETE_GUILD,
-    CREATE_REACTION,
-    GET_GUILD_EMOJI,
-    CREATE_INTERACTION_RESPONSE,
-    GET_MESSAGE,
-    EDIT_MESSAGE,
-    CREATE_APPLICATION_COMMAND,
-    CREATE_GUILD_APPLICATION_COMMAND,
-    GET_ORIGINAL_INTERACTION_RESPONSE,
-    EDIT_ORIGINAL_INTERACTION_RESPONSE,
-    CREATE_GUILD_BAN,
-    DELETE_ALL_REACTIONS,
-    DELETE_ALL_REACTION_FOR_EMOJI,
-    GET_INVITE,
-    DELETE_INVITE,
-    GET_GUILD_INVITES,
-    GET_GUILD_ROLES,
-    CREATE_GUILD_ROLES,
-    DELETE_GUILD_ROLE,
-    GET_GUILD_MEMBERS,
-    GET_USER,
-    GET_GUILD_MEMBER,
-    MODIFY_GUILD_MEMBER,
-    REMOVE_GUILD_MEMBER,
-    ADD_GUILD_MEMBER_ROLE,
-    GET_GUILD_APPLICATION_COMMANDS,
-    GATEWAY_BOT
-)
 from quant.entities.message import Message, Attachment
 from quant.entities.embeds import Embed
 from quant.entities.webhook import Webhook
@@ -111,10 +86,10 @@ class RESTImpl(RESTAware):
             body.put("embeds", self.entity_factory.serialize_embed(embed))
 
         if allowed_mentions is not None:
-            body.put("allowed_mentions", attrs.asdict(allowed_mentions))
+            body.put("allowed_mentions", attrs.asdict(allowed_mentions))  # type: ignore
 
         if message_reference is not None:
-            body.put("message_reference", attrs.asdict(message_reference))
+            body.put("message_reference", attrs.asdict(message_reference))  # type: ignore
 
         if components is not None:
             body.put("components", [self.entity_factory.serialize_action_row(components)])
@@ -173,7 +148,7 @@ class RESTImpl(RESTAware):
             headers.put("Content-Type", self.http.MULTIPART_FORM_DATA)
 
         await self.http.send_request(
-            CREATE_WEBHOOK.method,
+            webhook_route.CREATE_WEBHOOK.method,
             webhook_url,
             data=payload,
             headers=headers
@@ -182,7 +157,7 @@ class RESTImpl(RESTAware):
     async def create_webhook(self, channel_id: int, name: str, avatar: str = None, reason: str = None) -> Webhook:
         headers = MutableJsonBuilder()
         method, url = self._build_url(
-            route=CREATE_WEBHOOK,
+            route=webhook_route.CREATE_WEBHOOK,
             data={"channel_id": channel_id}
         )
 
@@ -198,9 +173,9 @@ class RESTImpl(RESTAware):
     async def fetch_emoji(self, guild_id: int, emoji: str) -> Emoji:
         if re.match(r"<:(\w+):(\w+)>", emoji):
             emoji_name, emoji_id = emoji.replace(">", "").replace("<", "").split(":")[1:]
-            url = GET_GUILD_EMOJI.uri.url_string.format(guild_id=guild_id, emoji_id=emoji_id)
+            url = message_route.GET_GUILD_EMOJI.uri.url_string.format(guild_id=guild_id, emoji_id=emoji_id)
             response = await self.http.send_request(
-                GET_GUILD_EMOJI.method,
+                message_route.GET_GUILD_EMOJI.method,
                 url=url,
                 content_type=self.http.APPLICATION_X_WWW_FORM_URLENCODED
             )
@@ -224,8 +199,8 @@ class RESTImpl(RESTAware):
             headers.update({X_AUDIT_LOG_REASON: reason})
 
         await self.http.send_request(
-            CREATE_REACTION.method,
-            url=CREATE_REACTION.uri.url_string.format(
+            message_route.CREATE_REACTION.method,
+            url=message_route.CREATE_REACTION.uri.url_string.format(
                 channel_id=channel_id,
                 message_id=message_id,
                 emoji=self._parse_emoji(emoji)
@@ -238,13 +213,20 @@ class RESTImpl(RESTAware):
 
     async def delete_message(self, channel_id: int, message_id: int, reason: str = None) -> None:
         headers = {}
+        method, url = self._build_url(
+            route=message_route.DELETE_MESSAGE,
+            data={
+                "channel_id": channel_id,
+                "message_id": message_id
+            }
+        )
 
         if reason is not None:
             headers.update({X_AUDIT_LOG_REASON: reason})
 
         await self.http.send_request(
-            DELETE_MESSAGE.method,
-            DELETE_MESSAGE.uri.url_string.format(channel_id=channel_id, message_id=message_id),
+            method=method,
+            url=url,
             headers=headers
         )
 
@@ -280,33 +262,38 @@ class RESTImpl(RESTAware):
             attachments=attachments,
             flags=flags
         )
+        method, url = self._build_url(
+            route=message_route.CREATE_MESSAGE,
+            data={"channel_id": channel_id}
+        )
 
         data = await self.http.send_request(
-            CREATE_MESSAGE.method,
-            CREATE_MESSAGE.uri.url_string.format(channel_id),
+            method=method,
+            url=url,
             data=payload
         )
         message_json = await data.json()
         return self.entity_factory.deserialize_message(message_json)
 
     async def fetch_guild(self, guild_id: int, with_counts: bool = False) -> Guild:
-        url_with_guild_id = GET_GUILD.uri.url_string.format(guild_id=guild_id)
+        url_with_guild_id = guild_route.GET_GUILD.uri.url_string.format(guild_id=guild_id)
         build_guild_url = (
             url_with_guild_id
             if not with_counts
             else url_with_guild_id + "?with_counts=true"
         )
         data = await self.http.send_request(
-            GET_GUILD.method, build_guild_url
+            guild_route.GET_GUILD.method, build_guild_url
         )
         guild_data = await data.json()
         return self.entity_factory.deserialize_guild(guild_data)
 
     async def delete_guild(self, guild_id: int) -> None:
-        await self.http.send_request(
-            DELETE_GUILD.method,
-            url=DELETE_GUILD.uri.url_string.format(guild_id=guild_id)
+        method, url = self._build_url(
+            route=guild_route.DELETE_GUILD,
+            data={"guild_id": guild_id}
         )
+        await self.http.send_request(method=method, url=url)
 
     async def create_guild(
         self,
@@ -323,6 +310,7 @@ class RESTImpl(RESTAware):
         system_channel_id: int | None = None,
         system_channel_flags: int = 0
     ) -> Guild:
+        method, url = self._build_url(route=guild_route.CREATE_GUILD)
         body = MutableJsonBuilder({'name': name, 'system_channel_flags': system_channel_flags})
 
         if region is not None:
@@ -356,9 +344,7 @@ class RESTImpl(RESTAware):
             body.put("system_channel_id", system_channel_id)
 
         data = await self.http.send_request(
-            CREATE_GUILD.method,
-            CREATE_GUILD.uri.url_string,
-            data=body
+            method=method, url=url, data=body
         )
         return self.entity_factory.deserialize_guild(await data.json())
 
@@ -375,7 +361,13 @@ class RESTImpl(RESTAware):
             'delete_message_seconds': delete_message_seconds
         }
         headers = {}
-        url = CREATE_GUILD_BAN.uri.url_string.format(guild_id=guild_id, user_id=member_id)
+        method, url = self._build_url(
+            route=guild_route.CREATE_GUILD_BAN,
+            data={
+                "guild_id": guild_id,
+                "user_id": member_id
+            }
+        )
 
         if delete_message_days > 0:
             warnings.warn("Option \"delete_message_days\" deprecated in Discord API", category=DeprecationWarning)
@@ -384,7 +376,7 @@ class RESTImpl(RESTAware):
             headers.update({X_AUDIT_LOG_REASON: reason})
 
         await self.http.send_request(
-            CREATE_GUILD_BAN.method,
+            method=method,
             url=url,
             headers=headers,
             data=payload
@@ -397,7 +389,7 @@ class RESTImpl(RESTAware):
         reason: str | None = None
     ) -> None:
         method, url = self._build_url(
-            route=REMOVE_GUILD_MEMBER,
+            route=guild_route.REMOVE_GUILD_MEMBER,
             data={"user_id": user_id, "guild_id": guild_id}
         )
         headers = MutableJsonBuilder()
@@ -421,7 +413,7 @@ class RESTImpl(RESTAware):
             payload.put("data", self.entity_factory.serialize_interaction_callback_data(interaction_data))
 
         method, url = self._build_url(
-            route=CREATE_INTERACTION_RESPONSE,
+            route=interaction_route.CREATE_INTERACTION_RESPONSE,
             data={"interaction_id": interaction_id, "interaction_token": interaction_token}
         )
         await self.http.send_request(
@@ -432,7 +424,7 @@ class RESTImpl(RESTAware):
 
     async def fetch_message(self, channel_id: int, message_id: int) -> Message:
         method, url = self._build_url(
-            route=GET_MESSAGE,
+            route=message_route.GET_MESSAGE,
             data={"channel_id": channel_id, "message_id": message_id}
         )
         raw_message = await self.http.send_request(method=method, url=url)
@@ -452,7 +444,7 @@ class RESTImpl(RESTAware):
     ) -> None:
         body = MutableJsonBuilder({"name": name, "description": description})
         method, url = self._build_url(
-            route=CREATE_APPLICATION_COMMAND,
+            route=interaction_route.CREATE_APPLICATION_COMMAND,
             data={"application_id": application_id}
         )
 
@@ -491,7 +483,7 @@ class RESTImpl(RESTAware):
     ) -> None:
         body = MutableJsonBuilder({"name": name, "description": description})
         method, url = self._build_url(
-            route=CREATE_GUILD_APPLICATION_COMMAND,
+            route=interaction_route.CREATE_GUILD_APPLICATION_COMMAND,
             data={"application_id": application_id, "guild_id": guild_id}
         )
 
@@ -521,7 +513,7 @@ class RESTImpl(RESTAware):
 
     async def fetch_initial_interaction_response(self, application_id: int, interaction_token: str) -> Message:
         method, url = self._build_url(
-            route=GET_ORIGINAL_INTERACTION_RESPONSE,
+            route=interaction_route.GET_ORIGINAL_INTERACTION_RESPONSE,
             data={"application_id": application_id, "interaction_token": interaction_token}
         )
         response = await self.http.send_request(
@@ -541,7 +533,7 @@ class RESTImpl(RESTAware):
         flags: int | None = None,
         allowed_mentions: AllowedMentions | None = None,
         components: ActionRow | None = None
-    ) -> Message:  # TODO: File uploading later
+    ) -> Message:  # TODO: File uploading
         payload = self._build_payload(
             content=content,
             embeds=embeds,
@@ -551,7 +543,7 @@ class RESTImpl(RESTAware):
             components=components
         )
         method, url = self._build_url(
-            route=EDIT_MESSAGE,
+            route=message_route.EDIT_MESSAGE,
             data={"channel_id": channel_id, "message_id": message_id}
         )
         response = await self.http.send_request(
@@ -564,7 +556,7 @@ class RESTImpl(RESTAware):
 
     async def delete_all_reactions(self, channel_id: Snowflake, message_id: Snowflake) -> None:
         method, url = self._build_url(
-            route=DELETE_ALL_REACTIONS,
+            route=message_route.DELETE_ALL_REACTIONS,
             data={"channel_id": channel_id, "message_id": message_id}
         )
         await self.http.send_request(method=method, url=url)
@@ -578,7 +570,7 @@ class RESTImpl(RESTAware):
     ):
         parsed_emoji = self._parse_emoji(await self.fetch_emoji(guild_id=guild_id, emoji=emoji))
         method, url = self._build_url(
-            route=DELETE_ALL_REACTION_FOR_EMOJI,
+            route=message_route.DELETE_ALL_REACTION_FOR_EMOJI,
             data={"channel_id": channel_id, "message_id": message_id, "emoji": parsed_emoji}
         )
         await self.http.send_request(
@@ -602,7 +594,7 @@ class RESTImpl(RESTAware):
         thread_id: int | Snowflake | None = None
     ) -> Message:
         method, url = self._build_url(
-            route=EDIT_ORIGINAL_INTERACTION_RESPONSE,
+            route=interaction_route.EDIT_ORIGINAL_INTERACTION_RESPONSE,
             data={"application_id": application_id, "interaction_token": interaction_token}
         )
 
@@ -633,7 +625,7 @@ class RESTImpl(RESTAware):
         guild_scheduled_event_id: Snowflake | None = None
     ) -> Invite:
         method, url = self._build_url(
-            route=GET_INVITE,
+            route=guild_route.GET_INVITE,
             data={"invite_code": invite_code},
             query_params={
                 "with_counts": with_counts,
@@ -647,7 +639,7 @@ class RESTImpl(RESTAware):
 
     async def delete_invite(self, invite_code: str, reason: str | None = None) -> Invite:
         method, url = self._build_url(
-            route=DELETE_INVITE,
+            route=guild_route.DELETE_INVITE,
             data={"invite_code": invite_code}
         )
         headers = {}
@@ -663,7 +655,7 @@ class RESTImpl(RESTAware):
 
     async def fetch_guild_invites(self, guild_id: Snowflake) -> List[Invite]:
         method, url = self._build_url(
-            route=GET_GUILD_INVITES,
+            route=guild_route.GET_GUILD_INVITES,
             data={"guild_id": guild_id}
         )
         response = await self.http.send_request(
@@ -678,7 +670,7 @@ class RESTImpl(RESTAware):
         after: Snowflake = Snowflake(0)
     ) -> List[GuildMember]:
         method, url = self._build_url(
-            route=GET_GUILD_MEMBERS,
+            route=guild_route.GET_GUILD_MEMBERS,
             data={"guild_id": guild_id},
             query_params={"limit": limit, "after": after}
         )
@@ -687,7 +679,7 @@ class RESTImpl(RESTAware):
 
     async def fetch_guild_roles(self, guild_id: Snowflake | int) -> List[GuildRole]:
         method, url = self._build_url(
-            route=GET_GUILD_ROLES,
+            route=guild_route.GET_GUILD_ROLES,
             data={"guild_id": guild_id}
         )
         response = await self.http.send_request(method=method, url=url)
@@ -695,7 +687,7 @@ class RESTImpl(RESTAware):
 
     async def fetch_user(self, user_id: Snowflake | int) -> User:
         method, url = self._build_url(
-            route=GET_USER,
+            route=user_route.GET_USER,
             data={"user_id": user_id}
         )
         response = await self.http.send_request(method=method, url=url)
@@ -703,7 +695,7 @@ class RESTImpl(RESTAware):
 
     async def fetch_guild_member(self, guild_id: Snowflake | int, user_id: Snowflake | int) -> GuildMember:
         method, url = self._build_url(
-            route=GET_GUILD_MEMBER,
+            route=guild_route.GET_GUILD_MEMBER,
             data={"guild_id": guild_id, "user_id": user_id}
         )
         response = await self.http.send_request(method=method, url=url)
@@ -724,7 +716,10 @@ class RESTImpl(RESTAware):
     ) -> GuildMember:
         headers = MutableJsonBuilder()
         payload = MutableJsonBuilder()
-        method, url = self._build_url(route=MODIFY_GUILD_MEMBER, data={"user_id": user_id, "guild_id": guild_id})
+        method, url = self._build_url(
+            route=guild_route.MODIFY_GUILD_MEMBER,
+            data={"user_id": user_id, "guild_id": guild_id}
+        )
 
         if nick is not None:
             payload.put("nick", nick)
@@ -756,7 +751,7 @@ class RESTImpl(RESTAware):
         role_id: Snowflake | int
     ) -> None:
         method, url = self._build_url(
-            route=ADD_GUILD_MEMBER_ROLE,
+            route=guild_route.ADD_GUILD_MEMBER_ROLE,
             data={"guild_id": guild_id, "user_id": user_id, "role_id": role_id}
         )
 
@@ -774,7 +769,7 @@ class RESTImpl(RESTAware):
             body.put("with_localizations", with_localizations)
 
         method, url = self._build_url(
-            route=GET_GUILD_APPLICATION_COMMANDS,
+            route=interaction_route.GET_GUILD_APPLICATION_COMMANDS,
             data={"application_id": application_id, "guild_id": guild_id}
         )
         response = await self.http.send_request(
@@ -784,7 +779,7 @@ class RESTImpl(RESTAware):
         return [self.entity_factory.deserialize_application_command(cmd) for cmd in await response.json()]
 
     async def get_gateway(self) -> GatewayInfo:
-        method, url = self._build_url(route=GATEWAY_BOT)
+        method, url = self._build_url(route=gateway_route.GATEWAY_BOT)
         response = await self.http.send_request(method=method, url=url)
         payload = await response.json()
 

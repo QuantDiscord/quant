@@ -177,10 +177,11 @@ class Gateway:
         await self.keep_alive_check()
 
     async def error_reconnect(self, code: int):
-        self.get_logger.info("reconnecting")
+        self.get_logger.info("reconnecting (code: %s)", code)
 
         if code == 4009:
-            return await self.resume_connection()
+            await self.resume_connection()
+            return
 
         self.ws_connected = False
         await self.start()

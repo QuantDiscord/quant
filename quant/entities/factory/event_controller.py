@@ -3,7 +3,6 @@ from typing import Dict, List, TypeVar, Callable, Set, overload
 
 from quant.impl.events.types import EventTypes
 from quant.entities.factory.event_factory import EventFactory, EventT
-from quant.utils.cache.cache_manager import CacheManager
 from quant.utils.json_builder import MutableJsonBuilder
 
 EventNameT = TypeVar("EventNameT", bound=str)
@@ -12,12 +11,27 @@ EventNameT = TypeVar("EventNameT", bound=str)
 class EventController:
     def __init__(self, factory: EventFactory) -> None:
         self.factory = factory
+        self._builtin_events = {
+            "when_ready": self.factory.deserialize_ready_event,
+            "when_guild_create": self.factory.deserialize_guild_create_event,
+            "when_interaction_create": self.factory.deserialize_interaction_event,
+            "when_message_create": self.factory.deserialize_message_create_event,
+            "when_message_delete": self.factory.deserialize_message_delete_event,
+            "when_message_update": self.factory.deserialize_message_edit_event,
+            "when_voice_state_update": self.factory.deserialize_voice_state_update_event,
+            "when_voice_server_update": self.factory.deserialize_voice_server_update_event,
+            "when_channel_create": self.factory.entity_factory.deserialize_channel
+        }
+
+        for event_name, callback in self._builtin_events.items():
+            setattr(self, event_name, callback)
+
         self.available: List[str] = [
             member[0][5:].upper() for member in inspect.getmembers(self) if member[0].startswith("when_")
         ]
-        self._waiting_events: Set[EventTypes, Callable] = set()
+        self._waiting_events: Set[EventTypes, Callable] = set[EventTypes, Callable]()
 
-    async def wait(self, event_type: EventTypes, condition: Callable, timeout: int = 5) -> None:
+    async def wait(self, event_type: EventTypes, condition: bool, timeout: int = 5) -> None:
         ...
 
     @overload
@@ -43,41 +57,5 @@ class EventController:
             if event_name not in self.available:
                 return
 
-            callback = getattr(self, f"when_{event_name.lower()}")
-            await callback(details)
-
-    async def when_ready(self, payload: MutableJsonBuilder | Dict) -> None:
-        event = self.factory.deserialize_ready_event(payload)
-        await self.dispatch(event)
-
-    async def when_guild_create(self, payload: MutableJsonBuilder | Dict) -> None:
-        event = self.factory.deserialize_guild_create_event(payload)
-        await self.dispatch(event)
-
-    async def when_interaction_create(self, payload: MutableJsonBuilder | Dict) -> None:
-        event = self.factory.deserialize_interaction_event(payload)
-        await self.dispatch(event)
-
-    async def when_message_create(self, payload: MutableJsonBuilder | Dict) -> None:
-        event = self.factory.deserialize_message_create_event(payload)
-        await self.dispatch(event)
-
-    async def when_message_delete(self, payload: MutableJsonBuilder | Dict) -> None:
-        event = self.factory.deserialize_message_delete_event(payload)
-        await self.dispatch(event)
-
-    async def when_message_update(self, payload: MutableJsonBuilder | Dict) -> None:
-        event = self.factory.deserialize_message_edit_event(payload)
-        await self.dispatch(event)
-
-    async def when_voice_state_update(self, payload: MutableJsonBuilder | Dict) -> None:
-        event = self.factory.entity_factory.deserialize_voice_state(payload)
-        await self.dispatch(event)
-
-    async def when_voice_server_update(self, payload: MutableJsonBuilder | Dict) -> None:
-        event = self.factory.entity_factory.deserialize_voice_server(payload)
-        await self.dispatch(event)
-
-    async def when_channel_create(self, payload: MutableJsonBuilder | Dict) -> None:
-        event = self.factory.entity_factory.deserialize_channel(payload)
-        await self.dispatch(event)
+            event = getattr(self, 'when_' + event_name.lower())
+            await self.dispatch(event(details))
