@@ -99,8 +99,6 @@ class Interaction:
         GET, URI("/applications/{application_id}/guilds/{guild_id}/commands")
     )
 
-# Followups later
-
 
 class Channel:
     GET_CHANNEL_MESSAGES: Final[Route] = Route(GET, URI("/channels/{channel_id}/messages"))

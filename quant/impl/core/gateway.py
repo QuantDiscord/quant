@@ -23,7 +23,7 @@ if TYPE_CHECKING:
 
 from quant.entities.activity import Activity, ActivityStatus
 from quant.entities.snowflake import Snowflake
-from quant.impl.core.route import DISCORD_WS_URL
+from quant.impl.core.route import Gateway
 from quant.entities.intents import Intents
 from quant.utils.asyncio_utils import get_loop
 
@@ -163,7 +163,7 @@ class Gateway:
 
     async def start(self) -> None:
         self.websocket_connection = await self.session.ws_connect(
-            DISCORD_WS_URL.uri.url_string.format(self.api_version)
+            Gateway.DISCORD_WS_URL.uri.url_string.format(self.api_version)
         )
         self.ws_connected = True
 
