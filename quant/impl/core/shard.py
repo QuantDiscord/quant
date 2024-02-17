@@ -38,7 +38,7 @@ class Shard:
         if loop is not None:
             client.loop = loop
 
-        asyncio.create_task(self.gateway.start())
+        asyncio.create_task(self.gateway.connect())
 
         if self.shard_id == 0:
             client.gateway = self.gateway

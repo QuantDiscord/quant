@@ -40,3 +40,20 @@ def get_loop() -> AbstractEventLoop:
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)
     return loop
+
+
+def create_loop() -> asyncio.AbstractEventLoop:
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
+
+    return loop
+
+
+def kill_loop() -> None:
+    loop = get_loop()
+
+    if loop.is_closed():
+        return
+
+    loop.close()
+    asyncio.set_event_loop(None)

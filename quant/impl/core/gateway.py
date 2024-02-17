@@ -7,7 +7,7 @@ import zlib
 import logging
 from typing import (
     Dict,
-    NoReturn,
+    TypeVar,
     List,
     TYPE_CHECKING
 )
@@ -22,10 +22,13 @@ if TYPE_CHECKING:
     from quant.impl.core.client import Client
 
 from quant.entities.activity import Activity, ActivityStatus
-from quant.entities.snowflake import Snowflake
 from quant.impl.core.route import Gateway as gateway_route
 from quant.entities.intents import Intents
 from quant.utils.asyncio_utils import get_loop
+
+_ZLIB_SUFFIX = b"\x00\x00\xff\xff"
+
+WSMessageT = TypeVar("WSMessageT", bound=str | bytes)
 
 
 class OpCode(enum.IntEnum):
@@ -53,39 +56,20 @@ class IdentifyPayload:
 
 
 class Gateway:
-    _ZLIB_SUFFIX = b'\x00\x00\xff\xff'
-
     def __init__(
         self,
         intents: Intents,
         client: Client,
-        api_version: int = 10,
         shard_id: int = 0,
         num_shards: int = 1,
         session: aiohttp.ClientSession | None = None,
         mobile: bool = False
     ) -> None:
-        self.api_version = api_version
-        self.websocket_connection: None | aiohttp.ClientWebSocketResponse = None
-        self.ws_connected = False
-        self.sequence = None
-        self.session_id = None
-        self._previous_heartbeat = 0
-
-        self.loop = get_loop()
-
-        self.latency = None
-
         self.client = client
-
-        if session is not None:
-            self.session = session
-        else:
-            self.session = aiohttp.ClientSession()
-
-        self.shard_id = shard_id
-        self.shard_count = num_shards
-        self.raw_payload = IdentifyPayload(
+        self.loop = client.loop
+        self.session = session
+        self.websocket: aiohttp.ClientWebSocketResponse | None = None
+        self.identify = IdentifyPayload(
             token=client.token,
             properties={
                 "os": sys.platform,
@@ -96,243 +80,188 @@ class Gateway:
             large_threshold=250,
             intents=intents
         )
+        self._buffer = bytearray()
+        self._inflator = zlib.decompressobj()
 
-        self.buffer = bytearray()
-        self.zlib_decompressed_object = zlib.decompressobj()
+        self._sequence: int | None = None
+        self._interval: float | None = None
+        self._session_id: int | None = None
+        self._heartbeat = 0
 
-        logging.basicConfig(format='%(levelname)s | %(asctime)s %(module)s - %(message)s', level=logging.INFO)
-
-    @property
-    def identify_payload(self):
-        return attrs.asdict(self.raw_payload)
-
-    @identify_payload.setter
-    def identify_payload(self, data: Dict):
-        self.identify_payload = data
-
-    async def send_presence(
-        self,
-        activity: Activity | None = None,
-        status: ActivityStatus = None,
-        since: int = None,
-        afk: bool = False
-    ):
-        presence = {
-            'activities': [
-                {
-                    'name': activity.name,
-                    'type': activity.type.value,
-                    'url': activity.url
-                }
-            ],
-            'status': status.value,
-            'since': since,
-            'afk': afk
-        }
-
-        await self._send(self.create_payload(
-            op=OpCode.PRESENCE_UPDATE,
-            data=presence
-        ))
-
-    async def request_guild_members(
-        self,
-        guild_id: Snowflake | int,
-        query: str = None,
-        limit: int = None,
-        presences: bool = False,
-        user_ids: Snowflake | int | List[Snowflake | int] = None,
-        nonce: bool = False
-    ):
-        payload = self.create_payload(
-            op=OpCode.REQUEST_GUILD_MEMBERS,
-            data={
-                'guild_id': guild_id,
-                'query': query,
-                'limit': limit,
-                'presences': presences,
-                'user_ids': user_ids,
-                'nonce': nonce
-            }
-        )
-        await self._send(payload)
+        logging.basicConfig(format="%(levelname)s | %(asctime)s %(module)s - %(message)s", level=logging.INFO)
 
     @property
     def get_logger(self) -> logging.Logger:
         return logging.getLogger(__name__)
 
-    async def start(self) -> None:
-        self.websocket_connection = await self.session.ws_connect(
-            gateway_route.DISCORD_WS_URL.uri.url_string.format(self.api_version)
-        )
-        self.ws_connected = True
+    async def connect(self) -> None:
+        ws_url = gateway_route.DISCORD_WS_URL.uri.url_string.format(10)
 
+        self.session = aiohttp.ClientSession()
+        self.websocket = await self.session.ws_connect(url=ws_url)
         self.get_logger.info(
             "Connecting to shard with ID %s (total shard count: %s)",
-            self.shard_id,
+            self.identify.shard[0],
             len(self.client.shards) or 1
         )
-        await self.send_identify()
-        self.loop.create_task(self.read_websocket())
-        await self.keep_alive_check()
 
-    async def error_reconnect(self, code: int):
-        self.get_logger.info("reconnecting (code: %s)", code)
+        await self._send_identify()
 
-        if code == 4009:
-            await self.resume_connection()
+        while not self.websocket.closed:
+            await self._websocket_read()
+            await self._keep_alive()
+
+    async def close(self, code: int = 4000):
+        self.get_logger.info("Connection closing, code: %s", code)
+
+        if not self.websocket:
             return
 
-        self.ws_connected = False
-        await self.start()
+        await self.websocket.close(code=code)
 
-    async def on_websocket_message(self, received_data):
-        if isinstance(received_data, bytes):
-            self.buffer.extend(received_data)
+        self._buffer.clear()
 
-            if len(received_data) < 4 or received_data[-4:] != self._ZLIB_SUFFIX:
-                return
+    def on_websocket_message(self, message: WSMessageT) -> dict | None:
+        self._buffer.extend(message)
 
-            received_data = self.zlib_decompressed_object.decompress(self.buffer)
-            try:
-                received_data = received_data.decode("utf8")
-                self.buffer = bytearray()
-            except zlib.error:
-                return
+        if len(message) < 4 or message[-4:] != _ZLIB_SUFFIX:
+            return
 
-        received_data = json.loads(received_data)
-        op = received_data["op"]
-        sequence = received_data["s"]
+        message = self._inflator.decompress(self._buffer)
+        try:
+            self._buffer = bytearray()
+            return json.loads(message.decode("utf8"))
+        except zlib.error:
+            return
 
-        await self._validate_opcode(op=op, sequence=sequence, received_data=received_data)
+    async def opcode_validator(self, message: WSMessageT) -> None:
+        performed_message = self.on_websocket_message(message)
 
-    async def _validate_opcode(self, op: int, sequence: int, received_data: Dict) -> None:
-        match OpCode(op):
+        if performed_message is None:
+            return
+
+        self._sequence = performed_message.get("s")
+        opcode, data = (
+            performed_message.get("op"),
+            performed_message.get("d")
+        )
+
+        match opcode:
             case OpCode.DISPATCH:
-                self.sequence = int(sequence)
-                received_event_type = received_data["t"]
-                event_details = received_data["d"]
+                received_event_type = performed_message.get("t")
+                event_details = data
 
                 self.client.event_factory.cache_item(received_event_type, **event_details)
                 await self.client.event_controller.dispatch(received_event_type, event_details)
             case OpCode.INVALID_SESSION:
-                await self.websocket_connection.close(code=4000)
-                await self.error_reconnect(code=4000)
+                await self.websocket.close(code=4000)
+                await self.reconnect(code=4000)
             case OpCode.HELLO:
-                await self.send_hello(received_data["d"])
-            case OpCode.HEARTBEAT_ACK:
-                self.latency = time.perf_counter() - self._previous_heartbeat
+                await self._send_hello(data.get("heartbeat_interval"))
             case OpCode.RECONNECT:
                 await self.close(code=1012)
 
-    async def keep_alive_check(self) -> None:
-        while self.ws_connected:
-            await asyncio.sleep(20)
+    async def _websocket_read(self) -> None:
+        async for message in self.websocket:
+            try:
+                await self.opcode_validator(message.data)
+            except Exception as e:
+                print_exception(e)
 
-            one_minute = float(60)
-            if (self._previous_heartbeat + one_minute) < time.perf_counter():
-                await self.websocket_connection.close(code=4000)
-                await self.error_reconnect(code=4000)
-
-    async def read_websocket(self) -> NoReturn:
-        while self.ws_connected:
-            async for message in self.websocket_connection:
-                match message.type:
-                    case aiohttp.WSMsgType.BINARY | aiohttp.WSMsgType.TEXT:
-                        try:
-                            await self.on_websocket_message(message.data)
-                        except Exception as exception:
-                            print_exception(exception)
-                    case _:
-                        raise RuntimeError
-
-            close_code = self.websocket_connection.close_code
+            close_code = self.websocket.close_code
             if close_code is not None:
                 self.get_logger.error("Gateway received close code: %s", close_code)
                 break
 
     async def _send(self, data) -> None:
-        await self.websocket_connection.send_str(data)
+        await self.websocket.send_str(data)
 
-    async def resume_connection(self):
-        self.get_logger.info("connection resumed")
+    async def _send_heartbeat(self, interval: float) -> None:
+        payload = self.create_payload(opcode=OpCode.HEARTBEAT, sequence=self._sequence)
 
-        if self.websocket_connection.closed:
-            return
+        self._heartbeat = time.perf_counter()
 
-        payload = self.create_payload(OpCode.RESUME, {
-            "token": self.client.token,
-            "session_id": self.session_id,
-            "seq": self.sequence
-        })
         await self._send(payload)
-
-    async def send_identify(self, resume: bool = False) -> None:
-        if resume:
-            return await self.resume_connection()
-
-        await self._send(self.create_payload(OpCode.IDENTIFY, self.identify_payload))
-
-    async def close(self, code: int = 4000):
-        self.get_logger.info("Connection closing, code: %s", code)
-
-        if not self.websocket_connection:
-            return
-
-        self.ws_connected = False
-        await self.websocket_connection.close(code=code)
-
-        self.buffer.clear()
-
-    async def send_heartbeat(self, interval: float):
-        if self.websocket_connection.closed:
-            return
-
-        await self._send(self.create_payload(OpCode.HEARTBEAT, sequence=self.sequence))
-        self._previous_heartbeat = time.perf_counter()
-
         await asyncio.sleep(interval)
-        self.loop.create_task(self.send_heartbeat(interval))
 
-    async def send_hello(self, data: Dict) -> None:
-        interval = data["heartbeat_interval"] / 1000
-        await asyncio.sleep((interval - 2000) / 1000)
+        self.loop.create_task(self._send_heartbeat(interval))
 
-        self.loop.create_task(self.send_heartbeat(interval))
+    async def _send_hello(self, heartbeat_interval: float) -> None:
+        seconds_interval = heartbeat_interval / 1000
+        await asyncio.sleep((seconds_interval - 2000) / 1000)
 
-    async def connect_voice(
-        self,
-        guild_id: int,
-        channel_id: int = None,
-        self_mute: bool = False,
-        self_deaf: bool = False
-    ) -> None:
+        self.loop.create_task(self._send_heartbeat(seconds_interval))
+
+        self._buffer.clear()
+
+    async def _send_identify(self) -> None:
+        await self._send(self.create_payload(
+            opcode=OpCode.IDENTIFY,
+            data=attrs.asdict(self.identify)  # type: ignore
+        ))
+
+    async def _send_resume(self) -> None:
         payload = self.create_payload(
-            op=OpCode.VOICE_STATE_UPDATE,
+            opcode=OpCode.RESUME,
             data={
-                "guild_id": guild_id,
-                "channel_id": channel_id,
-                "self_mute": self_mute,
-                "self_deaf": self_deaf
+                "token": self.client.token,
+                "session_id": self._session_id,
+                "seq": self._sequence
             }
         )
         await self._send(payload)
 
+    async def _keep_alive(self) -> None:
+        await asyncio.sleep(20)
+
+        if (self._heartbeat + float(60)) < time.perf_counter():
+            await self.reconnect(code=4000)
+
+    async def send_presence(
+        self,
+        activity: Activity | None = None,
+        status: ActivityStatus | None = None,
+        since: int | None = None,
+        afk: bool = False
+    ) -> None:
+        presence = {
+            "activities": [
+                {
+                    "name": activity.name,
+                    "type": activity.type.value,
+                    "url": activity.url
+                }
+            ],
+            "status": status.value,
+            "since": since,
+            "afk": afk
+        }
+        payload = self.create_payload(
+            opcode=OpCode.PRESENCE_UPDATE,
+            data=presence
+        )
+        await self._send(payload)
+
+    async def reconnect(self, code: int) -> None:
+        self.get_logger.info("Reconnecting (code: %s)", code)
+
+        await self.close(code=code)
+
+        if code == 4000:
+            await self._send_resume()
+            return
+
+        await self.connect()
+
     @staticmethod
     def create_payload(
-        op: OpCode,
-        data=None, sequence: int = None,
-        event_name: str = None
-    ) -> str:
-        payload = {"op": op, "d": data}
-        if op == OpCode.DISPATCH:
+        opcode: OpCode | int,
+        data: dict | str | None = None,
+        sequence: int | None = None,
+        event_name: str | None = None
+    ) -> str | None:
+        payload = {"op": opcode if isinstance(opcode, int) else opcode.value, "d": data}
+        if opcode == OpCode.DISPATCH:
             payload.update({"s": sequence, "t": event_name})
 
         return json.dumps(payload)
-
-    @staticmethod
-    def create_new_loop() -> asyncio.AbstractEventLoop:
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
-
-        return loop
