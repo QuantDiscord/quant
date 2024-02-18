@@ -214,16 +214,13 @@ class Client:
 
         Examples
         --------
-        .. highlight:: python
-            :linenothreshold: 5
-
-        .. code-block:: python
+        With two arguments: ::
             async def my_message_handler(event):
                 print(event.message.content)
 
             client.add_listener(MessageCreateEvent, my_message_handler)
 
-        .. code-block:: python
+        With one argument: ::
             async def my_message_handler(event: MessageCreateEvent):
                 print(event.message.content)
 
@@ -403,7 +400,7 @@ class Client:
             raise e
 
     async def set_activity(self, activity: ActivityData):
-        """[coro]
+        """|coro|
 
         Sets an activity for all shards
 
