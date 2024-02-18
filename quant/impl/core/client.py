@@ -214,6 +214,9 @@ class Client:
 
         Examples
         --------
+        .. highlight:: python
+            :linenothreshold: 5
+            
         With two arguments: ::
 
         .. code-block:: python
