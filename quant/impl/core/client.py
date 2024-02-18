@@ -203,11 +203,11 @@ class Client:
 
     @overload
     def add_listener(self, event: T, coro: _Coroutine) -> None:
-        """Adds listener with explicit event and coro"""
+        ...
 
     @overload
     def add_listener(self, coro: _Coroutine) -> None:
-        """Adds listener with coro only (gets event type from annotations)"""
+        ...
 
     def add_listener(self, *args) -> None:
         """Adds listener to bot
@@ -215,12 +215,16 @@ class Client:
         Examples
         --------
         With two arguments: ::
+
+        .. code-block:: python
             async def my_message_handler(event):
                 print(event.message.content)
 
             client.add_listener(MessageCreateEvent, my_message_handler)
 
         With one argument: ::
+
+        .. code-block:: python
             async def my_message_handler(event: MessageCreateEvent):
                 print(event.message.content)
 
