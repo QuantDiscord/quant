@@ -214,13 +214,16 @@ class Client:
 
         Examples
         --------
-        .. codeblock:: python
+        .. highlight:: python
+            :linenothreshold: 5
+
+        .. code-block:: python
             async def my_message_handler(event):
                 print(event.message.content)
 
             client.add_listener(MessageCreateEvent, my_message_handler)
 
-        .. codeblock:: python
+        .. code-block:: python
             async def my_message_handler(event: MessageCreateEvent):
                 print(event.message.content)
 
