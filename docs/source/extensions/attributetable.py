@@ -227,7 +227,7 @@ def get_class_results(lookup, modulename, name, fullname):
             doc = value.__doc__ or ""
             if inspect.iscoroutinefunction(value) or doc.startswith("|coro|"):
                 key = _("Methods")
-                badge = attributetablebadge("async", "async")
+                badge = attributetablebadge("async", "async ")
                 badge["badge-type"] = _("coroutine")
             elif isinstance(value, classmethod):
                 key = _("Methods")
@@ -245,7 +245,7 @@ def get_class_results(lookup, modulename, name, fullname):
                     key = _("Methods")
                 else:
                     key = _("Methods")
-                    badge = attributetablebadge("def", "def")
+                    badge = attributetablebadge("def", "def ")
                     badge["badge-type"] = _("method")
 
         groups[key].append(TableElement(fullname=attrlookup, label=label, badge=badge))
