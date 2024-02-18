@@ -7,6 +7,7 @@ from quant.impl.core.context import ButtonContext
 
 
 class ButtonStyle(enum.Enum):
+    """Discord button styles"""
     PRIMARY = 1
     SECONDARY = 2
     SUCCESS = 3
@@ -15,6 +16,23 @@ class ButtonStyle(enum.Enum):
 
 
 class Button(Component):
+    """Represents a discord button
+
+    Parameters
+    ==========
+    custom_id: :class:`str | None`
+        Button custom ID
+    style: :class:`ButtonStyle`
+        Discord button style
+    label: :class:`str`
+        Button label
+    emoji: :class:`Emoji | None`
+        Button emoji
+    url: :class:`str | None`
+        Button redirect url
+    disabled: :class:`bool`
+        Set/check is button disabled
+    """
     BUTTON_COMPONENT_TYPE: int = 2
     INTERACTION_TYPE: int = 3
 

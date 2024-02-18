@@ -108,7 +108,7 @@ class ActivityData:
 class ActivityBuilder:
     """Build an activity
 
-    .. attributetable ActivityBuilder
+    .. attributetable:: ActivityBuilder
     """
 
     def __init__(self) -> None:
@@ -123,7 +123,7 @@ class ActivityBuilder:
         url: str | None = None,
         activity_type: ActivityType = ActivityType.GAME
     ) -> Self:
-        """Set a activity"""
+        """Set an activity"""
         self._activity = Activity(name=name, url=url, type=activity_type)
         return self
 

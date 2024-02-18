@@ -1,6 +1,6 @@
 .. currentmodule:: quant
 
-Message Entity
+Message
 ------
 
 .. attributetable:: Message
