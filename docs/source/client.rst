@@ -1,7 +1,7 @@
+.. currentmodule:: quant
+
 Client
 ======
-
-.. currentmodule:: quant
 
 .. attributetable:: Client
 

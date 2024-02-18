@@ -38,7 +38,6 @@ class OpCode(enum.IntEnum):
     PRESENCE_UPDATE = 3
     VOICE_STATE_UPDATE = 4
     RESUME = 6
-
     RECONNECT = 7
     REQUEST_GUILD_MEMBERS = 8
     INVALID_SESSION = 9
