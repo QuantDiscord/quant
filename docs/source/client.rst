@@ -6,4 +6,3 @@ Client
 .. attributetable:: Client
 
 .. autoclass:: Client
-

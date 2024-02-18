@@ -45,6 +45,44 @@ from quant.entities.activity import ActivityData
 
 
 class Client:
+    """A main bot class for interacting with Discord
+
+    Parameters
+    ----------
+    token: :class:`str`
+        The authentication token required for the bot to connect to Discord.
+    intents: :class:`Intents`
+        The intents to be used by the bot
+    mobile: :class:`bool`
+        Specifies whether the bot is running in a mobile environment
+
+    Attributes
+    ----------
+    me: :class:`User | None`
+        The user object representing the bot itself.
+    shards: :class:`List[Shard]`
+        The list of shards the bot is connected to.
+    token: :class:`str`
+        The authentication token provided during initialization.
+    intents: :class:`Intents`
+        The intents used by the bot.
+    loop: :class:`asyncio.AbstractEventLoop`
+        The event loop used by the bot.
+    cache: :class:`CacheManager`
+        The cache manager used for caching Discord objects.
+    event_factory: :class:`EventFactory`
+        The event factory used for creating events.
+    event_controller: :class:`EventController`
+        The event controller used for managing events.
+    rest: :class:`RESTImpl`
+        The REST implementation used for interacting with the Discord REST API.
+    client_id: :class:`int`
+        The ID of the bot client.
+    gateway: :class:`Gateway | None`
+        The gateway used for communicating with Discord.
+    mobile: :class:`bool`
+        Specifies whether the bot is running in a mobile environment.
+    """
     T = TypeVar("T")
 
     def __init__(
@@ -96,9 +134,22 @@ class Client:
         return shard
 
     def run(self, loop: asyncio.AbstractEventLoop = None) -> None:
+        """Run bot
+
+        It will run one shard with ID 0
+        """
         self.run_with_shards(shard_count=1, loop=loop)
 
     def run_with_shards(self, shard_count: int, loop: asyncio.AbstractEventLoop = None) -> None:
+        """Run bot with custom shard_count.
+
+        Parameters
+        ==========
+        shard_count: :class:`int`
+            Shard count with you want start bot
+        loop: :class:`asyncio.AbstractEventLoop`
+            Your loop if needed
+        """
         for shard_id in range(shard_count):
             self.shards.append(Shard(
                 num_shards=shard_count,
@@ -125,6 +176,13 @@ class Client:
         self._run_forever()
 
     def run_autoshard(self, loop: asyncio.AbstractEventLoop = None) -> None:
+        """Run autosharded bot
+
+        Parameters
+        ==========
+        loop: :class:`asyncio.AbstractEventLoop`
+            Your loop if needed
+        """
         self.run_with_shards(shard_count=self._gateway_info.shards, loop=loop)
 
     def _run_forever(self) -> None:
@@ -145,13 +203,29 @@ class Client:
 
     @overload
     def add_listener(self, event: T, coro: _Coroutine) -> None:
-        ...
+        """Adds listener with explicit event and coro"""
 
     @overload
     def add_listener(self, coro: _Coroutine) -> None:
-        ...
+        """Adds listener with coro only (gets event type from annotations)"""
 
     def add_listener(self, *args) -> None:
+        """Adds listener to bot
+
+        Examples
+        --------
+        .. codeblock:: python
+            async def my_message_handler(event):
+                print(event.message.content)
+
+            client.add_listener(MessageCreateEvent, my_message_handler)
+
+        .. codeblock:: python
+            async def my_message_handler(event: MessageCreateEvent):
+                print(event.message.content)
+
+            client.add_listener(my_message_handler)
+        """
         if len(args) == 1:
             self._add_listener_from_coro(args[0])
         else:
@@ -183,6 +257,15 @@ class Client:
             raise DiscordException(f"You must provide which event you need {coro}")
 
     def add_slash_command(self, *commands: SlashCommand, app_id: Snowflake | int = None) -> None:
+        """Adds your slash commands
+
+        Parameters
+        ==========
+        commands: :class:`SlashCommand`
+            Your command/s which will be added
+        app_id: :class:`Snowflake | int`
+            Custom application ID
+        """
         for command in commands:
             if inspect.iscoroutine(command.callback):
                 raise DiscordException("Callback function must be coroutine")
@@ -192,26 +275,37 @@ class Client:
 
             self.slash_commands[command.name] = command
 
+            command_data = {
+                "application_id": self.client_id if app_id is None else app_id,
+                "name": command.name,
+                "description": command.description,
+                "options": command.options
+            }
+
             guild_ids = command.guild_ids
             if guild_ids:
                 for guild_id in guild_ids:
-                    asyncio.ensure_future(self.rest.create_guild_application_command(
-                        application_id=self.client_id if app_id is None else app_id,
-                        name=command.name,
-                        description=command.description,
-                        options=command.options,
-                        guild_id=guild_id
-                    ), loop=self.loop)
+                    asyncio.ensure_future(
+                        self.rest.create_guild_application_command(
+                            **command_data,
+                            guild_id=guild_id
+                        ),
+                        loop=self.loop
+                    )
                 continue
 
-            asyncio.ensure_future(self.rest.create_application_command(
-                application_id=self.client_id if app_id is None else app_id,
-                name=command.name,
-                description=command.description,
-                options=command.options,
-            ), loop=self.loop)
+            asyncio.ensure_future(
+                self.rest.create_application_command(**command_data), loop=self.loop
+            )
 
     def add_modal(self, *modals: Modal) -> None:
+        """Adds your modals
+
+        Parameters
+        ==========
+        modals: :class:`Modal`
+            Your modal/s which will be added
+        """
         for modal in modals:
             if inspect.iscoroutine(modal.callback):
                 raise DiscordException("Callback function must be coroutine")
@@ -219,6 +313,13 @@ class Client:
             self.modals[str(modal.custom_id)] = modal
 
     def add_button(self, *buttons: Button) -> None:
+        """Adds your buttons
+
+        Parameters
+        ==========
+        buttons: :class:`Button`
+            Your button/s which will be added
+        """
         for button in buttons:
             if inspect.iscoroutine(button.callback):
                 raise DiscordException("Callback function must be coroutine")
@@ -299,6 +400,15 @@ class Client:
             raise e
 
     async def set_activity(self, activity: ActivityData):
+        """[coro]
+
+        Sets an activity for all shards
+
+        Parameters
+        =========
+        activity: :class:`ActivityData`
+            Activity which will be set
+        """
         presence = {
             "activity": activity.activity,
             "afk": activity.afk,
