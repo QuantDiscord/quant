@@ -216,10 +216,11 @@ class Client:
         --------
         .. highlight:: python
             :linenothreshold: 5
-            
+
         With two arguments: ::
 
         .. code-block:: python
+
             async def my_message_handler(event):
                 print(event.message.content)
 
@@ -228,6 +229,7 @@ class Client:
         With one argument: ::
 
         .. code-block:: python
+
             async def my_message_handler(event: MessageCreateEvent):
                 print(event.message.content)
 
