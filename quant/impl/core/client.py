@@ -225,7 +225,7 @@ class Client:
             client.add_listener(MessageCreateEvent, my_message_handler)
 
         With one argument: ::
-        
+
             async def my_message_handler(event: MessageCreateEvent):
                 print(event.message.content)
 

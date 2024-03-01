@@ -1,16 +1,18 @@
 from __future__ import annotations
 
-from typing import List, TYPE_CHECKING, Any
+from typing import List, TYPE_CHECKING, Any, TypeVar
 
 if TYPE_CHECKING:
     from quant.impl.core.client import Client
     from quant.entities.interactions.interaction import Interaction
-    from quant.entities.interactions.choice_response import InteractionDataOption
     from quant.entities.message import Message, Attachment, MessageReference, MessageFlags
     from quant.entities.button import Button
     from quant.entities.user import User
     from quant.entities.member import GuildMember
 
+from quant.entities.roles import GuildRole
+from quant.entities.channel import TextChannel, VoiceChannel, Thread
+from quant.entities.interactions.choice_response import InteractionDataOption
 from quant.entities.action_row import ActionRow
 from quant.entities.embeds import Embed
 from quant.entities.allowed_mentions import AllowedMentions
@@ -61,6 +63,10 @@ class BaseContext:
         )
 
 
+OptionT = TypeVar("OptionT", bound=Any | InteractionDataOption | None)
+ChannelT = TypeVar("ChannelT", bound=TextChannel | VoiceChannel | Thread)
+
+
 class InteractionContext:
     def __init__(self, client, interaction) -> None:
         self.client: Client = client
@@ -70,7 +76,7 @@ class InteractionContext:
     def author(self) -> GuildMember:
         return self.interaction.member
 
-    async def get_option(self, name: str) -> Any | InteractionDataOption | None:
+    async def get_option(self, name: str) -> OptionT:
         interaction_options = self.interaction.data.options
         if interaction_options is None:
             return
@@ -81,6 +87,15 @@ class InteractionContext:
 
         option = options[0]
         return await parse_option_type(self.client, self.interaction, option.type, option.value)
+
+    async def get_user_option(self, name: str) -> User | None:
+        return await self.get_option(name=name)
+
+    async def get_channel_option(self, name: str) -> ChannelT | None:
+        return await self.get_option(name=name)
+
+    async def get_role_option(self, name: str) -> GuildRole | None:
+        return await self.get_option(name=name)
 
 
 class ButtonContext(InteractionContext):

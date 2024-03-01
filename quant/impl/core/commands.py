@@ -98,8 +98,5 @@ class SlashCommand(ApplicationCommandObject):
     ) -> None:
         super().__init__(kwargs.get("name"), kwargs.get("description"), **kwargs)
 
-        if options is None:
-            self.options = []
-
-        if guild_ids is None:
-            self.guild_ids = []
+        self.options = options
+        self.guild_ids = guild_ids

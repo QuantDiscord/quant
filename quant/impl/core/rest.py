@@ -661,7 +661,7 @@ class RESTImpl(RESTAware):
         response = await self.http.send_request(
             method=method, url=url
         )
-        return [Invite(**integration) for integration in await response.json()]
+        return [self.entity_factory.deserialize_invite(invite) for invite in await response.json()]
 
     async def fetch_guild_members(
         self,

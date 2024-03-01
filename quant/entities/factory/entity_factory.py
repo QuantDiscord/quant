@@ -12,6 +12,7 @@ from quant.entities.message import Message, Attachment, MessageFlags
 from quant.entities.embeds import Embed, EmbedField, EmbedAuthor, EmbedImage, EmbedThumbnail, EmbedFooter
 from quant.entities.voice_state_update import VoiceState
 from quant.entities.voice_server_update import VoiceServer
+from quant.entities.invite import Invite, _InviteMetadata, InviteTargetType
 from quant.entities.interactions.interaction import InteractionData, InteractionType, Interaction, InteractionDataOption, InteractionCallbackData
 from quant.entities.channel import Channel, Thread, ThreadMetadata, ChannelType, VoiceChannel, TextChannel
 from quant.entities.guild import Guild
@@ -649,6 +650,49 @@ class EntityFactory:
             soundboard_sounds=payload.get("soundboard_sounds", []),
             version=payload.get("version", 0),
             locale=payload.get("locale", None),
+        )
+
+    def deserialize_invite(self, payload: MutableJsonBuilder | Dict) -> Invite:
+        if (guild := payload.get("guild")) is not None:
+            guild = self.deserialize_guild(guild)
+
+        if (channel := payload.get("channel")) is not None:
+            channel = self.deserialize_guild(channel)
+
+        if (inviter := payload.get("inviter")) is not None:
+            inviter = self.deserialize_user(inviter)
+
+        if (target_user := payload.get("target_user")) is not None:
+            target_user = self.deserialize_user(target_user)
+
+        return Invite(
+            code=payload.get("code"),
+            guild_id=Snowflake(payload.get("guild_id", 0)),
+            guild=guild,
+            channel=channel,
+            inviter=inviter,
+            target_type=InviteTargetType(payload.get("target_type", 0)),
+            target_user=target_user,
+            target_application=payload.get("target_application"),
+            approximate_presence_count=payload.get("approximate_presence_count", 0),
+            approximate_member_count=payload.get("approximate_member_count", 0),
+            expires_at=iso_to_datetime(payload.get("expires_at")),
+            stage_instance=payload.get("stage_instance"),
+            guild_scheduled_event=payload.get("guild_scheduled_event"),
+            metadata=self._deserialize_invite_metadata(payload)
+        )
+
+    @staticmethod
+    def _deserialize_invite_metadata(payload: MutableJsonBuilder | Dict) -> _InviteMetadata | None:
+        if payload is None:
+            return
+
+        return _InviteMetadata(
+            uses=payload.get("uses", 0),
+            max_uses=payload.get("max_uses", 0),
+            max_age=payload.get("max_age", 0),
+            temporary=payload.get("temporary", False),
+            created_at=iso_to_datetime(payload.get("created_at"))
         )
 
     @staticmethod

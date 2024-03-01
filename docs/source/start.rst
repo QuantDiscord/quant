@@ -1,7 +1,8 @@
 Getting started
 ----------------------
 
-**Here's basic bot code**
+Here's basic bot code
+==========
 
 .. highlight:: python
     :linenothreshold: 5
@@ -30,3 +31,7 @@ Getting started
         # or
         client.run_with_shards(5)
 
+
+Quant designed to simplify your experience with Discord API.
+
+If you have some issues or problems you can get help in support server
