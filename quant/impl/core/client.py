@@ -1,6 +1,7 @@
 from __future__ import annotations as _
 
 import asyncio
+import warnings
 import base64
 import inspect
 from typing import (
@@ -20,8 +21,10 @@ from quant.utils.cache.cache_manager import CacheManager
 
 if TYPE_CHECKING:
     from quant.entities.button import Button
+    from quant.impl.core.commands import ApplicationCommandObject
 
-import quant.utils.asyncio_utils as asyncutil
+import quant.utils.asyncio_utils as asyncio_utils
+from quant.utils import logger
 from quant.entities.gateway import GatewayInfo
 from quant.entities.interactions.component_types import ComponentType
 from quant.impl.core.shard import Shard
@@ -89,13 +92,14 @@ class Client:
         self,
         token: str,
         intents: Intents = Intents.ALL_UNPRIVILEGED,
-        mobile: bool = False
+        mobile: bool = False,
+        asyncio_debug: bool = False
     ) -> None:
         self.me: User | None = None
         self.shards: List[Shard] = []
         self.token = token
         self.intents = intents
-        self.loop = asyncutil.get_loop()
+        self.loop = asyncio_utils.get_loop()
         self.cache = CacheManager()
         self.event_factory = EventFactory(self.cache)
         self.event_controller = EventController(self.event_factory)
@@ -103,11 +107,12 @@ class Client:
         self.client_id: int = self._decode_token_to_id()
         self.gateway: Gateway | None = None
         self.mobile = mobile
+        self.asyncio_debug = asyncio_debug
         self._gateway_info: GatewayInfo = self.loop.run_until_complete(self.rest.get_gateway())
 
         self._modals: Dict[str, Modal] = {}
         self._buttons: Dict[str, Button] = {}
-        self._slash_commands: Dict[str, SlashCommand] = {}
+        self._slash_commands: Dict[str, ApplicationCommandObject] = {}
 
         self.add_listener(InteractionCreateEvent, self._listen_interaction_create)
         self.add_listener(ReadyEvent, self._set_client_user_on_ready)
@@ -127,6 +132,9 @@ class Client:
 
         if loop is not None:
             self.loop = loop
+
+        if self.asyncio_debug:
+            self.loop.set_debug(self.asyncio_debug)
 
         shard = Shard(num_shards=shard_count, shard_id=shard_id, intents=self.intents, mobile=self.mobile)
         await shard.start(client=self, loop=self.loop)
@@ -189,17 +197,13 @@ class Client:
         try:
             self.loop.run_forever()
         except KeyboardInterrupt:
-            self.gateway.get_logger.info("Shutting down bot")
+            logger.info("Shutting down bot")
 
             for shard in self.shards:
-                if shard.shard_id == 0:
-                    self.loop.run_until_complete(self.gateway.close())
-                    continue
-
                 self.loop.run_until_complete(shard.gateway.close())
-                asyncutil.kill_loop()
+                asyncio_utils.kill_loop()
 
-            self.gateway.get_logger.info("Goodbye. Bot terminated")
+            logger.info("Goodbye. Bot terminated")
 
     @overload
     def add_listener(self, event: T, coro: _Coroutine) -> None:
@@ -261,8 +265,8 @@ class Client:
         except IndexError:
             raise DiscordException(f"You must provide which event you need {coro}")
 
-    def add_slash_command(self, *commands: SlashCommand, app_id: Snowflake | int = None) -> None:
-        """Adds your slash commands
+    def remove_slash_command(self, *commands, app_id: Snowflake | int | None = None) -> None:
+        """Removes slash commands
 
         Parameters
         ==========
@@ -271,37 +275,59 @@ class Client:
         app_id: :class:`Snowflake | int`
             Custom application ID
         """
+
+        # if len(self.slash_commands) == 100:
+        #     raise DiscordException("You can't create more than 100 slash commands.")
+
+        # for command in commands:
+        #     if command.id in self.slash_commands
+        raise NotImplementedError
+
+    def add_slash_command(self, *commands: SlashCommand, app_id: Snowflake | int = None) -> None:
+        """Adds your slash commands
+
+        Parameters
+        ==========
+        commands: :class:`SlashCommand`
+            Your command/s which will be added
+        app_id: :class:`Snowflake | int`
+            Custom application ID or bot client ID
+        """
+        app_id = self.client_id if app_id is None else app_id
+        if len(self.slash_commands) == 100:
+            raise DiscordException("You can't create more than 100 slash commands.")
+
         for command in commands:
-            if inspect.iscoroutine(command.callback):
+            if not inspect.iscoroutinefunction(command.callback_func):
                 raise DiscordException("Callback function must be coroutine")
 
-            if len(self.slash_commands) == 100:
-                raise DiscordException("You can't create more than 100 slash commands.")
-
-            self.slash_commands[command.name] = command
-
             command_data = {
-                "application_id": self.client_id if app_id is None else app_id,
+                "application_id": app_id,
                 "name": command.name,
                 "description": command.description,
                 "options": command.options
             }
 
+            application_command: ApplicationCommandObject | None = None
             guild_ids = command.guild_ids
             if guild_ids:
                 for guild_id in guild_ids:
-                    asyncio.ensure_future(
+                    # guild_commands: List[str] = [command.name for command in self.loop.run_until_complete(
+                    #     self.rest.fetch_guild_application_commands(application_id=app_id, guild_id=guild_id)
+                    # )]
+                    application_command: ApplicationCommandObject = self.loop.run_until_complete(
                         self.rest.create_guild_application_command(
                             **command_data,
                             guild_id=guild_id
-                        ),
-                        loop=self.loop
+                        )
                     )
-                continue
+            else:
+                application_command: ApplicationCommandObject = self.loop.run_until_complete(
+                    self.rest.create_application_command(**command_data)
+                )
 
-            asyncio.ensure_future(
-                self.rest.create_application_command(**command_data), loop=self.loop
-            )
+            application_command.set_callback(command.callback_func)
+            self.slash_commands[application_command.name] = application_command
 
     def add_modal(self, *modals: Modal) -> None:
         """Adds your modals
@@ -332,7 +358,7 @@ class Client:
             self._buttons[str(button.custom_id)] = button
 
     @property
-    def slash_commands(self) -> Dict[str, SlashCommand]:
+    def slash_commands(self) -> Dict[str, ApplicationCommandObject]:
         return self._slash_commands
 
     @property
@@ -423,9 +449,9 @@ class Client:
 
         for shard in self.shards:
             if shard.gateway is None:
-                await self.gateway.send_presence(**presence)
-            else:
-                await shard.gateway.send_presence(**presence)
+                continue
+
+            await shard.gateway.send_presence(**presence)
 
     async def _set_client_user_on_ready(self, _: ReadyEvent) -> None:
         self.me = self.cache.get_users()[0]

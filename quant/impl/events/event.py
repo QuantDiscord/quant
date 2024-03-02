@@ -33,4 +33,3 @@ class InternalEvent(ABC, Event):
 class DiscordEvent(Event):
     event_api_name: EventTypes = attrs.field()
     cache_manager: CacheManager = attrs.field()
-

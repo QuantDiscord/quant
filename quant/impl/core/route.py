@@ -98,6 +98,9 @@ class Interaction:
     GET_GUILD_APPLICATION_COMMANDS: Final[Route] = Route(
         GET, URI("/applications/{application_id}/guilds/{guild_id}/commands")
     )
+    DELETE_GUILD_APPLICATION_COMMAND: Final[Route] = Route(
+        GET, URI("/applications/{application_id}/guilds/{guild_id}/commands/{command_id}")
+    )
 
 
 class Channel:

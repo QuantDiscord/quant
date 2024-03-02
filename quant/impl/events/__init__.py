@@ -17,5 +17,6 @@ __all__ = (
     "QuantExceptionEvent",
     "MessageEditEvent",
     "InteractionCreateEvent",
-    "ReadyEvent"
+    "ReadyEvent",
+    "RawDispatchEvent"
 )

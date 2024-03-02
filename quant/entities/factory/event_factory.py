@@ -77,9 +77,9 @@ class EventFactory:
 
     def deserialize_voice_state_update_event(
         self,
-        guild_id: entities.Snowflake | int,
         channel_id: entities.Snowflake | int,
-        user_id: entities.Snowflake | int,
+        guild_id: entities.Snowflake | int | None = None,
+        user_id: entities.Snowflake | int | None = None,
         member: entities.GuildMember | None = None,
         session_id: str | None = None,
         deaf: bool = False,

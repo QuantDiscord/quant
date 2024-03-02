@@ -1,3 +1,5 @@
+import logging
+
 from .context import InteractionContext, ModalContext, ButtonContext
 from .commands import SlashCommand
 from .client import Client

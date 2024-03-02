@@ -4,7 +4,6 @@ import sys
 import enum
 import time
 import zlib
-import logging
 from typing import (
     Dict,
     TypeVar,
@@ -20,11 +19,13 @@ import aiohttp
 
 if TYPE_CHECKING:
     from quant.impl.core.client import Client
+    from quant.entities.snowflake import Snowflake
 
+from quant.impl.events.bot.raw_event import RawDispatchEvent
 from quant.entities.activity import Activity, ActivityStatus
 from quant.impl.core.route import Gateway as gateway_route
 from quant.entities.intents import Intents
-from quant.utils.asyncio_utils import get_loop
+from quant.utils import logger
 
 _ZLIB_SUFFIX = b"\x00\x00\xff\xff"
 
@@ -46,9 +47,16 @@ class OpCode(enum.IntEnum):
 
 
 @attrs.define
+class IdentifyProperties:
+    os: str = attrs.field()
+    browser: str = attrs.field()
+    device: str = attrs.field(default="quant")
+
+
+@attrs.define
 class IdentifyPayload:
     token: str = attrs.field()
-    properties: Dict = attrs.field()
+    properties: IdentifyProperties = attrs.field()
     shard: List[int] = attrs.field()
     large_threshold: int = attrs.field()
     intents: Intents = attrs.field(default=Intents.ALL_PRIVILEGED)
@@ -70,11 +78,10 @@ class Gateway:
         self.websocket: aiohttp.ClientWebSocketResponse | None = None
         self.identify = IdentifyPayload(
             token=client.token,
-            properties={
-                "os": sys.platform,
-                "browser": "Discord iOS" if mobile else "quant",
-                "device": "quant"
-            },
+            properties=IdentifyProperties(
+                os=sys.platform,
+                browser="Discord iOS" if mobile else f"quant[{sys.platform}]"
+            ),
             shard=[shard_id, num_shards],
             large_threshold=250,
             intents=intents
@@ -87,18 +94,13 @@ class Gateway:
         self._session_id: int | None = None
         self._heartbeat = 0
 
-        logging.basicConfig(format="%(levelname)s | %(asctime)s %(module)s - %(message)s", level=logging.INFO)
-
-    @property
-    def get_logger(self) -> logging.Logger:
-        return logging.getLogger(__name__)
-
     async def connect(self) -> None:
         ws_url = gateway_route.DISCORD_WS_URL.uri.url_string.format(10)
 
         self.session = aiohttp.ClientSession()
         self.websocket = await self.session.ws_connect(url=ws_url)
-        self.get_logger.info(
+
+        logger.info(
             "Connecting to shard with ID %s (total shard count: %s)",
             self.identify.shard[0],
             len(self.client.shards) or 1
@@ -111,7 +113,7 @@ class Gateway:
             await self._keep_alive()
 
     async def close(self, code: int = 4000):
-        self.get_logger.info("Connection closing, code: %s", code)
+        logger.info("Connection closing, code: %s", code)
 
         if not self.websocket:
             return
@@ -145,6 +147,8 @@ class Gateway:
             performed_message.get("d")
         )
 
+        await self.client.event_controller.dispatch(RawDispatchEvent(data=performed_message))
+
         match opcode:
             case OpCode.DISPATCH:
                 received_event_type = performed_message.get("t")
@@ -169,14 +173,14 @@ class Gateway:
 
             close_code = self.websocket.close_code
             if close_code is not None:
-                self.get_logger.error("Gateway received close code: %s", close_code)
+                logger.error("Gateway received close code: %s", close_code)
                 break
 
     async def _send(self, data) -> None:
         await self.websocket.send_str(data)
 
     async def _send_heartbeat(self, interval: float) -> None:
-        payload = self.create_payload(opcode=OpCode.HEARTBEAT, sequence=self._sequence)
+        payload = self.payload(opcode=OpCode.HEARTBEAT, sequence=self._sequence)
 
         self._heartbeat = time.perf_counter()
 
@@ -194,13 +198,13 @@ class Gateway:
         self._buffer.clear()
 
     async def _send_identify(self) -> None:
-        await self._send(self.create_payload(
+        await self._send(self.payload(
             opcode=OpCode.IDENTIFY,
             data=attrs.asdict(self.identify)  # type: ignore
         ))
 
     async def _send_resume(self) -> None:
-        payload = self.create_payload(
+        payload = self.payload(
             opcode=OpCode.RESUME,
             data={
                 "token": self.client.token,
@@ -235,14 +239,14 @@ class Gateway:
             "since": since,
             "afk": afk
         }
-        payload = self.create_payload(
+        payload = self.payload(
             opcode=OpCode.PRESENCE_UPDATE,
             data=presence
         )
         await self._send(payload)
 
     async def reconnect(self, code: int) -> None:
-        self.get_logger.info("Reconnecting (code: %s)", code)
+        logger.info("Reconnecting (code: %s)", code)
 
         await self.close(code=code)
 
@@ -252,8 +256,27 @@ class Gateway:
 
         await self.connect()
 
+    async def voice_connect(
+        self,
+        guild_id: Snowflake | int,
+        channel_id: Snowflake | int,
+        self_mute: bool = False,
+        self_deaf: bool = False
+    ) -> None:
+        payload = self.payload(
+            opcode=OpCode.VOICE_STATE_UPDATE,
+            data={
+                "guild_id": guild_id,
+                "channel_id": channel_id,
+                "self_mute": self_mute,
+                "self_deaf": self_deaf
+            }
+        )
+
+        await self._send(payload)
+
     @staticmethod
-    def create_payload(
+    def payload(
         opcode: OpCode | int,
         data: dict | str | None = None,
         sequence: int | None = None,
