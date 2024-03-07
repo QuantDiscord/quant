@@ -54,7 +54,7 @@ class Modal(ModalBackend):
         if len(args) == 1:
             text_input = args[0]
         else:
-            text_input = TextInput(style=TextInputStyle.SHORT, **kwargs)
+            text_input = TextInput(style=TextInputStyle.SHORT.value, **kwargs)
 
         self.components.append(ActionRow([text_input]))
 

@@ -43,8 +43,9 @@ class TextInput(Component):
     placeholder: :class:`str`
         Placeholder
     """
-    TYPE = 4
+    INTERACTION_TYPE = 4
 
+    type: int = attrs.field(default=INTERACTION_TYPE)
     custom_id: str = attrs.field()
     style: TextInputStyle = attrs.field(default=TextInputStyle.SHORT)
     label: str = attrs.field()
@@ -53,16 +54,3 @@ class TextInput(Component):
     required: bool = attrs.field(default=True)
     value: str = attrs.field(default=None)
     placeholder: str = attrs.field(default=None)
-
-    def as_json(self):
-        return {
-            'type': self.TYPE,
-            'custom_id': self.custom_id,
-            'style': self.style.value,
-            'label': self.label,
-            'min_length': self.min_length,
-            'max_length': self.max_length,
-            'required': self.required,
-            'value': self.value,
-            'placeholder': self.placeholder
-        }

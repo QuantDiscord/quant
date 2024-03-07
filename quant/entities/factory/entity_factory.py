@@ -80,7 +80,7 @@ class EntityFactory:
     def serialize_action_row(row: ActionRow) -> Dict[str, Any] | None:
         return {
             "type": ActionRow.INTERACTION_TYPE,
-            "components": [component.as_json() for component in row.components]
+            "components": [attrs.asdict(component) for component in row.components]
         }
 
     def deserialize_action_row(self, payload: MutableJsonBuilder | Dict | list) -> ActionRow:
@@ -768,7 +768,7 @@ class EntityFactory:
         if component_type == ActionRow.INTERACTION_TYPE:
             return self.deserialize_action_row([component for component in payload.get("components")])
 
-        if component_type == TextInput.TYPE:
+        if component_type == TextInput.INTERACTION_TYPE:
             return self.deserialize_text_input(payload)
 
         return Component(**payload)

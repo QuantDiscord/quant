@@ -71,14 +71,3 @@ class Button(Component):
 
     def set_callback(self, coro):
         self.callback_func = coro
-
-    def as_json(self) -> Dict[str, Any]:
-        return {
-            "type": self.BUTTON_COMPONENT_TYPE,
-            "label": self.label,
-            "custom_id": self.custom_id,
-            "style": self.style.value,
-            "emoji": self.emoji,
-            "disabled": self.disabled,
-            "url": self.url
-        }
