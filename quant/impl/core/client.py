@@ -205,8 +205,10 @@ class Client:
         except KeyboardInterrupt:
             logger.info("Shutting down bot")
 
+            asyncio.create_task(*asyncio.gather(*asyncio.all_tasks()))
+
             for shard in self.shards:
-                self.loop.run_until_complete(shard.gateway.close())
+                asyncio.create_task(shard.gateway.close())
 
             asyncio_utils.kill_loop()
             logger.info("Goodbye.")
