@@ -34,6 +34,7 @@ from quant.entities.user import User
 from quant.entities.roles import GuildRole
 from quant.entities.emoji import Emoji
 from quant.entities.invite import Invite
+from quant.entities.modal.modal import ModalInteractionCallbackData
 from quant.entities.interactions.interaction import InteractionCallbackData, InteractionCallbackType
 from quant.entities.allowed_mentions import AllowedMentions
 from quant.impl.core.http_manager import HttpManagerImpl
@@ -412,7 +413,10 @@ class RESTImpl(RESTAware):
         payload.put("type", interaction_type.value)
 
         if interaction_data is not None:
-            payload.put("data", self.entity_factory.serialize_interaction_callback_data(interaction_data))
+            if isinstance(interaction_data, ModalInteractionCallbackData):
+                payload.put("data", self.entity_factory.serialize_modal_interaction_callback_data(interaction_data))
+            else:
+                payload.put("data", self.entity_factory.serialize_interaction_callback_data(interaction_data))
 
         method, url = self._build_url(
             route=interaction_route.CREATE_INTERACTION_RESPONSE,
@@ -443,7 +447,7 @@ class RESTImpl(RESTAware):
         default_member_permissions: str = None,
         options: List[ApplicationCommandOption] = None,
         nsfw: bool = False
-    ) -> None:
+    ) -> ApplicationCommandObject:
         body = MutableJsonBuilder({"name": name, "description": description})
         method, url = self._build_url(
             route=interaction_route.CREATE_APPLICATION_COMMAND,
@@ -465,11 +469,13 @@ class RESTImpl(RESTAware):
         if nsfw:
             body.put("nsfw", nsfw)
 
-        await self.http.send_request(
+        response = await self.http.send_request(
             method=method,
             url=url,
             data=body
         )
+
+        return self.entity_factory.deserialize_application_command(await response.json())
 
     async def create_guild_application_command(
         self,
@@ -550,7 +556,6 @@ class RESTImpl(RESTAware):
         response = await self.http.send_request(method=method, url=url)
 
         return [self.entity_factory.deserialize_application_command(command) for command in await response.json()]
-
 
     async def fetch_initial_interaction_response(self, application_id: int, interaction_token: str) -> Message:
         method, url = self._build_url(

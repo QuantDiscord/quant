@@ -134,12 +134,13 @@ class Interaction(BaseModel):
         )
 
     async def respond_modal(self, modal: Modal):
+        print(modal.components)
         await self.client.rest.create_interaction_response(
             InteractionCallbackType.MODAL,
             ModalInteractionCallbackData(
                 custom_id=modal.custom_id,
                 title=modal.title,
-                components=[ActionRow([component.components for component in modal.components])]
+                components=modal.components
             ),
             self.id,
             self.token
@@ -156,7 +157,7 @@ class Interaction(BaseModel):
         embed: Embed | None = None,
         embeds: List[Embed] | None = None,
         allowed_mentions: AllowedMentions | None = None,
-        components: "ActionRow" = None,
+        components: ActionRow | None = None,
         files: List[Any] | None = None,
         payload_json: str | None = None,
         attachments: List[Attachment] | None = None

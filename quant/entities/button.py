@@ -1,7 +1,7 @@
 import enum
 from typing import Callable, Coroutine, Any, Dict
 
-from quant.api.entities.component import Component
+from quant.entities.interactions.component import Component
 from .emoji import Emoji
 from quant.impl.core.context import ButtonContext
 

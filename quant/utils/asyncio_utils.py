@@ -57,3 +57,4 @@ def kill_loop() -> None:
 
     loop.close()
     asyncio.set_event_loop(None)
+    loop.stop()

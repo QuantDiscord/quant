@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import List, TYPE_CHECKING, Any, TypeVar
+from typing import List, TYPE_CHECKING, Any, TypeVar, cast
 
 if TYPE_CHECKING:
     from quant.impl.core.client import Client
@@ -10,6 +10,8 @@ if TYPE_CHECKING:
     from quant.entities.user import User
     from quant.entities.member import GuildMember
 
+from quant.entities.modal.modal import ModalInteractionCallbackData
+from quant.entities.modal.text_input import TextInput
 from quant.entities.roles import GuildRole
 from quant.entities.channel import TextChannel, VoiceChannel, Thread
 from quant.entities.interactions.choice_response import InteractionDataOption
@@ -105,10 +107,13 @@ class ButtonContext(InteractionContext):
 
 
 class ModalContext(InteractionContext):
-    def __init__(self, client, interaction) -> None:
-        self.values = [
-            interaction.interaction_data.components.components[i]['components'][0]['value']
-            for i in range(len(interaction.interaction_data.components.components))
-        ]
+    def __init__(self, client: Client, interaction: Interaction) -> None:
+        self.values = {}
+
+        interaction_data = cast(ModalInteractionCallbackData, interaction.data)
+        for action_row in interaction_data.components:
+            for component in action_row.components:
+                component = cast(TextInput, component)
+                self.values[component.custom_id] = component.value
 
         super().__init__(client, interaction)

@@ -7,7 +7,7 @@ if TYPE_CHECKING:
     from quant.entities.user import User
     from quant.entities.message import Message
 
-from quant.api.entities.component import Component
+from quant.entities.interactions.component import Component
 from quant.entities.snowflake import Snowflake
 from quant.utils.json_builder import MutableJsonBuilder
 from quant.entities.voice_state_update import VoiceState

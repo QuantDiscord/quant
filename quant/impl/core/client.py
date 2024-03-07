@@ -179,7 +179,7 @@ class Client:
 
                 self.shards[queued_shard.shard_id] = shard
 
-            self.loop.run_until_complete(asyncio.sleep(5))
+            asyncio.ensure_future(asyncio.sleep(5), loop=self.loop)
 
         self._run_forever()
 
@@ -201,9 +201,11 @@ class Client:
 
             for shard in self.shards:
                 self.loop.run_until_complete(shard.gateway.close())
-                asyncio_utils.kill_loop()
 
-            logger.info("Goodbye. Bot terminated")
+            asyncio_utils.kill_loop()
+            logger.info("Goodbye.")
+        finally:
+            logger.info("Fully terminated")
 
     @overload
     def add_listener(self, event: T, coro: _Coroutine) -> None:
@@ -312,9 +314,6 @@ class Client:
             guild_ids = command.guild_ids
             if guild_ids:
                 for guild_id in guild_ids:
-                    # guild_commands: List[str] = [command.name for command in self.loop.run_until_complete(
-                    #     self.rest.fetch_guild_application_commands(application_id=app_id, guild_id=guild_id)
-                    # )]
                     application_command: ApplicationCommandObject = self.loop.run_until_complete(
                         self.rest.create_guild_application_command(
                             **command_data,
@@ -390,6 +389,9 @@ class Client:
         interaction_type = interaction.type
 
         if not interaction_type == InteractionType.MODAL_SUBMIT:
+            return
+
+        if interaction.data is None:
             return
 
         context = ModalContext(self, interaction)

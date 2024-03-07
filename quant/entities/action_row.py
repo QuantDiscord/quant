@@ -3,7 +3,7 @@ from __future__ import annotations as _
 from typing import List, TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from quant.api.entities.component import Component
+    from quant.entities.interactions.component import Component
 
 
 class ActionRow:

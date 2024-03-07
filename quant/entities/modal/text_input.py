@@ -2,7 +2,7 @@ from enum import Enum
 
 import attrs
 
-from quant.api.entities.component import Component
+from quant.entities.interactions.component import Component
 
 
 class TextInputStyle(Enum):
@@ -15,6 +15,7 @@ class TextInputStyle(Enum):
     PARAGRAPH:
         Big text input
     """
+    NONE = 0
     SHORT = 1
     PARAGRAPH = 2
 
@@ -42,6 +43,8 @@ class TextInput(Component):
     placeholder: :class:`str`
         Placeholder
     """
+    TYPE = 4
+
     custom_id: str = attrs.field()
     style: TextInputStyle = attrs.field(default=TextInputStyle.SHORT)
     label: str = attrs.field()
@@ -50,11 +53,10 @@ class TextInput(Component):
     required: bool = attrs.field(default=True)
     value: str = attrs.field(default=None)
     placeholder: str = attrs.field(default=None)
-    _type: int = attrs.field(default=4, repr=False, alias="type")
 
     def as_json(self):
         return {
-            'type': self._type,
+            'type': self.TYPE,
             'custom_id': self.custom_id,
             'style': self.style.value,
             'label': self.label,
