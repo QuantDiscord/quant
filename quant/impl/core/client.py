@@ -46,6 +46,8 @@ from quant.impl.events.event import Event, InternalEvent, DiscordEvent
 from quant.entities.model import BaseModel
 from quant.entities.activity import ActivityData
 
+CoroutineT = TypeVar("CoroutineT", bound=Callable[..., Coroutine[Any, Any, Any]])
+
 
 class Client:
     """A main bot class for interacting with Discord
@@ -114,10 +116,14 @@ class Client:
         self._buttons: Dict[str, Button] = {}
         self._slash_commands: Dict[str, ApplicationCommandObject] = {}
 
+        self.handlers: Dict[InteractionType, CoroutineT] = {
+            InteractionType.MODAL_SUBMIT: self.handle_modal_submit,
+            InteractionType.APPLICATION_COMMAND: self.handle_application_command,
+            InteractionType.MESSAGE_COMPONENT: self.handle_message_components
+        }
+
         self.add_listener(InteractionCreateEvent, self._listen_interaction_create)
         self.add_listener(ReadyEvent, self._set_client_user_on_ready)
-
-    _Coroutine = Callable[..., Coroutine[Any, Any, Any]]
 
     def _decode_token_to_id(self) -> int:
         first_token_part = self.token.split('.')[0]
@@ -208,11 +214,11 @@ class Client:
             logger.info("Fully terminated")
 
     @overload
-    def add_listener(self, event: T, coro: _Coroutine) -> None:
+    def add_listener(self, event: T, coro: CoroutineT) -> None:
         ...
 
     @overload
-    def add_listener(self, coro: _Coroutine) -> None:
+    def add_listener(self, coro: CoroutineT) -> None:
         ...
 
     def add_listener(self, *args) -> None:
@@ -243,7 +249,7 @@ class Client:
             event, coro = args
             self._add_listener_from_event_and_coro(event, coro)
 
-    def _add_listener_from_event_and_coro(self, event: T, coro: _Coroutine) -> None:
+    def _add_listener_from_event_and_coro(self, event: T, coro: CoroutineT) -> None:
         if inspect.iscoroutine(coro):
             raise DiscordException("Callback function must be coroutine")
 
@@ -252,7 +258,7 @@ class Client:
 
         self.event_factory.add_event(event, coro)
 
-    def _add_listener_from_coro(self, coro: _Coroutine) -> None:
+    def _add_listener_from_coro(self, coro: CoroutineT) -> None:
         if inspect.iscoroutine(coro):
             raise DiscordException("Callback function must be coroutine")
 
@@ -373,11 +379,6 @@ class Client:
         return self._gateway_info
 
     async def handle_application_command(self, interaction: Interaction) -> None:
-        interaction_type = interaction.type
-
-        if not interaction_type == InteractionType.APPLICATION_COMMAND:
-            return
-
         context = InteractionContext(self, interaction)
         command_name = interaction.data.name
 
@@ -386,11 +387,6 @@ class Client:
             await command.callback_func(context)
 
     async def handle_modal_submit(self, interaction: Interaction) -> None:
-        interaction_type = interaction.type
-
-        if not interaction_type == InteractionType.MODAL_SUBMIT:
-            return
-
         if interaction.data is None:
             return
 
@@ -402,11 +398,6 @@ class Client:
             await modal.callback_func(context)
 
     async def handle_message_components(self, interaction: Interaction) -> None:
-        interaction_type = interaction.type
-
-        if not interaction_type == InteractionType.MESSAGE_COMPONENT:
-            return
-
         component_type = interaction.data.component_type
         match component_type:
             case ComponentType.BUTTON:
@@ -421,9 +412,9 @@ class Client:
         interaction = event.interaction
 
         try:
-            await self.handle_application_command(interaction)
-            await self.handle_message_components(interaction)
-            await self.handle_modal_submit(interaction)
+            handler = self.handlers.get(interaction.type)
+            if handler is not None:
+                await handler(interaction)
         except Exception as e:
             await self.event_controller.dispatch(
                 self.event_factory.build_from_class(
