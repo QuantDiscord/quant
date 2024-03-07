@@ -85,7 +85,6 @@ class EntityFactory:
 
     def deserialize_action_row(self, payload: MutableJsonBuilder | Dict | list) -> ActionRow:
         if isinstance(payload, list):
-            print([self._deserialize_component(component) for component in payload])
             return ActionRow(components=[self._deserialize_component(component) for component in payload])
 
         return ActionRow(components=[self._deserialize_component(component) for component in payload.get("components")])

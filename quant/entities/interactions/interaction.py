@@ -134,7 +134,6 @@ class Interaction(BaseModel):
         )
 
     async def respond_modal(self, modal: Modal):
-        print(modal.components)
         await self.client.rest.create_interaction_response(
             InteractionCallbackType.MODAL,
             ModalInteractionCallbackData(

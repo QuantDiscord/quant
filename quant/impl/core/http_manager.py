@@ -43,7 +43,6 @@ class HttpManagerImpl(HttpManager):
             if data is None or len(data.asdict()) == 0:
                 request = await session.request(method=method, url=url, headers=headers)
             else:
-                print(data.asdict())
                 request = await session.request(method=method, url=url, data=json.dumps(data.asdict()), headers=headers)
 
             return await self._validate_request(request=request)
