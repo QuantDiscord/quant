@@ -155,3 +155,6 @@ class Guild(BaseModel):
             flags=flags,
             reason=reason
         )
+
+    def get_everyone_role(self) -> GuildRole:
+        return list(filter(lambda r: r.id == self.id, self.roles))[0]

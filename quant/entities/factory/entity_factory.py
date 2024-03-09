@@ -530,11 +530,14 @@ class EntityFactory:
         if (components := callback_data.components) is not None:
             components = [self.serialize_action_row(components)]
 
+        if (allowed_mentions := callback_data.allowed_mentions) is not None:
+            allowed_mentions = attrs.asdict(allowed_mentions)
+
         return {
             "tts": callback_data.tts,
             "content": callback_data.content,
             "embeds": embeds,
-            "allowed_mentions": attrs.asdict(callback_data.allowed_mentions),
+            "allowed_mentions": allowed_mentions,
             "flags": flags,
             "components": components,
             "attachments": callback_data.attachments

@@ -204,10 +204,15 @@ class Client:
             self.loop.run_forever()
         except KeyboardInterrupt:
             logger.info("Shutting down bot")
+            tasks = asyncio.all_tasks(loop=self.loop)
+
+            for task in tasks:
+                task.cancel()
 
             for shard in self.shards:
-                asyncio.create_task(shard.gateway.close())
+                self.loop.run_until_complete(shard.gateway.close())
 
+            asyncio.gather(*tasks)
             asyncio_utils.kill_loop()
             logger.info("Goodbye.")
         finally:
