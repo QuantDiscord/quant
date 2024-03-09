@@ -10,6 +10,7 @@ import attrs
 if TYPE_CHECKING:
     from typing_extensions import Self
     from .interactions.interaction import Interaction
+    from .action_row import ActionRow
 
 from .user import User
 from .snowflake import Snowflake
@@ -18,7 +19,6 @@ from .model import BaseModel
 from .member import GuildMember
 from .embeds import Embed
 from .allowed_mentions import AllowedMentions
-from .action_row import ActionRow
 from .emoji import Emoji
 from .message_flags import MessageFlags
 

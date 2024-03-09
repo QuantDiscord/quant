@@ -9,13 +9,13 @@ if TYPE_CHECKING:
     from quant.entities.button import Button
     from quant.entities.user import User
     from quant.entities.member import GuildMember
+    from quant.entities.action_row import ActionRow
+    from quant.entities.modal.modal import ModalInteractionCallbackData
+    from quant.entities.modal.text_input import TextInput
 
-from quant.entities.modal.modal import ModalInteractionCallbackData
-from quant.entities.modal.text_input import TextInput
 from quant.entities.roles import GuildRole
 from quant.entities.channel import TextChannel, VoiceChannel, Thread
 from quant.entities.interactions.choice_response import InteractionDataOption
-from quant.entities.action_row import ActionRow
 from quant.entities.embeds import Embed
 from quant.entities.allowed_mentions import AllowedMentions
 from quant.utils.parser import parse_option_type
@@ -65,7 +65,7 @@ class BaseContext:
         )
 
 
-OptionT = TypeVar("OptionT", bound=Any | InteractionDataOption | None)
+OptionT = TypeVar("OptionT", bound=InteractionDataOption | None)
 ChannelT = TypeVar("ChannelT", bound=TextChannel | VoiceChannel | Thread)
 
 
@@ -110,10 +110,10 @@ class ModalContext(InteractionContext):
     def __init__(self, client: Client, interaction: Interaction) -> None:
         self.values = {}
 
-        interaction_data = cast(ModalInteractionCallbackData, interaction.data)
+        interaction_data: ModalInteractionCallbackData = interaction.data
         for action_row in interaction_data.components:
             for component in action_row.components:
-                component = cast(TextInput, component)
+                component: TextInput = component
                 self.values[component.custom_id] = component.value
 
         super().__init__(client, interaction)

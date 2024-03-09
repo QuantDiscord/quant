@@ -1,23 +1,19 @@
-from typing import List, overload
+from __future__ import annotations
+
+from typing import List, overload, TYPE_CHECKING
 
 import attrs
 
+if TYPE_CHECKING:
+    from quant.entities.action_row import ActionRow
+
+from quant.impl.core.context import ModalContext
+from quant.entities.api.backend import CallbackBackend
 from quant.entities.modal.text_input import TextInputStyle, TextInput
-from quant.entities.action_row import ActionRow
-
-
-class ModalBackend:
-    async def callback(self, context):
-        pass
-
-    callback_func = callback
-
-    def set_callback(self, coro):
-        self.callback_func = coro
 
 
 @attrs.define(kw_only=True)
-class Modal(ModalBackend):
+class Modal(CallbackBackend[ModalContext]):
     """Represents a discord modal window
 
     Parameters
@@ -51,6 +47,8 @@ class Modal(ModalBackend):
         """Append new short text input"""
 
     def add_short_text_input(self, *args, **kwargs) -> None:
+        from quant.entities.action_row import ActionRow
+
         if len(args) == 1:
             text_input = args[0]
         else:
@@ -72,6 +70,8 @@ class Modal(ModalBackend):
         """Append new paragraph text input"""
 
     def add_paragraph_text_input(self, *args, **kwargs) -> None:
+        from quant.entities.action_row import ActionRow
+
         if len(args) == 1:
             text_input = args[0]
         else:

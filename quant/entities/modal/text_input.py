@@ -2,8 +2,6 @@ from enum import Enum
 
 import attrs
 
-from quant.entities.interactions.component import Component
-
 
 class TextInputStyle(Enum):
     """Discord text input style
@@ -21,7 +19,7 @@ class TextInputStyle(Enum):
 
 
 @attrs.define(kw_only=True)
-class TextInput(Component):
+class TextInput:
     """Represents a discord text input
 
     Parameters

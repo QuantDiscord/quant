@@ -1,8 +1,9 @@
 import enum
-from typing import Callable, Coroutine, Any, Dict
 
-from quant.entities.interactions.component import Component
+import attrs
+
 from .emoji import Emoji
+from quant.entities.api.backend import CallbackBackend
 from quant.impl.core.context import ButtonContext
 
 
@@ -15,7 +16,8 @@ class ButtonStyle(enum.Enum):
     LINK = 5
 
 
-class Button(Component):
+@attrs.define
+class Button(CallbackBackend[ButtonContext]):
     """Represents a discord button
 
     Parameters
@@ -23,7 +25,7 @@ class Button(Component):
     custom_id: :class:`str | None`
         Button custom ID
     style: :class:`ButtonStyle`
-        Discord button style
+        Discord button style, default PRIMARY
     label: :class:`str`
         Button label
     emoji: :class:`Emoji | None`
@@ -33,41 +35,33 @@ class Button(Component):
     disabled: :class:`bool`
         Set/check is button disabled
     """
-    BUTTON_COMPONENT_TYPE: int = 2
-    INTERACTION_TYPE: int = 3
+    BUTTON_COMPONENT_TYPE = 2
+    INTERACTION_TYPE = 3
 
-    def __init__(
-        self,
-        custom_id: str | None,
-        style: ButtonStyle = ButtonStyle.PRIMARY,
-        label: str | None = None,
-        emoji: Emoji | None = None,
-        url: str | None = None,
-        disabled: bool = False
-    ) -> None:
-        self.style = style
-        self.label = label
-        self.emoji = emoji
-        self.custom_id = custom_id
-        self.url = url
-        self._disabled = disabled
+    custom_id: str = attrs.field()
+    label: str | None = attrs.field(default=None)
+    style: ButtonStyle = attrs.field(default=ButtonStyle.PRIMARY)
+    emoji: Emoji | str | None = attrs.field(default=None)
+    url: str | None = attrs.field(default=None)
+    disabled: bool = attrs.field(default=False)
 
-        super().__init__(custom_id=custom_id)
 
-    @property
-    def disabled(self) -> bool:
-        return self._disabled
+def button(
+    custom_id: str,
+    label: str | None = None,
+    style: ButtonStyle | int = ButtonStyle.PRIMARY,
+    emoji: Emoji | str | None = None,
+    url: str | None = None,
+    disabled: bool = False,
+) -> Button:
+    if isinstance(style, int):
+        style = ButtonStyle(style)
 
-    @disabled.setter
-    def disabled(self, value: bool) -> None:
-        self._disabled = value
-
-    _Coroutine = Callable[..., Coroutine[Any, Any, Any]]
-
-    async def callback(self, context: ButtonContext):
-        pass
-
-    callback_func = callback
-
-    def set_callback(self, coro):
-        self.callback_func = coro
+    return Button(
+        custom_id=custom_id,
+        label=label,
+        style=style,
+        emoji=emoji,
+        url=url,
+        disabled=disabled
+    )

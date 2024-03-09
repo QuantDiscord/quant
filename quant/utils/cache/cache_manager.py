@@ -7,7 +7,6 @@ if TYPE_CHECKING:
     from quant.entities.user import User
     from quant.entities.message import Message
 
-from quant.entities.interactions.component import Component
 from quant.entities.snowflake import Snowflake
 from quant.utils.json_builder import MutableJsonBuilder
 from quant.entities.voice_state_update import VoiceState
@@ -23,7 +22,7 @@ class CacheManager:
     __cached_users: MutableJsonBuilder[Snowflake, User] = MutableJsonBuilder()
     __cached_messages: MutableJsonBuilder[Snowflake, Message] = MutableJsonBuilder()
     __cached_emojis: MutableJsonBuilder[Snowflake, Emoji | Reaction] = MutableJsonBuilder()
-    __cached_components: List[Component] = []
+    __cached_components: List = []
     __cached_channels: MutableJsonBuilder[Snowflake, Channel] = MutableJsonBuilder()
     __cached_roles: MutableJsonBuilder[Snowflake, GuildRole] = MutableJsonBuilder()
 
@@ -49,7 +48,7 @@ class CacheManager:
         elif isinstance(emoji, Reaction):
             self.__cached_emojis.put(emoji.emoji.emoji_id, emoji)
 
-    def add_component(self, component: Component):
+    def add_component(self, component):
         self.__cached_components.append(component)
 
     def add_channel(self, channel: Channel):

@@ -205,8 +205,6 @@ class Client:
         except KeyboardInterrupt:
             logger.info("Shutting down bot")
 
-            asyncio.create_task(*asyncio.gather(*asyncio.all_tasks()))
-
             for shard in self.shards:
                 asyncio.create_task(shard.gateway.close())
 
@@ -401,14 +399,13 @@ class Client:
 
     async def handle_message_components(self, interaction: Interaction) -> None:
         component_type = interaction.data.component_type
+        custom_id = interaction.data.custom_id
+
         match component_type:
             case ComponentType.BUTTON:
-                context = ButtonContext(self, interaction, None)
-                custom_id = interaction.data.custom_id
-
                 if custom_id in self.buttons.keys():
                     button = self.buttons[custom_id]
-                    await button.callback_func(context)
+                    await button.callback_func(ButtonContext(self, interaction, button))
 
     async def _listen_interaction_create(self, event: InteractionCreateEvent):
         interaction = event.interaction

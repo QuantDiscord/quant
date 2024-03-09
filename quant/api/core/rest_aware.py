@@ -1,5 +1,10 @@
-from typing import List, Any, Dict
+from __future__ import annotations as _
+
+from typing import List, Any, Dict, TYPE_CHECKING
 from abc import ABC, abstractmethod
+
+if TYPE_CHECKING:
+    from quant.entities.action_row import ActionRow
 
 from quant.entities.interactions.slash_option import ApplicationCommandOption
 from quant.entities.guild import Guild
@@ -10,7 +15,6 @@ from quant.entities.message import Message, Attachment
 from quant.entities.embeds import Embed
 from quant.entities.webhook import Webhook
 from quant.entities.snowflake import Snowflake
-from quant.entities.action_row import ActionRow
 from quant.entities.invite import Invite
 
 

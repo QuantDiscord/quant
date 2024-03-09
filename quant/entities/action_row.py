@@ -1,9 +1,10 @@
 from __future__ import annotations as _
 
-from typing import List, TYPE_CHECKING
+from typing import List, TypeVar
 
-if TYPE_CHECKING:
-    from quant.entities.interactions.component import Component
+from quant.entities.button import Button
+
+ComponentT = TypeVar("ComponentT", bound=Button)
 
 
 class ActionRow:
@@ -11,12 +12,12 @@ class ActionRow:
 
     Parameters
     ==========
-    components: :class:`List[Component] | Component`
+    components: :class:`List[ComponentT] | ComponentT`
         Action row components
     """
-    INTERACTION_TYPE: int = 1
+    INTERACTION_TYPE = 1
 
-    def __init__(self, components: List[Component] | Component) -> None:
+    def __init__(self, components: List[ComponentT] | ComponentT) -> None:
         if isinstance(components, list):
             self.components = components
         else:

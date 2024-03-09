@@ -9,13 +9,13 @@ import attrs
 if TYPE_CHECKING:
     from .user import User
     from .message import MessageReference, Attachment, MessageFlags, Message
+    from .action_row import ActionRow
 
 from .emoji import Reaction
 from .model import BaseModel
 from .snowflake import Snowflake
 from .embeds import Embed
 from .allowed_mentions import AllowedMentions
-from .action_row import ActionRow
 from .permissions import Permissions
 
 

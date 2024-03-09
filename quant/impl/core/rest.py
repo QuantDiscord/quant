@@ -10,20 +10,20 @@ import attrs
 
 if TYPE_CHECKING:
     from quant.impl.core.commands import ApplicationCommandObject
+    from quant.entities.action_row import ActionRow
 
 from quant.impl.core.route import (
-    Gateway as gateway_route,
-    Message as message_route,
-    WebHook as webhook_route,
-    Guild as guild_route,
-    Interaction as interaction_route,
-    Channel as channel_route,
-    User as user_route
+    Gateway as GatewayRoute,
+    Message as MessageRoute,
+    WebHook as WebhookRoute,
+    Guild as GuildRoute,
+    Interaction as InteractionRoute,
+    Channel as ChannelRoute,
+    User as UserRoute
 )
 from quant.entities.gateway import GatewayInfo, SessionStartLimitObject
 from quant.impl.core.route import Route
 from quant.entities.factory.entity_factory import EntityFactory
-from quant.entities.action_row import ActionRow
 from quant.entities.message import MessageReference
 from quant.entities.interactions.slash_option import ApplicationCommandOption
 from quant.api.core.rest_aware import RESTAware
@@ -151,7 +151,7 @@ class RESTImpl(RESTAware):
             headers.put("Content-Type", self.http.MULTIPART_FORM_DATA)
 
         await self.http.send_request(
-            webhook_route.CREATE_WEBHOOK.method,
+            WebhookRoute.CREATE_WEBHOOK.method,
             webhook_url,
             data=payload,
             headers=headers
@@ -160,7 +160,7 @@ class RESTImpl(RESTAware):
     async def create_webhook(self, channel_id: int, name: str, avatar: str = None, reason: str = None) -> Webhook:
         headers = MutableJsonBuilder()
         method, url = self._build_url(
-            route=webhook_route.CREATE_WEBHOOK,
+            route=WebhookRoute.CREATE_WEBHOOK,
             data={"channel_id": channel_id}
         )
 
@@ -176,9 +176,9 @@ class RESTImpl(RESTAware):
     async def fetch_emoji(self, guild_id: int, emoji: str) -> Emoji:
         if re.match(r"<:(\w+):(\w+)>", emoji):
             emoji_name, emoji_id = emoji.replace(">", "").replace("<", "").split(":")[1:]
-            url = message_route.GET_GUILD_EMOJI.uri.url_string.format(guild_id=guild_id, emoji_id=emoji_id)
+            url = MessageRoute.GET_GUILD_EMOJI.uri.url_string.format(guild_id=guild_id, emoji_id=emoji_id)
             response = await self.http.send_request(
-                message_route.GET_GUILD_EMOJI.method,
+                MessageRoute.GET_GUILD_EMOJI.method,
                 url=url,
                 content_type=self.http.APPLICATION_X_WWW_FORM_URLENCODED
             )
@@ -202,8 +202,8 @@ class RESTImpl(RESTAware):
             headers.update({X_AUDIT_LOG_REASON: reason})
 
         await self.http.send_request(
-            message_route.CREATE_REACTION.method,
-            url=message_route.CREATE_REACTION.uri.url_string.format(
+            MessageRoute.CREATE_REACTION.method,
+            url=MessageRoute.CREATE_REACTION.uri.url_string.format(
                 channel_id=channel_id,
                 message_id=message_id,
                 emoji=self._parse_emoji(emoji)
@@ -217,7 +217,7 @@ class RESTImpl(RESTAware):
     async def delete_message(self, channel_id: int, message_id: int, reason: str = None) -> None:
         headers = {}
         method, url = self._build_url(
-            route=message_route.DELETE_MESSAGE,
+            route=MessageRoute.DELETE_MESSAGE,
             data={
                 "channel_id": channel_id,
                 "message_id": message_id
@@ -266,7 +266,7 @@ class RESTImpl(RESTAware):
             flags=flags
         )
         method, url = self._build_url(
-            route=message_route.CREATE_MESSAGE,
+            route=MessageRoute.CREATE_MESSAGE,
             data={"channel_id": channel_id}
         )
 
@@ -279,21 +279,21 @@ class RESTImpl(RESTAware):
         return self.entity_factory.deserialize_message(message_json)
 
     async def fetch_guild(self, guild_id: int, with_counts: bool = False) -> Guild:
-        url_with_guild_id = guild_route.GET_GUILD.uri.url_string.format(guild_id=guild_id)
+        url_with_guild_id = GuildRoute.GET_GUILD.uri.url_string.format(guild_id=guild_id)
         build_guild_url = (
             url_with_guild_id
             if not with_counts
             else url_with_guild_id + "?with_counts=true"
         )
         data = await self.http.send_request(
-            guild_route.GET_GUILD.method, build_guild_url
+            GuildRoute.GET_GUILD.method, build_guild_url
         )
         guild_data = await data.json()
         return self.entity_factory.deserialize_guild(guild_data)
 
     async def delete_guild(self, guild_id: int) -> None:
         method, url = self._build_url(
-            route=guild_route.DELETE_GUILD,
+            route=GuildRoute.DELETE_GUILD,
             data={"guild_id": guild_id}
         )
         await self.http.send_request(method=method, url=url)
@@ -313,7 +313,7 @@ class RESTImpl(RESTAware):
         system_channel_id: int | None = None,
         system_channel_flags: int = 0
     ) -> Guild:
-        method, url = self._build_url(route=guild_route.CREATE_GUILD)
+        method, url = self._build_url(route=GuildRoute.CREATE_GUILD)
         body = MutableJsonBuilder({'name': name, 'system_channel_flags': system_channel_flags})
 
         if region is not None:
@@ -365,7 +365,7 @@ class RESTImpl(RESTAware):
         }
         headers = {}
         method, url = self._build_url(
-            route=guild_route.CREATE_GUILD_BAN,
+            route=GuildRoute.CREATE_GUILD_BAN,
             data={
                 "guild_id": guild_id,
                 "user_id": member_id
@@ -392,7 +392,7 @@ class RESTImpl(RESTAware):
         reason: str | None = None
     ) -> None:
         method, url = self._build_url(
-            route=guild_route.REMOVE_GUILD_MEMBER,
+            route=GuildRoute.REMOVE_GUILD_MEMBER,
             data={"user_id": user_id, "guild_id": guild_id}
         )
         headers = MutableJsonBuilder()
@@ -419,7 +419,7 @@ class RESTImpl(RESTAware):
                 payload.put("data", self.entity_factory.serialize_interaction_callback_data(interaction_data))
 
         method, url = self._build_url(
-            route=interaction_route.CREATE_INTERACTION_RESPONSE,
+            route=InteractionRoute.CREATE_INTERACTION_RESPONSE,
             data={"interaction_id": interaction_id, "interaction_token": interaction_token}
         )
         await self.http.send_request(
@@ -430,7 +430,7 @@ class RESTImpl(RESTAware):
 
     async def fetch_message(self, channel_id: int, message_id: int) -> Message:
         method, url = self._build_url(
-            route=message_route.GET_MESSAGE,
+            route=MessageRoute.GET_MESSAGE,
             data={"channel_id": channel_id, "message_id": message_id}
         )
         raw_message = await self.http.send_request(method=method, url=url)
@@ -450,7 +450,7 @@ class RESTImpl(RESTAware):
     ) -> ApplicationCommandObject:
         body = MutableJsonBuilder({"name": name, "description": description})
         method, url = self._build_url(
-            route=interaction_route.CREATE_APPLICATION_COMMAND,
+            route=InteractionRoute.CREATE_APPLICATION_COMMAND,
             data={"application_id": application_id}
         )
 
@@ -491,7 +491,7 @@ class RESTImpl(RESTAware):
     ) -> ApplicationCommandObject:
         body = MutableJsonBuilder({"name": name, "description": description})
         method, url = self._build_url(
-            route=interaction_route.CREATE_GUILD_APPLICATION_COMMAND,
+            route=InteractionRoute.CREATE_GUILD_APPLICATION_COMMAND,
             data={"application_id": application_id, "guild_id": guild_id}
         )
 
@@ -528,7 +528,7 @@ class RESTImpl(RESTAware):
         command_id: SnowflakeT
     ) -> None:
         method, url = self._build_url(
-            route=interaction_route.DELETE_GUILD_APPLICATION_COMMAND,
+            route=InteractionRoute.DELETE_GUILD_APPLICATION_COMMAND,
             data={
                 "application_id": application_id,
                 "guild_id": guild_id,
@@ -544,7 +544,7 @@ class RESTImpl(RESTAware):
         with_localizations: bool = False
     ) -> List[ApplicationCommandObject]:
         method, url = self._build_url(
-            route=interaction_route.GET_GUILD_APPLICATION_COMMANDS,
+            route=InteractionRoute.GET_GUILD_APPLICATION_COMMANDS,
             data={
                 "application_id": application_id,
                 "guild_id": guild_id
@@ -559,7 +559,7 @@ class RESTImpl(RESTAware):
 
     async def fetch_initial_interaction_response(self, application_id: int, interaction_token: str) -> Message:
         method, url = self._build_url(
-            route=interaction_route.GET_ORIGINAL_INTERACTION_RESPONSE,
+            route=InteractionRoute.GET_ORIGINAL_INTERACTION_RESPONSE,
             data={"application_id": application_id, "interaction_token": interaction_token}
         )
         response = await self.http.send_request(
@@ -589,7 +589,7 @@ class RESTImpl(RESTAware):
             components=components
         )
         method, url = self._build_url(
-            route=message_route.EDIT_MESSAGE,
+            route=MessageRoute.EDIT_MESSAGE,
             data={"channel_id": channel_id, "message_id": message_id}
         )
         response = await self.http.send_request(
@@ -602,7 +602,7 @@ class RESTImpl(RESTAware):
 
     async def delete_all_reactions(self, channel_id: Snowflake, message_id: Snowflake) -> None:
         method, url = self._build_url(
-            route=message_route.DELETE_ALL_REACTIONS,
+            route=MessageRoute.DELETE_ALL_REACTIONS,
             data={"channel_id": channel_id, "message_id": message_id}
         )
         await self.http.send_request(method=method, url=url)
@@ -616,7 +616,7 @@ class RESTImpl(RESTAware):
     ):
         parsed_emoji = self._parse_emoji(await self.fetch_emoji(guild_id=guild_id, emoji=emoji))
         method, url = self._build_url(
-            route=message_route.DELETE_ALL_REACTION_FOR_EMOJI,
+            route=MessageRoute.DELETE_ALL_REACTION_FOR_EMOJI,
             data={"channel_id": channel_id, "message_id": message_id, "emoji": parsed_emoji}
         )
         await self.http.send_request(
@@ -640,7 +640,7 @@ class RESTImpl(RESTAware):
         thread_id: SnowflakeT | None = None
     ) -> Message:
         method, url = self._build_url(
-            route=interaction_route.EDIT_ORIGINAL_INTERACTION_RESPONSE,
+            route=InteractionRoute.EDIT_ORIGINAL_INTERACTION_RESPONSE,
             data={"application_id": application_id, "interaction_token": interaction_token}
         )
 
@@ -671,7 +671,7 @@ class RESTImpl(RESTAware):
         guild_scheduled_event_id: Snowflake | None = None
     ) -> Invite:
         method, url = self._build_url(
-            route=guild_route.GET_INVITE,
+            route=GuildRoute.GET_INVITE,
             data={"invite_code": invite_code},
             query_params={
                 "with_counts": with_counts,
@@ -685,7 +685,7 @@ class RESTImpl(RESTAware):
 
     async def delete_invite(self, invite_code: str, reason: str | None = None) -> Invite:
         method, url = self._build_url(
-            route=guild_route.DELETE_INVITE,
+            route=GuildRoute.DELETE_INVITE,
             data={"invite_code": invite_code}
         )
         headers = {}
@@ -701,7 +701,7 @@ class RESTImpl(RESTAware):
 
     async def fetch_guild_invites(self, guild_id: Snowflake) -> List[Invite]:
         method, url = self._build_url(
-            route=guild_route.GET_GUILD_INVITES,
+            route=GuildRoute.GET_GUILD_INVITES,
             data={"guild_id": guild_id}
         )
         response = await self.http.send_request(
@@ -716,7 +716,7 @@ class RESTImpl(RESTAware):
         after: Snowflake = Snowflake(0)
     ) -> List[GuildMember]:
         method, url = self._build_url(
-            route=guild_route.GET_GUILD_MEMBERS,
+            route=GuildRoute.GET_GUILD_MEMBERS,
             data={"guild_id": guild_id},
             query_params={"limit": limit, "after": after}
         )
@@ -725,7 +725,7 @@ class RESTImpl(RESTAware):
 
     async def fetch_guild_roles(self, guild_id: SnowflakeT) -> List[GuildRole]:
         method, url = self._build_url(
-            route=guild_route.GET_GUILD_ROLES,
+            route=GuildRoute.GET_GUILD_ROLES,
             data={"guild_id": guild_id}
         )
         response = await self.http.send_request(method=method, url=url)
@@ -733,7 +733,7 @@ class RESTImpl(RESTAware):
 
     async def fetch_user(self, user_id: SnowflakeT) -> User:
         method, url = self._build_url(
-            route=user_route.GET_USER,
+            route=UserRoute.GET_USER,
             data={"user_id": user_id}
         )
         response = await self.http.send_request(method=method, url=url)
@@ -741,7 +741,7 @@ class RESTImpl(RESTAware):
 
     async def fetch_guild_member(self, guild_id: SnowflakeT, user_id: SnowflakeT) -> GuildMember:
         method, url = self._build_url(
-            route=guild_route.GET_GUILD_MEMBER,
+            route=GuildRoute.GET_GUILD_MEMBER,
             data={"guild_id": guild_id, "user_id": user_id}
         )
         response = await self.http.send_request(method=method, url=url)
@@ -763,7 +763,7 @@ class RESTImpl(RESTAware):
         headers = MutableJsonBuilder()
         payload = MutableJsonBuilder()
         method, url = self._build_url(
-            route=guild_route.MODIFY_GUILD_MEMBER,
+            route=GuildRoute.MODIFY_GUILD_MEMBER,
             data={"user_id": user_id, "guild_id": guild_id}
         )
 
@@ -797,7 +797,7 @@ class RESTImpl(RESTAware):
         role_id: SnowflakeT
     ) -> None:
         method, url = self._build_url(
-            route=guild_route.ADD_GUILD_MEMBER_ROLE,
+            route=GuildRoute.ADD_GUILD_MEMBER_ROLE,
             data={"guild_id": guild_id, "user_id": user_id, "role_id": role_id}
         )
 
@@ -815,7 +815,7 @@ class RESTImpl(RESTAware):
             body.put("with_localizations", with_localizations)
 
         method, url = self._build_url(
-            route=interaction_route.GET_GUILD_APPLICATION_COMMANDS,
+            route=InteractionRoute.GET_GUILD_APPLICATION_COMMANDS,
             data={"application_id": application_id, "guild_id": guild_id}
         )
         response = await self.http.send_request(
@@ -825,7 +825,7 @@ class RESTImpl(RESTAware):
         return [self.entity_factory.deserialize_application_command(cmd) for cmd in await response.json()]
 
     async def get_gateway(self) -> GatewayInfo:
-        method, url = self._build_url(route=gateway_route.GATEWAY_BOT)
+        method, url = self._build_url(route=GatewayRoute.GATEWAY_BOT)
         response = await self.http.send_request(method=method, url=url)
         payload = await response.json()
 

@@ -6,6 +6,8 @@ import attrs
 
 if TYPE_CHECKING:
     from quant.utils.cache.cache_manager import CacheManager
+    from quant.entities.button import Button
+    from quant.entities.action_row import ActionRow
 
 from quant.impl.core.commands import ApplicationCommandObject, ApplicationCommandTypes
 from quant.entities.message import Message, Attachment, MessageFlags
@@ -24,10 +26,8 @@ from quant.entities.guild import GuildMember
 from quant.entities.roles import GuildRole
 from quant.entities.user import User
 from quant.entities.emoji import Reaction, PartialReaction, Emoji
-from quant.entities.action_row import ActionRow
 from quant.entities.interactions.slash_option import SlashOptionType, ApplicationCommandOption
 from quant.entities.interactions.component_types import ComponentType
-from quant.entities.interactions.component import Component
 from quant.entities.snowflake import Snowflake
 from quant.utils.json_builder import MutableJsonBuilder
 from quant.utils.attrs_extensions import iso_to_datetime
@@ -76,14 +76,39 @@ class EntityFactory:
             unusual_dm_activity_until=payload.get("unusual_dm_activity_until")
         )
 
-    @staticmethod
-    def serialize_action_row(row: ActionRow) -> Dict[str, Any] | None:
+    def serialize_action_row(self, row: ActionRow) -> Dict[str, Any] | None:
+        from quant.entities.button import Button
+        from quant.entities.action_row import ActionRow
+
+        components = []
+        for component in row.components:
+            if isinstance(component, Button):
+                component = self.serialize_button(component)
+            else:
+                component = attrs.asdict(component)
+
+            components.append(component)
+
         return {
             "type": ActionRow.INTERACTION_TYPE,
-            "components": [attrs.asdict(component) for component in row.components]
+            "components": components
+        }
+
+    @staticmethod
+    def serialize_button(button: Button) -> Dict[str, Any] | None:
+        return {
+            "type": button.BUTTON_COMPONENT_TYPE,
+            "custom_id": button.custom_id,
+            "label": button.label,
+            "style": button.style.value,
+            "emoji": button.emoji,
+            "url": button.url,
+            "disabled": button.disabled
         }
 
     def deserialize_action_row(self, payload: MutableJsonBuilder | Dict | list) -> ActionRow:
+        from quant.entities.action_row import ActionRow
+
         if isinstance(payload, list):
             return ActionRow(components=[self._deserialize_component(component) for component in payload])
 
@@ -502,13 +527,16 @@ class EntityFactory:
         if (embeds := callback_data.embeds) is not None:
             embeds = [self.serialize_embed(embed) for embed in embeds]
 
+        if (components := callback_data.components) is not None:
+            components = [self.serialize_action_row(components)]
+
         return {
             "tts": callback_data.tts,
             "content": callback_data.content,
             "embeds": embeds,
-            "allowed_mentions": callback_data.allowed_mentions,
+            "allowed_mentions": attrs.asdict(callback_data.allowed_mentions),
             "flags": flags,
-            "components": callback_data.components,
+            "components": components,
             "attachments": callback_data.attachments
         }
 
@@ -761,7 +789,9 @@ class EntityFactory:
             resolved=payload.get("resolved")
         )
 
-    def _deserialize_component(self, payload: MutableJsonBuilder | Dict | List) -> Component | ActionRow:
+    def _deserialize_component(self, payload: MutableJsonBuilder | Dict | List) -> Any:
+        from quant.entities.action_row import ActionRow
+
         component_type = payload.get("type")
 
         if component_type == ActionRow.INTERACTION_TYPE:
@@ -770,7 +800,7 @@ class EntityFactory:
         if component_type == TextInput.INTERACTION_TYPE:
             return self.deserialize_text_input(payload)
 
-        return Component(**payload)
+        return payload
 
     def _deserialize_interaction_data_option(self, payload: MutableJsonBuilder | Dict) -> InteractionDataOption:
         if (options := payload.get("options")) is not None:

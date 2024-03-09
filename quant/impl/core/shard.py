@@ -7,7 +7,6 @@ if TYPE_CHECKING:
     from quant.impl.core.client import Client
 
 from quant.impl.events.bot.ready_event import ShardReadyEvent
-from quant.entities.activity import ActivityData
 from quant.entities.intents import Intents
 from .gateway import Gateway
 

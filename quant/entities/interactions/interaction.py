@@ -6,19 +6,18 @@ from typing import Any, List, TYPE_CHECKING, Dict
 import attrs
 
 if TYPE_CHECKING:
+    from ..action_row import ActionRow
     from quant.entities.message import Message, Attachment
     from quant.entities.guild import Guild
+    from quant.entities.modal.modal import Modal
 
-from ..action_row import ActionRow
 from quant.entities.message_flags import MessageFlags
 from .choice_response import InteractionDataOption
 from ..message import Message
 from ..channel import Channel
 from .application_command import ApplicationCommandOptionType
-from quant.entities.modal.modal import ModalInteractionCallbackData
 from quant.entities.snowflake import Snowflake
 from quant.entities.user import User
-from quant.entities.modal.modal import Modal
 from quant.entities.interactions.component_types import ComponentType
 from quant.entities.embeds import Embed
 from quant.entities.allowed_mentions import AllowedMentions
@@ -87,7 +86,7 @@ class Interaction(BaseModel):
         default=InteractionType.PING,
         converter=InteractionType
     )
-    data: InteractionData = attrs.field(default=None)
+    data: InteractionData | ModalInteractionCallbackData = attrs.field(default=None)
     guild_id: Snowflake = attrs.field(default=0)
     channel: Channel = attrs.field(default=None)
     channel_id: Snowflake = attrs.field(default=0)
@@ -134,6 +133,8 @@ class Interaction(BaseModel):
         )
 
     async def respond_modal(self, modal: Modal):
+        from quant.entities.modal.modal import ModalInteractionCallbackData
+
         await self.client.rest.create_interaction_response(
             InteractionCallbackType.MODAL,
             ModalInteractionCallbackData(

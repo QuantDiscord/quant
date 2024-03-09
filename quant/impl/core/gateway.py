@@ -23,7 +23,7 @@ if TYPE_CHECKING:
 
 from quant.impl.events.bot.raw_event import RawDispatchEvent
 from quant.entities.activity import Activity, ActivityStatus
-from quant.impl.core.route import Gateway as gateway_route
+from quant.impl.core.route import Gateway as GatewayRoute
 from quant.entities.intents import Intents
 from quant.utils import logger
 
@@ -95,7 +95,7 @@ class Gateway:
         self._heartbeat = 0
 
     async def connect(self) -> None:
-        ws_url = gateway_route.DISCORD_WS_URL.uri.url_string.format(10)
+        ws_url = GatewayRoute.DISCORD_WS_URL.uri.url_string.format(10)
 
         self.session = aiohttp.ClientSession()
         self.websocket = await self.session.ws_connect(url=ws_url)
