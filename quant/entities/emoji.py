@@ -16,7 +16,7 @@ if TYPE_CHECKING:
 @attrs.define
 class PartialReaction(BaseModel):
     emoji_name: str = attrs.field(alias="name")
-    emoji_id: 'Snowflake' = attrs.field(default=0, alias="id")
+    emoji_id: Snowflake = attrs.field(default=0, alias="id")
     animated: bool = attrs.field(default=False)
 
     def __str__(self) -> str:

@@ -20,11 +20,12 @@ from quant.entities.factory.event_controller import EventController
 from quant.utils.cache.cache_manager import CacheManager
 
 if TYPE_CHECKING:
-    from quant.entities.button import Button
     from quant.impl.core.commands import ApplicationCommandObject
+    from quant.entities.button import Button
 
 import quant.utils.asyncio_utils as asyncio_utils
 from quant.utils import logger
+from quant.entities.interactions.slash_option import ApplicationCommandOption
 from quant.entities.gateway import GatewayInfo
 from quant.entities.interactions.component_types import ComponentType
 from quant.impl.core.shard import Shard
@@ -114,7 +115,7 @@ class Client:
 
         self._modals: Dict[str, Modal] = {}
         self._buttons: Dict[str, Button] = {}
-        self._slash_commands: Dict[str, ApplicationCommandObject] = {}
+        self._slash_commands: Dict[str, ApplicationCommandObject | CoroutineT] = {}
 
         self.handlers: Dict[InteractionType, CoroutineT] = {
             InteractionType.MODAL_SUBMIT: self.handle_modal_submit,
@@ -368,7 +369,7 @@ class Client:
             self._buttons[str(button.custom_id)] = button
 
     @property
-    def slash_commands(self) -> Dict[str, ApplicationCommandObject]:
+    def slash_commands(self) -> Dict[str, ApplicationCommandObject | CoroutineT]:
         return self._slash_commands
 
     @property
@@ -387,9 +388,15 @@ class Client:
         context = InteractionContext(self, interaction)
         command_name = interaction.data.name
 
-        if command_name in self.slash_commands.keys():
-            command = self.slash_commands[command_name]
-            await command.callback_func(context)
+        if command_name not in self.slash_commands.keys():
+            return
+
+        command = self.slash_commands[command_name]
+        if inspect.isfunction(command):
+            await command(context)
+            return
+
+        await command.callback_func(context)
 
     async def handle_modal_submit(self, interaction: Interaction) -> None:
         if interaction.data is None:
@@ -449,6 +456,13 @@ class Client:
                 continue
 
             await shard.gateway.send_presence(**presence)
+
+    def get_component(self, custom_id: str) -> Modal | Button:
+        if (modal := self.modals.get(custom_id)) is not None:
+            return modal
+
+        if (button := self.buttons.get(custom_id)) is not None:
+            return button
 
     async def _set_client_user_on_ready(self, _: ReadyEvent) -> None:
         self.me = self.cache.get_users()[0]

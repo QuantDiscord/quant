@@ -8,6 +8,7 @@ if TYPE_CHECKING:
 
 from quant.impl.events.bot.ready_event import ShardReadyEvent
 from quant.entities.intents import Intents
+from quant.entities.activity import Activity
 from .gateway import Gateway
 
 
@@ -17,13 +18,15 @@ class Shard:
         num_shards: int,
         shard_id: int,
         intents: Intents = Intents.ALL_UNPRIVILEGED,
-        mobile: bool = False
+        mobile: bool = False,
+        activity: Activity | None = None
     ) -> None:
         self.shard_id = shard_id
         self.num_shards = num_shards
         self.gateway: Gateway | None = None
         self.intents = intents
         self.mobile = mobile
+        self.activity = activity
 
     async def start(self, client: Client, loop: asyncio.AbstractEventLoop = None) -> None:
         self.gateway = Gateway(
@@ -41,10 +44,6 @@ class Shard:
 
         if self.shard_id == 0:
             client.gateway = self.gateway
-
-        event = ShardReadyEvent()
-        event.shard = self
-        await client.event_controller.dispatch(event)
 
     async def close(self) -> None:
         asyncio.create_task(self.gateway.close())

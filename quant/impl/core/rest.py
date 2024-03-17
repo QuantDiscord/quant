@@ -269,7 +269,6 @@ class RESTImpl(RESTAware):
             route=MessageRoute.CREATE_MESSAGE,
             data={"channel_id": channel_id}
         )
-
         data = await self.http.send_request(
             method=method,
             url=url,
@@ -422,11 +421,51 @@ class RESTImpl(RESTAware):
             route=InteractionRoute.CREATE_INTERACTION_RESPONSE,
             data={"interaction_id": interaction_id, "interaction_token": interaction_token}
         )
+
         await self.http.send_request(
             method=method,
             url=url,
             data=payload
         )
+
+    async def create_followup_message(
+        self,
+        application_id: int,
+        interaction_token: str,
+        content: str = None,
+        tts: bool = False,
+        embed: Embed = None,
+        embeds: List[Embed] = None,
+        allowed_mentions: AllowedMentions = None,
+        components: List[Any] = None,
+        files: List[Any] = None,
+        payload_json: str = None,
+        attachments: List[Attachment] | None = None,
+        flags: int = None,
+        thread_name: str = None
+    ) -> None:
+        method, url = self._build_url(
+            route=WebhookRoute.CREATE_FOLLOWUP_MESSAGE,
+            data={"application_id": application_id, "interaction_token": interaction_token},
+            query_params={"wait": True}
+        )
+        payload = self._build_payload(
+            content=content,
+            tts=tts,
+            embed=embed,
+            embeds=embeds,
+            allowed_mentions=allowed_mentions,
+            components=components,
+            files=files,
+            payload_json=payload_json,
+            attachments=attachments,
+            flags=flags
+        )
+
+        if thread_name is not None:
+            payload.put("thread_name", thread_name)
+
+        await self.http.send_request(method=method, url=url, data=payload)
 
     async def fetch_message(self, channel_id: int, message_id: int) -> Message:
         method, url = self._build_url(
@@ -478,16 +517,16 @@ class RESTImpl(RESTAware):
         return self.entity_factory.deserialize_application_command(await response.json())
 
     async def create_guild_application_command(
-        self,
-        application_id: int,
-        name: str,
-        description: str,
-        guild_id: SnowflakeT,
-        default_permissions: bool = False,
-        dm_permissions: bool = False,
-        default_member_permissions: str = None,
-        options: List[ApplicationCommandOption] = None,
-        nsfw: bool = False
+            self,
+            application_id: int,
+            name: str,
+            description: str,
+            guild_id: SnowflakeT,
+            default_permissions: bool = False,
+            dm_permissions: bool = False,
+            default_member_permissions: str = None,
+            options: List[ApplicationCommandOption] = None,
+            nsfw: bool = False
     ) -> ApplicationCommandObject:
         body = MutableJsonBuilder({"name": name, "description": description})
         method, url = self._build_url(
@@ -522,10 +561,10 @@ class RESTImpl(RESTAware):
         return self.entity_factory.deserialize_application_command(await response.json())
 
     async def delete_guild_application_command(
-        self,
-        application_id: int,
-        guild_id: SnowflakeT,
-        command_id: SnowflakeT
+            self,
+            application_id: int,
+            guild_id: SnowflakeT,
+            command_id: SnowflakeT
     ) -> None:
         method, url = self._build_url(
             route=InteractionRoute.DELETE_GUILD_APPLICATION_COMMAND,
@@ -538,10 +577,10 @@ class RESTImpl(RESTAware):
         await self.http.send_request(method=method, url=url)
 
     async def fetch_guild_application_commands(
-        self,
-        application_id: int,
-        guild_id: int,
-        with_localizations: bool = False
+            self,
+            application_id: int,
+            guild_id: int,
+            with_localizations: bool = False
     ) -> List[ApplicationCommandObject]:
         method, url = self._build_url(
             route=InteractionRoute.GET_GUILD_APPLICATION_COMMANDS,
@@ -570,15 +609,15 @@ class RESTImpl(RESTAware):
         return self.entity_factory.deserialize_message(await response.json())
 
     async def edit_message(
-        self,
-        channel_id: SnowflakeT,
-        message_id: SnowflakeT,
-        content: str | None = None,
-        embed: Embed | None = None,
-        embeds: List[Embed] | None = None,
-        flags: int | None = None,
-        allowed_mentions: AllowedMentions | None = None,
-        components: ActionRow | None = None
+            self,
+            channel_id: SnowflakeT,
+            message_id: SnowflakeT,
+            content: str | None = None,
+            embed: Embed | None = None,
+            embeds: List[Embed] | None = None,
+            flags: int | None = None,
+            allowed_mentions: AllowedMentions | None = None,
+            components: ActionRow | None = None
     ) -> Message:  # TODO: File uploading
         payload = self._build_payload(
             content=content,
@@ -608,11 +647,11 @@ class RESTImpl(RESTAware):
         await self.http.send_request(method=method, url=url)
 
     async def delete_all_reactions_for_emoji(
-        self,
-        guild_id: SnowflakeT,
-        channel_id: SnowflakeT,
-        message_id: SnowflakeT,
-        emoji: str | Snowflake | Emoji
+            self,
+            guild_id: SnowflakeT,
+            channel_id: SnowflakeT,
+            message_id: SnowflakeT,
+            emoji: str | Snowflake | Emoji
     ):
         parsed_emoji = self._parse_emoji(await self.fetch_emoji(guild_id=guild_id, emoji=emoji))
         method, url = self._build_url(
@@ -626,18 +665,18 @@ class RESTImpl(RESTAware):
         )
 
     async def edit_original_interaction_response(
-        self,
-        application_id: SnowflakeT,
-        interaction_token: str,
-        content: str | None = None,
-        embed: Embed | None = None,
-        embeds: List[Embed] | None = None,
-        allowed_mentions: AllowedMentions | None = None,
-        components: ActionRow | None = None,
-        files: List[Any] | None = None,
-        payload_json: str | None = None,
-        attachments: List[Attachment] | None = None,
-        thread_id: SnowflakeT | None = None
+            self,
+            application_id: SnowflakeT,
+            interaction_token: str,
+            content: str | None = None,
+            embed: Embed | None = None,
+            embeds: List[Embed] | None = None,
+            allowed_mentions: AllowedMentions | None = None,
+            components: ActionRow | None = None,
+            files: List[Any] | None = None,
+            payload_json: str | None = None,
+            attachments: List[Attachment] | None = None,
+            thread_id: SnowflakeT = None
     ) -> Message:
         method, url = self._build_url(
             route=InteractionRoute.EDIT_ORIGINAL_INTERACTION_RESPONSE,
@@ -664,11 +703,11 @@ class RESTImpl(RESTAware):
         return self.entity_factory.deserialize_message(await response.json())
 
     async def fetch_invite(
-        self,
-        invite_code: str,
-        with_counts: bool = False,
-        with_expiration: bool = False,
-        guild_scheduled_event_id: Snowflake | None = None
+            self,
+            invite_code: str,
+            with_counts: bool = False,
+            with_expiration: bool = False,
+            guild_scheduled_event_id: Snowflake | None = None
     ) -> Invite:
         method, url = self._build_url(
             route=GuildRoute.GET_INVITE,
@@ -710,10 +749,10 @@ class RESTImpl(RESTAware):
         return [self.entity_factory.deserialize_invite(invite) for invite in await response.json()]
 
     async def fetch_guild_members(
-        self,
-        guild_id: SnowflakeT,
-        limit: int = 1,
-        after: Snowflake = Snowflake(0)
+            self,
+            guild_id: SnowflakeT,
+            limit: int = 1,
+            after: Snowflake = Snowflake(0)
     ) -> List[GuildMember]:
         method, url = self._build_url(
             route=GuildRoute.GET_GUILD_MEMBERS,
@@ -748,17 +787,17 @@ class RESTImpl(RESTAware):
         return self.entity_factory.deserialize_member(await response.json(), guild_id=guild_id)
 
     async def modify_guild_member(
-        self,
-        user_id: SnowflakeT,
-        guild_id: SnowflakeT,
-        nick: str | None = None,
-        roles: List[SnowflakeT] | None = None,
-        mute: bool | None = None,
-        deaf: bool | None = None,
-        move_channel_id: SnowflakeT | None = None,
-        communication_disabled_until: datetime.datetime | None = None,
-        flags: int | None = None,
-        reason: str | None = None
+            self,
+            user_id: SnowflakeT,
+            guild_id: SnowflakeT,
+            nick: str | None = None,
+            roles: List[SnowflakeT] | None = None,
+            mute: bool | None = None,
+            deaf: bool | None = None,
+            move_channel_id: SnowflakeT | None = None,
+            communication_disabled_until: datetime.datetime | None = None,
+            flags: int | None = None,
+            reason: str | None = None
     ) -> GuildMember:
         headers = MutableJsonBuilder()
         payload = MutableJsonBuilder()
@@ -791,10 +830,10 @@ class RESTImpl(RESTAware):
         return self.entity_factory.deserialize_member(await response.json(), guild_id=guild_id)
 
     async def add_guild_member_role(
-        self,
-        guild_id: SnowflakeT,
-        user_id: SnowflakeT,
-        role_id: SnowflakeT
+            self,
+            guild_id: SnowflakeT,
+            user_id: SnowflakeT,
+            role_id: SnowflakeT
     ) -> None:
         method, url = self._build_url(
             route=GuildRoute.ADD_GUILD_MEMBER_ROLE,
@@ -804,10 +843,10 @@ class RESTImpl(RESTAware):
         await self.http.send_request(method=method, url=url)
 
     async def fetch_guild_application_commands(
-        self,
-        application_id: SnowflakeT,
-        guild_id: SnowflakeT,
-        with_localizations: bool = False
+            self,
+            application_id: SnowflakeT,
+            guild_id: SnowflakeT,
+            with_localizations: bool = False
     ) -> List[ApplicationCommandObject]:
         body = MutableJsonBuilder()
 

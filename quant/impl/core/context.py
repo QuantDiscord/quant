@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import List, TYPE_CHECKING, Any, TypeVar, cast
+from typing import List, TYPE_CHECKING, Any, TypeVar
 
 if TYPE_CHECKING:
     from quant.impl.core.client import Client
@@ -13,6 +13,7 @@ if TYPE_CHECKING:
     from quant.entities.modal.modal import ModalInteractionCallbackData
     from quant.entities.modal.text_input import TextInput
 
+from quant.entities.snowflake import Snowflake
 from quant.entities.roles import GuildRole
 from quant.entities.channel import TextChannel, VoiceChannel, Thread
 from quant.entities.interactions.choice_response import InteractionDataOption
@@ -70,9 +71,13 @@ ChannelT = TypeVar("ChannelT", bound=TextChannel | VoiceChannel | Thread)
 
 
 class InteractionContext:
-    def __init__(self, client, interaction) -> None:
-        self.client: Client = client
-        self.interaction: Interaction = interaction
+    def __init__(self, client: Client, interaction: Interaction) -> None:
+        self.client = client
+        self.interaction = interaction
+
+    @property
+    def guild_id(self) -> Snowflake | int:
+        return self.interaction.guild_id
 
     @property
     def author(self) -> GuildMember:
@@ -98,6 +103,28 @@ class InteractionContext:
 
     async def get_role_option(self, name: str) -> GuildRole | None:
         return await self.get_option(name=name)
+
+    async def respond(
+        self,
+        content: str | Any | None = None,
+        tts: bool = False,
+        embed: Embed | None = None,
+        embeds: List[Embed] | None = None,
+        allowed_mentions: AllowedMentions | None = None,
+        flags: MessageFlags | int = 0,
+        components: ActionRow = None,
+        attachments: List[Attachment] = None
+    ) -> None:
+        await self.interaction.respond(
+            content=content,
+            tts=tts,
+            embed=embed,
+            embeds=embeds,
+            allowed_mentions=allowed_mentions,
+            flags=flags,
+            components=components,
+            attachments=attachments
+        )
 
 
 class ButtonContext(InteractionContext):

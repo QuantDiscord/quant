@@ -533,6 +533,11 @@ class EntityFactory:
         if (allowed_mentions := callback_data.allowed_mentions) is not None:
             allowed_mentions = attrs.asdict(allowed_mentions)
 
+        if (attachments := callback_data.attachments) is not None:
+            attachments = [self.serialize_attachment(attachment) for attachment in attachments]
+
+
+
         return {
             "tts": callback_data.tts,
             "content": callback_data.content,
@@ -540,7 +545,7 @@ class EntityFactory:
             "allowed_mentions": allowed_mentions,
             "flags": flags,
             "components": components,
-            "attachments": callback_data.attachments
+            "attachments": attachments
         }
 
     def serialize_modal_interaction_callback_data(self, callback_data: ModalInteractionCallbackData) -> Dict:
@@ -582,7 +587,7 @@ class EntityFactory:
 
     def deserialize_slash_option(self, payload: MutableJsonBuilder | Dict) -> ApplicationCommandOption:
         if (options := payload.get("options")) is not None:
-            options = [self.deserialize_slash_option(options) for option in options]
+            options = [self.deserialize_slash_option(option) for option in options]
 
         return ApplicationCommandOption(
             name=payload.get("name"),
@@ -616,8 +621,9 @@ class EntityFactory:
         body.put("choices", option.choices)
         body.put("required", option.required)
 
-        if option.option_type is not None:
-            body.put("type", option.option_type.value)
+        print(option.type)
+        if option.type is not None:
+            body.put("type", option.type.value)
         else:
             body.put("type", SlashOptionType.STRING.value)
 

@@ -58,6 +58,7 @@ class Message:
 class WebHook:
     CREATE_WEBHOOK: Final[Route] = Route(POST, URI("/channels/{channel_id}/webhooks"))
     GET_CHANNEL_WEBHOOKS: Final[Route] = Route(GET, URI("/channels/{channel_id}/webhooks"))
+    CREATE_FOLLOWUP_MESSAGE: Final[Route] = Route(POST, URI("/webhooks/{application_id}/{interaction_token}"))
 
 
 class Guild:

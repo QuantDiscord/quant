@@ -2,7 +2,7 @@ from typing import List, Any
 from datetime import datetime
 
 import attrs
-from attrs import define, asdict, field
+from attrs import define, field
 
 
 @define

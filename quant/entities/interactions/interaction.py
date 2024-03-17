@@ -9,7 +9,7 @@ if TYPE_CHECKING:
     from ..action_row import ActionRow
     from quant.entities.message import Message, Attachment
     from quant.entities.guild import Guild
-    from quant.entities.modal.modal import Modal
+    from quant.entities.modal.modal import Modal, ModalInteractionCallbackData
 
 from quant.entities.message_flags import MessageFlags
 from .choice_response import InteractionDataOption
@@ -117,6 +117,9 @@ class Interaction(BaseModel):
         if embed is not None:
             embeds = [embed]
 
+        if isinstance(flags, MessageFlags):
+            flags = flags.value
+
         await self.client.rest.create_interaction_response(
             InteractionCallbackType.CHANNEL_MESSAGE_WITH_SOURCE,
             InteractionCallbackData(
@@ -124,7 +127,7 @@ class Interaction(BaseModel):
                 tts=tts,
                 embeds=embeds,
                 allowed_mentions=allowed_mentions,
-                flags=flags if flags is None or isinstance(flags, int) else flags.value,
+                flags=flags,
                 components=components,
                 attachments=attachments
             ),
@@ -189,4 +192,9 @@ class Interaction(BaseModel):
             ),
             interaction_id=self.id,
             interaction_token=self.token
+        )
+        await self.client.rest.create_followup_message(
+            application_id=self.application_id,
+            interaction_token=self.token,
+            flags=flags,
         )

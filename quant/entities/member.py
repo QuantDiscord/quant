@@ -16,20 +16,20 @@ from .permissions import Permissions
 
 @attrs.define(kw_only=True)
 class GuildMember(BaseModel):
-    deaf: bool = attrs.field(default=False)
-    mute: bool = attrs.field(default=False)
-    flags: int = attrs.field(default=0)
-    pending: bool = attrs.field(default=False, repr=False)
-    permissions: Permissions | None = attrs.field(default=None)
-    nick: str | None = attrs.field(default=None)
-    avatar: str | None = attrs.field(default=None)
-    roles: List[GuildRole] | None = attrs.field(default=None, repr=False)
-    joined_at: datetime.datetime = attrs.field(default=0)
-    premium_since: int | None = attrs.field(default=0)
-    communication_disabled_until: int | None = attrs.field(default=0)
-    user: User = attrs.field(default=None)
+    deaf: bool = attrs.field()
+    mute: bool = attrs.field()
+    flags: int = attrs.field()
+    pending: bool = attrs.field(repr=False)
+    permissions: Permissions | None = attrs.field()
+    nick: str | None = attrs.field()
+    avatar: str | None = attrs.field()
+    roles: List[GuildRole] | None = attrs.field(repr=False)
+    joined_at: datetime.datetime = attrs.field()
+    premium_since: int | None = attrs.field()
+    communication_disabled_until: int | None = attrs.field()
+    user: User = attrs.field()
     guild_id: Snowflake | int = attrs.field()
-    unusual_dm_activity_until: Any = attrs.field(default=None)
+    unusual_dm_activity_until: Any = attrs.field()
 
     @property
     def mention(self) -> str:

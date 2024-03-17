@@ -3,9 +3,6 @@ from __future__ import annotations as _
 import enum
 from typing import List, Any, TYPE_CHECKING
 
-if TYPE_CHECKING:
-    from typing_extensions import Self
-
 import attrs
 
 
@@ -34,7 +31,7 @@ class ApplicationCommandOption:
     max_length: int = attrs.field(default=None)
     autocomplete: bool = attrs.field(default=False)
     channel_types: List[Any] = attrs.field(default=None)
-    options: List[Self] = attrs.field(default=None)
+    options: List[ApplicationCommandOption] = attrs.field(default=None)
     choices: List[Any] = attrs.field(default=None)
     required: bool = attrs.field(default=False)
-    option_type: SlashOptionType = attrs.field(default=SlashOptionType.STRING)
+    type: SlashOptionType = attrs.field(default=SlashOptionType.STRING)

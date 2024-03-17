@@ -83,7 +83,7 @@ class ApplicationCommandObject(Command):
             options=options,
             choices=choices,
             required=required,
-            option_type=option_type
+            type=option_type
         )
         self.options.append(option)
         return option
