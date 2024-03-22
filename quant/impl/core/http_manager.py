@@ -1,14 +1,16 @@
 import asyncio
 import json
-from typing import Dict, Any
+from typing import Dict, Any, TypeVar
 
-from aiohttp import ClientSession, ClientResponse
+from aiohttp import ClientSession, ClientResponse, FormData
 
-from quant.api.core.http_manager_abc import HttpManager
+from quant.api.core.http_manager_abc import HttpManager, AcceptContentType
 from quant.entities.http_codes import HttpCodes
 from quant.impl.core.exceptions.http_exception import Forbidden, InternalServerError, RateLimitExceeded
 from quant.impl.core.exceptions.library_exception import DiscordException
 from quant.utils.json_builder import MutableJsonBuilder
+
+DataT = TypeVar("DataT", bound=Dict[str, Any] | MutableJsonBuilder[str, Any] | FormData)
 
 
 class HttpManagerImpl(HttpManager):
@@ -37,7 +39,7 @@ class HttpManagerImpl(HttpManager):
                 headers.put("Content-Type", content_type)
 
             if content_type is None:
-                headers.put("Content-Type", HttpManagerImpl.APPLICATION_JSON)
+                headers.put("Content-Type", AcceptContentType.APPLICATION_JSON)
 
             headers = headers.asdict()
             if data is None or len(data.asdict()) == 0:
@@ -66,23 +68,35 @@ class HttpManagerImpl(HttpManager):
                 headers.update({"Content-Type": content_type})
 
             if content_type is None:
-                headers.update({"Content-Type": HttpManagerImpl.APPLICATION_JSON})
+                headers.update({"Content-Type": AcceptContentType.APPLICATION_JSON})
 
             if data is None:
                 request = await session.request(method=method, url=url, headers=headers)
             else:
-                request = await session.request(method=method, url=url, data=json.dumps(data), headers=headers)
+                if not isinstance(data, FormData):
+                    data = json.dumps(data)
+
+                request = await session.request(method=method, url=url, data=data, headers=headers)
 
             return await self._validate_request(request=request)
 
     @staticmethod
     async def _validate_request(request: ClientResponse) -> ClientResponse | None:
         content_type = request.content_type
-        request_text_data = await request.text()
+        request_text_data = await request.read()
         if request_text_data == "":
             return
 
-        if content_type == HttpManagerImpl.TEXT_HTML:
+        mimetypes = (
+            AcceptContentType.MimeTypes.IMAGE_PNG,
+            AcceptContentType.MimeTypes.IMAGE_GIF,
+            AcceptContentType.MimeTypes.IMAGE_JPG,
+            AcceptContentType.MimeTypes.IMAGE_WEBP
+        )
+        if content_type in mimetypes:
+            return request
+
+        if content_type == AcceptContentType.TEXT_HTML:
             return request
 
         request_json_data = await request.json()
@@ -109,7 +123,7 @@ class HttpManagerImpl(HttpManager):
         self,
         method: str,
         url: str,
-        data: Dict[str, Any] | MutableJsonBuilder[str, Any] = None,
+        data: DataT = None,
         headers: Dict[str, str] | MutableJsonBuilder[str, Any] | None = None,
         content_type: str = None
     ) -> ClientResponse | None:
@@ -142,7 +156,7 @@ class HttpManagerImpl(HttpManager):
         self,
         method: str,
         url: str,
-        data: Dict[str, Any] | MutableJsonBuilder[str, Any] = None,
+        data: DataT = None,
         headers: Dict[str, str] | MutableJsonBuilder[str, Any] | None = None,
         content_type: str = None
     ) -> ClientResponse | None:

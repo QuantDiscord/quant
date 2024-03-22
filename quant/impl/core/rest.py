@@ -6,6 +6,7 @@ import warnings
 from urllib.parse import urlencode
 from typing import List, Any, Dict, Tuple, Final, TYPE_CHECKING, TypeVar
 
+import aiohttp
 import attrs
 
 if TYPE_CHECKING:
@@ -21,6 +22,7 @@ from quant.impl.core.route import (
     Channel as ChannelRoute,
     User as UserRoute
 )
+from quant.impl.files import AttachableURL, File, file_to_bytes
 from quant.entities.gateway import GatewayInfo, SessionStartLimitObject
 from quant.impl.core.route import Route
 from quant.entities.factory.entity_factory import EntityFactory
@@ -37,7 +39,7 @@ from quant.entities.invite import Invite
 from quant.entities.modal.modal import ModalInteractionCallbackData
 from quant.entities.interactions.interaction import InteractionCallbackData, InteractionCallbackType
 from quant.entities.allowed_mentions import AllowedMentions
-from quant.impl.core.http_manager import HttpManagerImpl
+from quant.impl.core.http_manager import HttpManagerImpl, AcceptContentType
 from quant.entities.message import Message, Attachment
 from quant.entities.embeds import Embed
 from quant.entities.webhook import Webhook
@@ -54,65 +56,6 @@ class RESTImpl(RESTAware):
         self.http = HttpManagerImpl(authorization=token)
         self.token = token
         self.entity_factory = EntityFactory(cache)
-
-    def _build_payload(
-        self,
-        content: str | None = None,
-        nonce: str | int | None = None,
-        tts: bool = False,
-        embed: Embed | None = None,
-        embeds: List[Embed] | None = None,
-        allowed_mentions: AllowedMentions | None = None,
-        message_reference: MessageReference | None = None,
-        components: ActionRow | None = None,
-        sticker_ids: List | None = None,
-        files: Any | None = None,
-        payload_json: Any | None = None,
-        attachments: List[Attachment] | None = None,
-        flags: int | None = None
-    ) -> MutableJsonBuilder:
-        body = MutableJsonBuilder()
-
-        if content is not None:
-            body.put("content", content)
-
-        if nonce is not None:
-            body.put("nonce", nonce)
-
-        if tts is not None:
-            body.put("tts", tts)
-
-        if embed is not None:
-            body.put("embeds", [self.entity_factory.serialize_embed(embed)])
-
-        if embeds is not None:
-            body.put("embeds", self.entity_factory.serialize_embed(embed))
-
-        if allowed_mentions is not None:
-            body.put("allowed_mentions", attrs.asdict(allowed_mentions))  # type: ignore
-
-        if message_reference is not None:
-            body.put("message_reference", attrs.asdict(message_reference))  # type: ignore
-
-        if components is not None:
-            body.put("components", [self.entity_factory.serialize_action_row(components)])
-
-        if sticker_ids is not None:
-            body.put("sticker_ids", sticker_ids)
-
-        if files is not None:
-            body.put("files", files)
-
-        if payload_json is not None:
-            body.put("payload_json", payload_json)
-
-        if attachments is not None:
-            body.put("attachments", [self.entity_factory.serialize_attachment(attach) for attach in attachments])
-
-        if flags is not None:
-            body.put("flags", flags)
-
-        return body
 
     async def execute_webhook(
         self,
@@ -409,6 +352,7 @@ class RESTImpl(RESTAware):
         interaction_token: str
     ) -> None:
         payload = MutableJsonBuilder()
+        form_data = aiohttp.FormData()
         payload.put("type", interaction_type.value)
 
         if interaction_data is not None:
@@ -417,15 +361,46 @@ class RESTImpl(RESTAware):
             else:
                 payload.put("data", self.entity_factory.serialize_interaction_callback_data(interaction_data))
 
+        payload = payload.asdict()
+        # TODO: Do it in build_payload and refactor lol
+        # TODO 2: Refactor fucking HTTP manager
+        if interaction_data.attachments is not None:
+            attachments_payload = []
+
+            for index, attachment in enumerate(interaction_data.attachments):
+                file = None
+
+                if isinstance(attachment, Attachment):
+                    attachments_payload.append({"id": attachment.id})
+                    continue
+                if isinstance(attachment, AttachableURL):
+                    response = await self.http.send_request(method="GET", url=attachment.url)
+                    file = await response.read()
+                if isinstance(attachment, File):
+                    file = file_to_bytes(attachment)
+
+                attachments_payload.append({"id": index, "filename": f"file_{index}"})
+                form_data.add_field(
+                    name=f"files[{index}]",
+                    value=file,
+                    filename=attachment.filename
+                )
+
+            payload["data"]["attachments"] = attachments_payload
+
+        print(payload)
+
+        form_data.add_field(name="payload_json", value=payload)
         method, url = self._build_url(
             route=InteractionRoute.CREATE_INTERACTION_RESPONSE,
             data={"interaction_id": interaction_id, "interaction_token": interaction_token}
         )
 
+        print(payload)
         await self.http.send_request(
             method=method,
             url=url,
-            data=payload
+            data=form_data
         )
 
     async def create_followup_message(
@@ -893,3 +868,62 @@ class RESTImpl(RESTAware):
             url += f"{separator}{query_string}"
 
         return route.method, url
+
+    def _build_payload(
+        self,
+        content: str | None = None,
+        nonce: str | int | None = None,
+        tts: bool = False,
+        embed: Embed | None = None,
+        embeds: List[Embed] | None = None,
+        allowed_mentions: AllowedMentions | None = None,
+        message_reference: MessageReference | None = None,
+        components: ActionRow | None = None,
+        sticker_ids: List | None = None,
+        files: Any | None = None,
+        payload_json: Any | None = None,
+        attachments: List[Attachment] | None = None,
+        flags: int | None = None
+    ) -> MutableJsonBuilder:
+        body = MutableJsonBuilder()
+
+        if content is not None:
+            body.put("content", content)
+
+        if nonce is not None:
+            body.put("nonce", nonce)
+
+        if tts is not None:
+            body.put("tts", tts)
+
+        if embed is not None:
+            body.put("embeds", [self.entity_factory.serialize_embed(embed)])
+
+        if embeds is not None:
+            body.put("embeds", self.entity_factory.serialize_embed(embed))
+
+        if allowed_mentions is not None:
+            body.put("allowed_mentions", attrs.asdict(allowed_mentions))  # type: ignore
+
+        if message_reference is not None:
+            body.put("message_reference", attrs.asdict(message_reference))  # type: ignore
+
+        if components is not None:
+            body.put("components", [self.entity_factory.serialize_action_row(components)])
+
+        if sticker_ids is not None:
+            body.put("sticker_ids", sticker_ids)
+
+        if files is not None:
+            body.put("files", files)
+
+        if payload_json is not None:
+            body.put("payload_json", payload_json)
+
+        if attachments is not None:
+            body.put("attachments", [self.entity_factory.serialize_attachment(attach) for attach in attachments])
+
+        if flags is not None:
+            body.put("flags", flags)
+
+        return body

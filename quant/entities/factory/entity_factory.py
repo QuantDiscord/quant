@@ -9,6 +9,7 @@ if TYPE_CHECKING:
     from quant.entities.button import Button
     from quant.entities.action_row import ActionRow
 
+from quant.impl.files import AttachableURL, File
 from quant.impl.core.commands import ApplicationCommandObject, ApplicationCommandTypes
 from quant.entities.message import Message, Attachment, MessageFlags
 from quant.entities.embeds import Embed, EmbedField, EmbedAuthor, EmbedImage, EmbedThumbnail, EmbedFooter
@@ -428,7 +429,10 @@ class EntityFactory:
         return attrs.asdict(embed)
 
     @staticmethod
-    def serialize_attachment(attachment: Attachment) -> Dict:
+    def serialize_attachment(attachment: Attachment) -> Dict | None:
+        if not isinstance(attachment, Attachment):
+            return
+
         return attrs.asdict(attachment)
 
     def deserialize_application_command(self, payload: MutableJsonBuilder | Dict) -> ApplicationCommandObject:
@@ -535,8 +539,6 @@ class EntityFactory:
 
         if (attachments := callback_data.attachments) is not None:
             attachments = [self.serialize_attachment(attachment) for attachment in attachments]
-
-
 
         return {
             "tts": callback_data.tts,

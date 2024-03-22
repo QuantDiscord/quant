@@ -5,7 +5,7 @@ from typing import List, TYPE_CHECKING, Any, TypeVar
 if TYPE_CHECKING:
     from quant.impl.core.client import Client
     from quant.entities.interactions.interaction import Interaction
-    from quant.entities.message import Message, Attachment, MessageReference, MessageFlags
+    from quant.entities.message import Message, MessageReference, MessageFlags
     from quant.entities.button import Button
     from quant.entities.user import User
     from quant.entities.member import GuildMember
@@ -13,6 +13,8 @@ if TYPE_CHECKING:
     from quant.entities.modal.modal import ModalInteractionCallbackData
     from quant.entities.modal.text_input import TextInput
 
+from quant.entities.message import Attachment
+from quant.impl.files import AttachableURL, File
 from quant.entities.snowflake import Snowflake
 from quant.entities.roles import GuildRole
 from quant.entities.channel import TextChannel, VoiceChannel, Thread
@@ -20,6 +22,8 @@ from quant.entities.interactions.choice_response import InteractionDataOption
 from quant.entities.embeds import Embed
 from quant.entities.allowed_mentions import AllowedMentions
 from quant.utils.parser import parse_option_type
+
+AttachmentT = TypeVar("AttachmentT", bound=AttachableURL | File | Attachment)
 
 
 class BaseContext:
@@ -45,7 +49,7 @@ class BaseContext:
         sticker_ids: List = None,
         files=None,
         payload_json: str = None,
-        attachments: List[Attachment] = None,
+        attachments: List[AttachmentT] = None,
         flags: MessageFlags | int | None = None
     ) -> Message:
         return await self.client.rest.create_message(
@@ -113,7 +117,7 @@ class InteractionContext:
         allowed_mentions: AllowedMentions | None = None,
         flags: MessageFlags | int = 0,
         components: ActionRow = None,
-        attachments: List[Attachment] = None
+        attachments: List[AttachmentT] = None
     ) -> None:
         await self.interaction.respond(
             content=content,

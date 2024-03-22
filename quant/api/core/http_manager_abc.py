@@ -6,13 +6,21 @@ from aiohttp import ClientResponse
 from quant.utils.json_builder import MutableJsonBuilder
 
 
-class HttpManager(ABC):
+class AcceptContentType:
     APPLICATION_JSON: Final[str] = "application/json"
     APPLICATION_X_WWW_FORM_URLENCODED: Final[str] = "application/x-www-form-urlencoded"
     MULTIPART_FORM_DATA: Final[str] = "multipart/form-data"
     AUTHORIZATION: Final[str] = "Authorization"
     TEXT_HTML: Final[str] = "text/html"
 
+    class MimeTypes:
+        IMAGE_PNG: Final[str] = "image/png"
+        IMAGE_JPG: Final[str] = "image/jpg"
+        IMAGE_GIF: Final[str] = "image/gif"
+        IMAGE_WEBP: Final[str] = "image/webp"
+
+
+class HttpManager(ABC):
     @abstractmethod
     async def send_request(
         self,
