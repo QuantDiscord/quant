@@ -101,7 +101,7 @@ class Message(BaseModel):
     timestamp: datetime = attrs.field(default=None)
     channel_id: Snowflake | None = attrs.field(default=None)
     position: Snowflake | None = attrs.field(default=None)
-    id: int | None = attrs.field(default=None)
+    id: Snowflake | None = attrs.field(default=None)
     guild_id: Snowflake | None = attrs.field(default=None)
     member: GuildMember | None = attrs.field(default=None)
     author: User | None = attrs.field(default=None)

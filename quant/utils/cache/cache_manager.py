@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import List, TYPE_CHECKING
+from typing import List, TYPE_CHECKING, Dict
 
 if TYPE_CHECKING:
     from quant.entities.factory.entity_factory import EntityFactory
@@ -8,7 +8,6 @@ if TYPE_CHECKING:
     from quant.entities.message import Message
 
 from quant.entities.snowflake import Snowflake
-from quant.utils.json_builder import MutableJsonBuilder
 from quant.entities.voice_state_update import VoiceState
 from quant.entities.guild import Guild
 from quant.entities.emoji import Emoji, Reaction
@@ -18,60 +17,60 @@ from quant.entities.roles import GuildRole
 
 
 class CacheManager:
-    __cached_guilds: MutableJsonBuilder[Snowflake, Guild] = MutableJsonBuilder()
-    __cached_users: MutableJsonBuilder[Snowflake, User] = MutableJsonBuilder()
-    __cached_messages: MutableJsonBuilder[Snowflake, Message] = MutableJsonBuilder()
-    __cached_emojis: MutableJsonBuilder[Snowflake, Emoji | Reaction] = MutableJsonBuilder()
+    __cached_guilds: Dict[Snowflake, Guild] = {}
+    __cached_users: Dict[Snowflake, User] = {}
+    __cached_messages: Dict[Snowflake, Message] = {}
+    __cached_emojis: Dict[Snowflake, Emoji | Reaction] = {}
     __cached_components: List = []
-    __cached_channels: MutableJsonBuilder[Snowflake, Channel] = MutableJsonBuilder()
-    __cached_roles: MutableJsonBuilder[Snowflake, GuildRole] = MutableJsonBuilder()
+    __cached_channels: Dict[Snowflake, Channel] = {}
+    __cached_roles: Dict[Snowflake, GuildRole] = {}
 
     def __init__(self, cacheable: CacheableType | None = None) -> None:
         self.cacheable = cacheable.value if cacheable is not None else None
 
     def add_user(self, user: User):
         """Adds user to cache."""
-        self.__cached_users.put(user.id, user)
+        self.__cached_users[user.id] = user
 
     def add_message(self, message: Message):
         """Adds message to cache."""
-        self.__cached_messages.put(message.id, message)
+        self.__cached_messages[message.id] = message
 
     def add_guild(self, guild: Guild):
         """Adds guild to cache."""
-        self.__cached_guilds.put(guild.id, guild)
+        self.__cached_guilds[guild.id] = guild
 
     def add_emoji(self, emoji: Emoji | Reaction):
         """Adds emoji to cache."""
         if isinstance(emoji, Emoji):
-            self.__cached_emojis.put(emoji.id, emoji)
+            self.__cached_emojis[emoji.id] = emoji
         elif isinstance(emoji, Reaction):
-            self.__cached_emojis.put(emoji.emoji.emoji_id, emoji)
+            self.__cached_emojis[emoji.emoji.emoji_id] = emoji
 
     def add_component(self, component):
         self.__cached_components.append(component)
 
     def add_channel(self, channel: Channel):
-        self.__cached_channels.put(channel.id, channel)
+        self.__cached_channels[channel.id] = channel
 
     def add_role(self, role: GuildRole):
-        self.__cached_roles.put(role.id, role)
+        self.__cached_roles[role.id] = role
 
-    def get_user(self, user_id: int) -> User | None:
+    def get_user(self, user_id: int | Snowflake) -> User | None:
         """Get user from cache."""
         return self.__cached_users[user_id]
 
     def get_users(self) -> List[User]:
         """Get all cached users."""
-        return list(self.__cached_users.get_values())
+        return list(self.__cached_users.values())
 
-    def get_message(self, message_id: int) -> Message | None:
+    def get_message(self, message_id: int | Snowflake) -> Message | None:
         """Get message from cache."""
         return self.__cached_messages[message_id]
 
     def get_messages(self) -> List[Message]:
         """Get all cached message."""
-        return list(self.__cached_messages.get_values())
+        return list(self.__cached_messages.values())
 
     def get_guild(self, guild_id: int | Snowflake) -> Guild | None:
         """Get guild from cache."""
@@ -79,23 +78,19 @@ class CacheManager:
 
     def get_guilds(self) -> List[Guild]:
         """Get all cached guilds."""
-        return list(self.__cached_guilds.get_values())
+        return list(self.__cached_guilds.values())
 
-    def get_emoji(self, emoji_id: int) -> Emoji | Reaction:
+    def get_emoji(self, emoji_id: int | Snowflake) -> Emoji | Reaction:
         """Get emoji from cache."""
         return self.__cached_emojis[emoji_id]
 
-    def get_channel(self, channel_id: int) -> Channel:
+    def get_channel(self, channel_id: int | Snowflake) -> Channel:
         """Get channel from cache"""
         return self.__cached_channels[channel_id]
 
     def get_emojis(self) -> List[Emoji | Reaction]:
         """Get all cached emojis"""
-        return list(self.__cached_emojis.get_values())
-
-    def get_component(self) -> List[Component]:
-        """Get all cached components"""
-        return self.__cached_components
+        return list(self.__cached_emojis.values())
 
     def get_voice_state(self, guild_id: int, user_id: int) -> VoiceState:
         """Getting voice state where user in"""
@@ -132,12 +127,17 @@ class CacheHandlers(CacheManager):
         for emoji in guild_object.emojis:
             self.add_emoji(emoji)
 
+        guild_object.members = [
+            self.entity_factory.deserialize_member(member_data, Snowflake(guild_object.id))
+            for member_data in kwargs.get("members", [])
+        ]
+
     def handle_guild_delete(self, **kwargs) -> None:
-        del self.__cached_guilds[int(kwargs["id"])]
+        del self.__cached_guilds[Snowflake(kwargs["id"])]
 
     def handle_voice_state_update(self, **kwargs) -> None:
         guild_id = kwargs.get('guild_id')
-        guild = self.get_guild(int(guild_id))
+        guild = self.get_guild(Snowflake(guild_id))
         state = self.entity_factory.deserialize_voice_state(kwargs)
 
         if len(guild.voice_states) == 0:

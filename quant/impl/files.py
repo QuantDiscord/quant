@@ -1,8 +1,17 @@
 from __future__ import annotations
 
+import os
 from io import BytesIO
 from abc import ABC, abstractmethod
 from pathlib import Path
+from urllib import parse
+
+
+def get_filename_ending(filename: str) -> str:
+    if filename.startswith("."):
+        return "txt"
+
+    return filename.split('.')[-1]
 
 
 def file_to_bytes(file: File | None) -> bytes:
@@ -13,26 +22,25 @@ def file_to_bytes(file: File | None) -> bytes:
     return buffer.getvalue()
 
 
-def _is_image_ending(file: File) -> str | None:
-    data = file_to_bytes(file)
-    mimetype = "image/"
-
+def get_image_ending(data: bytes) -> str | None:
     if data[6:10] in (b'JFIF', b'Exif'):
-        mimetype += 'jpeg'
+        return 'jpeg'
     elif data.startswith(b'\211PNG\r\n\032\n'):
-        mimetype += 'png'
+        return 'png'
     elif data[:6] in (b'GIF87a', b'GIF89a'):
-        mimetype += 'gif'
+        return 'gif'
     elif data.startswith(b'RIFF') and data[8:12] == b'WEBP':
-        mimetype += 'webp'
+        return 'webp'
     else:
         raise ValueError("Provided file type isn't image")
 
-    return mimetype
+
+def get_image_mimetype(file: File):
+    return "image/" + get_image_ending(file_to_bytes(file))
 
 
 def is_image_file(file: File) -> bool:
-    return _is_image_ending(file) is not None
+    return get_image_ending(file_to_bytes(file)) is not None
 
 
 class Attachable(ABC):
@@ -48,13 +56,16 @@ class Attachable(ABC):
 
 
 class File(Attachable):
-    def __init__(self, path: Path | str) -> None:
+    def __init__(self, path: Path | str, spoiler: bool = False) -> None:
         self.path = Path(path)
+        self.spoiler = spoiler
 
         self._filename = self.path.name
 
     @property
     def filename(self) -> str:
+        if self.spoiler:
+            return "SPOILER_" + self._filename
         return self._filename
 
     @property
@@ -72,4 +83,4 @@ class AttachableURL(Attachable):
 
     @property
     def filename(self) -> str:
-        return ""
+        return os.path.basename(parse.urlparse(self.url).path)

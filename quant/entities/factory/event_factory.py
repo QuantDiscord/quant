@@ -20,7 +20,6 @@ if TYPE_CHECKING:
 
 from quant.impl import events
 from quant import entities
-from quant.utils.json_builder import MutableJsonBuilder
 from quant.utils.cache.cache_manager import CacheHandlers
 from quant.impl.events.event import Event, InternalEvent, DiscordEvent
 from quant.impl.events.types import EventTypes
@@ -183,14 +182,14 @@ class EventFactory:
             )
         )
 
-    def deserialize_message_create_event(self, payload: MutableJsonBuilder | Dict) -> events.MessageCreateEvent:
+    def deserialize_message_create_event(self, payload: Dict) -> events.MessageCreateEvent:
         message = self.entity_factory.deserialize_message(payload)
         return events.MessageCreateEvent(
             cache_manager=self.cache,
             message=message
         )
 
-    def deserialize_message_delete_event(self, payload: MutableJsonBuilder | Dict) -> events.MessageDeleteEvent:
+    def deserialize_message_delete_event(self, payload: Dict) -> events.MessageDeleteEvent:
         message = self.entity_factory.deserialize_message(payload)
         return events.MessageDeleteEvent(
             cache_manager=self.cache,
@@ -198,25 +197,25 @@ class EventFactory:
             message=message
         )
 
-    def deserialize_message_edit_event(self, payload: MutableJsonBuilder | Dict) -> events.MessageEditEvent:
+    def deserialize_message_edit_event(self, payload: Dict) -> events.MessageEditEvent:
         return events.MessageEditEvent(
             cache_manager=self.cache,
             old_message=self.cache.get_message(entities.Snowflake(payload.get("id"))),
             new_message=self.entity_factory.deserialize_message(payload)
         )
 
-    def deserialize_guild_create_event(self, payload: MutableJsonBuilder | Dict) -> events.GuildCreateEvent:
+    def deserialize_guild_create_event(self, payload: Dict) -> events.GuildCreateEvent:
         return events.GuildCreateEvent(
             cache_manager=self.cache,
             guild=self.entity_factory.deserialize_guild(payload)
         )
 
-    def deserialize_interaction_event(self, payload: MutableJsonBuilder | Dict) -> events.InteractionCreateEvent:
+    def deserialize_interaction_event(self, payload: Dict) -> events.InteractionCreateEvent:
         interaction = self.entity_factory.deserialize_interaction(payload)
         return events.InteractionCreateEvent(
             cache_manager=self.cache,
             interaction=interaction
         )
 
-    def deserialize_ready_event(self, _: MutableJsonBuilder | Dict) -> events.ReadyEvent:
+    def deserialize_ready_event(self, _: Dict) -> events.ReadyEvent:
         return events.ReadyEvent(cache_manager=self.cache)

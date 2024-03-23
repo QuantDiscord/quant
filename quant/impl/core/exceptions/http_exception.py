@@ -1,14 +1,18 @@
-class Forbidden(Exception):
+class HTTPException(Exception):
     ...
 
 
-class InternalServerError(Exception):
+class Forbidden(HTTPException):
     ...
 
 
-class RateLimitExceeded(Exception):
+class InternalServerError(HTTPException):
     ...
 
 
-class UnexpectedError(Exception):
+class RateLimitExceeded(HTTPException):
+    ...
+
+
+class UnexpectedError(HTTPException):
     ...

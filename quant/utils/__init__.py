@@ -16,6 +16,7 @@ def has_permissions(member_permissions: Permissions, needed_permissions: Permiss
 
 
 logging.basicConfig(format="%(levelname)s | %(asctime)s %(module)s - %(message)s", level=logging.INFO)
+logging.captureWarnings(True)
 
 
 def _get_logger() -> logging.Logger:

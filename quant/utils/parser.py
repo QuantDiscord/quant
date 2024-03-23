@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from typing import Any, TYPE_CHECKING
+from datetime import datetime
 
 if TYPE_CHECKING:
     from quant.impl.core.client import Client
@@ -47,3 +48,17 @@ def parse_permissions(permission_value: int) -> Permissions:
             decoded_permissions |= permission
 
     return decoded_permissions
+
+
+def iso_to_datetime(time: str = None) -> datetime | None:
+    if time is None:
+        return
+
+    return datetime.fromisoformat(time)
+
+
+def timestamp_to_datetime(time: str | int = None) -> datetime | None:
+    if time is None:
+        return
+
+    return datetime.fromtimestamp(time)

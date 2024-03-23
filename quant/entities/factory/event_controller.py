@@ -3,7 +3,6 @@ from typing import Dict, List, TypeVar, Callable, Set, overload
 
 from quant.impl.events.types import EventTypes
 from quant.entities.factory.event_factory import EventFactory, EventT
-from quant.utils.json_builder import MutableJsonBuilder
 
 EventNameT = TypeVar("EventNameT", bound=str)
 
@@ -39,7 +38,7 @@ class EventController:
         ...
 
     @overload
-    async def dispatch(self, event_name: str, details: MutableJsonBuilder | Dict) -> None:
+    async def dispatch(self, event_name: str, details: Dict) -> None:
         ...
 
     async def dispatch(self, *args) -> None:

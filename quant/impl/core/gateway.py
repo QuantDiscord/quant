@@ -177,7 +177,10 @@ class Gateway:
                 break
 
     async def _send(self, data) -> None:
-        await self.websocket.send_str(data)
+        try:
+            await self.websocket.send_str(data)
+        except ConnectionResetError:
+            await self.close(code=4000)
 
     async def _send_heartbeat(self, interval: float) -> None:
         payload = self.payload(opcode=OpCode.HEARTBEAT, sequence=self._sequence)

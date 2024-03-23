@@ -1,9 +1,7 @@
-from typing import Final, Dict, Any
 from abc import ABC, abstractmethod
+from typing import Final, Dict, Any
 
 from aiohttp import ClientResponse
-
-from quant.utils.json_builder import MutableJsonBuilder
 
 
 class AcceptContentType:
@@ -22,11 +20,10 @@ class AcceptContentType:
 
 class HttpManager(ABC):
     @abstractmethod
-    async def send_request(
+    async def request(
         self,
         method: str, url: str,
-        data: Dict[str, Any] | MutableJsonBuilder[str, Any] = None,
-        headers: Dict[str, str] | MutableJsonBuilder[str, Any] = None,
-        content_type: str = None
+        data: Dict[str, Any] = None,
+        headers: Dict[str, str] = None
     ) -> ClientResponse | None:
         raise NotImplementedError

@@ -1,180 +1,139 @@
 import asyncio
 import json
+import http
 from typing import Dict, Any, TypeVar
+from datetime import datetime
 
 from aiohttp import ClientSession, ClientResponse, FormData
 
 from quant.api.core.http_manager_abc import HttpManager, AcceptContentType
-from quant.entities.http_codes import HttpCodes
-from quant.impl.core.exceptions.http_exception import Forbidden, InternalServerError, RateLimitExceeded
-from quant.impl.core.exceptions.library_exception import DiscordException
-from quant.utils.json_builder import MutableJsonBuilder
+from quant.entities.ratelimits.ratelimit import RateLimit
+from quant.impl.core.exceptions.http_exception import Forbidden, InternalServerError, HTTPException
+from quant.utils.parser import timestamp_to_datetime
+from quant.utils import logger
 
-DataT = TypeVar("DataT", bound=Dict[str, Any] | MutableJsonBuilder[str, Any] | FormData)
+DataT = TypeVar("DataT", bound=Dict[str, Any] | FormData)
+HeadersT = TypeVar("HeadersT", bound=Dict[str, Any] | None)
 
 
 class HttpManagerImpl(HttpManager):
-    def __init__(self, authorization: str | None = None, max_retries: int = 3) -> None:
+    def __init__(self, authorization: str | None = None) -> None:
         self.authorization = authorization
-        self.max_retries = max_retries
+        self.max_retries = 3
 
-    async def _perform_json_request(
-        self,
-        method: str,
-        url: str,
-        data: MutableJsonBuilder[str, Any] = None,
-        headers: MutableJsonBuilder[str, Any] = None,
-        content_type: str = None
-    ) -> ClientResponse | None:
+    async def parse_ratelimits(self, response: ClientResponse) -> RateLimit | None:
+        if response.status != http.HTTPStatus.TOO_MANY_REQUESTS:
+            return
+
+        if response.content_type != AcceptContentType.APPLICATION_JSON:
+            return
+
+        headers = response.headers
         if headers is None:
-            headers = MutableJsonBuilder()
-        else:
-            headers = MutableJsonBuilder(headers.asdict())
+            return
 
-        async with ClientSession() as session:
-            if self.authorization is not None:
-                headers.put("Authorization", self.authorization)
+        if (max_retries := headers.get("X-RateLimit-Limit")) is not None:
+            self.max_retries = int(max_retries)
 
-            if content_type is not None:
-                headers.put("Content-Type", content_type)
+        remaining_retries, ratelimit_reset = (
+            headers.get("X-RateLimit-Remaining"),
+            headers.get("X-RateLimit-Reset")
+        )
 
-            if content_type is None:
-                headers.put("Content-Type", AcceptContentType.APPLICATION_JSON)
+        if ratelimit_reset is None:
+            return
 
-            headers = headers.asdict()
-            if data is None or len(data.asdict()) == 0:
-                request = await session.request(method=method, url=url, headers=headers)
-            else:
-                request = await session.request(method=method, url=url, data=json.dumps(data.asdict()), headers=headers)
+        ratelimit_reset = timestamp_to_datetime(int(ratelimit_reset[:-4]))
+        if ratelimit_reset <= datetime.now():
+            return
 
-            return await self._validate_request(request=request)
+        response_data: Dict = await response.json()
+        retry_after, message, is_global, code = (
+            response_data.get("retry_after"),
+            response_data.get("message"),
+            response_data.get("global"),
+            response_data.get("code")
+        )
 
-    async def _perform_dict_request(
-        self,
-        method: str,
-        url: str,
-        data: Dict[str, Any] = None,
-        headers: Dict[str, Any] | None = None,
-        content_type: str = None
-    ) -> ClientResponse | None:
+        return RateLimit(
+            max_retries=self.max_retries,
+            remaining_retries=int(remaining_retries),
+            ratelimit_reset=ratelimit_reset,
+            retry_after=retry_after,
+            message=message,
+            is_global=is_global,
+            code=code
+        )
+
+    def _build_base_headers(self, headers: DataT = None) -> Dict:
         if headers is None:
             headers = {}
 
-        async with ClientSession() as session:
-            if self.authorization is not None:
-                headers.update({"Authorization": self.authorization})
+        header_keys = {"Authorization": self.authorization, "Content-Type": AcceptContentType.APPLICATION_JSON}
 
-            if content_type is not None:
-                headers.update({"Content-Type": content_type})
+        for key, value in header_keys.items():
+            if headers.get(key) is None:
+                headers[key] = value
 
-            if content_type is None:
-                headers.update({"Content-Type": AcceptContentType.APPLICATION_JSON})
+        return headers
 
-            if data is None:
-                request = await session.request(method=method, url=url, headers=headers)
-            else:
-                if not isinstance(data, FormData):
-                    data = json.dumps(data)
-
-                request = await session.request(method=method, url=url, data=data, headers=headers)
-
-            return await self._validate_request(request=request)
-
-    @staticmethod
-    async def _validate_request(request: ClientResponse) -> ClientResponse | None:
-        content_type = request.content_type
-        request_text_data = await request.read()
-        if request_text_data == "":
-            return
-
-        mimetypes = (
-            AcceptContentType.MimeTypes.IMAGE_PNG,
-            AcceptContentType.MimeTypes.IMAGE_GIF,
-            AcceptContentType.MimeTypes.IMAGE_JPG,
-            AcceptContentType.MimeTypes.IMAGE_WEBP
-        )
-        if content_type in mimetypes:
-            return request
-
-        if content_type == AcceptContentType.TEXT_HTML:
-            return request
-
-        request_json_data = await request.json()
-        if isinstance(request_json_data, list):
-            return request
-
-        if isinstance(request_json_data, dict) and 'code' in request_json_data.keys():
-            raise DiscordException(request_text_data)
-
-        match request.status:
-            case HttpCodes.FORBIDDEN:
-                raise Forbidden("Not enough permissions")
-            case HttpCodes.INTERNAL_SERVER_ERROR:
-                raise InternalServerError(f"Something went wrong on the server\n{request_text_data}")
-            case HttpCodes.TOO_MANY_REQUESTS:
-                raise RateLimitExceeded(f"You're being ratelimited, retry after {request_json_data['retry_after']}")
-
-        if request.ok or request_json_data['code'] != 50006:
-            return request
-
-        raise DiscordException(str(request_json_data))
-
-    async def send_request(
+    async def request(
         self,
-        method: str,
-        url: str,
+        method: str, url: str,
         data: DataT = None,
-        headers: Dict[str, str] | MutableJsonBuilder[str, Any] | None = None,
-        content_type: str = None
+        headers: HeadersT = None,
+        pre_build_headers: bool = True,
+        form_data: FormData | None = None
     ) -> ClientResponse | None:
-        retry_attempts = 0
+        if data is not None and form_data is not None:
+            raise HTTPException("Can't handle form data and data at same time")
 
-        while retry_attempts < self.max_retries:
-            response = await self._send_performed_request(
-                method=method,
-                url=url,
-                data=data,
-                headers=headers,
-                content_type=content_type
-            )
+        if pre_build_headers:
+            headers = self._build_base_headers(headers)
 
-            if response is None:
-                return
+        async with ClientSession(headers=headers) as session:
+            request_data = {
+                "method": method,
+                "url": url,
+                "headers": headers
+            }
 
-            if response.ok:
-                return response
+            async def perform_request() -> ClientResponse:
+                if data is not None:
+                    request_data["data"] = json.dumps(data)
 
-            if response.status == HttpCodes.BAD_REQUEST:
-                raise DiscordException("Illegal or bad request (probably library issue)")
+                if form_data is not None:
+                    request_data["data"] = form_data
 
-            retry_attempts += 1
-            await asyncio.sleep(2 ** retry_attempts)
+                return await session.request(**request_data)
 
-        raise RateLimitExceeded("Failed ratelimit request")
+            response = await perform_request()
+            if not response.ok:
+                match response.status:
+                    case http.HTTPStatus.TOO_MANY_REQUESTS:
+                        ratelimits = await self.parse_ratelimits(response)
+                        for i in range(ratelimits.max_retries):
+                            logger.warn(f"You're being rate limited, retrying (attempt: {i + 1}, retry time: {ratelimits.retry_after})")
+                            response = await perform_request()
 
-    async def _send_performed_request(
-        self,
-        method: str,
-        url: str,
-        data: DataT = None,
-        headers: Dict[str, str] | MutableJsonBuilder[str, Any] | None = None,
-        content_type: str = None
-    ) -> ClientResponse | None:
-        if isinstance(data, MutableJsonBuilder) or isinstance(headers, MutableJsonBuilder):
-            response = await self._perform_json_request(
-                method=method,
-                url=url,
-                data=data,
-                headers=headers,
-                content_type=content_type
-            )
-        else:
-            response = await self._perform_dict_request(
-                method=method,
-                url=url,
-                data=data,
-                headers=headers,
-                content_type=content_type
-            )
+                            if response.ok:
+                                return response
 
-        return response
+                            await asyncio.sleep(ratelimits.retry_after)
+                        return response
+                    case http.HTTPStatus.NO_CONTENT:
+                        return
+                    case http.HTTPStatus.FORBIDDEN:
+                        raise Forbidden("Missing permissions")
+                    case http.HTTPStatus.INTERNAL_SERVER_ERROR:
+                        raise InternalServerError("Server issue, try again")
+
+                if response.status not in (http.HTTPStatus.TOO_MANY_REQUESTS, http.HTTPStatus.TOO_MANY_REQUESTS):
+                    raise HTTPException(
+                        f"Request corrupted or invalid request body. More data below\nResponse: {await response.read()}\n"
+                        f"Method: {method}\n"
+                        f"URL: {response.url}\n"
+                        f"Data: {data}\n"
+                    )
+
+            return response

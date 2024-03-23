@@ -15,7 +15,6 @@ from .embeds import *
 from .emoji import Emoji, Reaction, PartialReaction
 from .guild import Guild
 from .invite import Invite
-from .http_codes import HttpCodes
 from .intents import Intents
 from .member import GuildMember
 from .roles import GuildRole
