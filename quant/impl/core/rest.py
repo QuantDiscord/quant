@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 from io import BytesIO
 import datetime
 import json
@@ -884,7 +885,13 @@ class RESTImpl(RESTAware):
                         url=attachment.url,
                         pre_build_headers=False,
                     )
-                    attachment = await attachment_data.read()
+                    content = attachment_data.content
+                    buffer = b""
+
+                    async for chunk in content.iter_any():
+                        buffer += chunk
+
+                    attachment = buffer
                 elif isinstance(attachment, File):
                     attachment = file_to_bytes(attachment)
                 else:

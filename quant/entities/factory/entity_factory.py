@@ -432,7 +432,7 @@ class EntityFactory:
         if isinstance(attachment, AttachableURL | File):
             return {
                 "id": index,
-                "filename": f"file_{index}.{get_filename_ending(attachment.filename)}",
+                "filename": f"pizda_{index}.{get_filename_ending(attachment.filename)}",
                 "url": str(attachment.url)
             }
 
