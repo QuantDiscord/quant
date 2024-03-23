@@ -76,7 +76,7 @@ class RESTImpl(RESTAware):
         flags: int = None,
         thread_name: str = None
     ) -> None:
-        headers = {}
+        headers = {"Authorization": self.token}
         payload, form_data = await self._build_payload(
             content=content,
             tts=tts,
@@ -91,13 +91,12 @@ class RESTImpl(RESTAware):
         )
         payload["thread_name"] = thread_name
 
-        form_data.add_field("payload_json", json.dumps(payload))
-
         await self.http.request(
             WebhookRoute.CREATE_WEBHOOK.method,
             webhook_url,
             form_data=form_data,
-            headers=headers
+            headers=headers,
+            pre_build_headers=False
         )
 
     async def create_webhook(self, channel_id: int, name: str, avatar: str = None, reason: str = None) -> Webhook:
@@ -208,7 +207,6 @@ class RESTImpl(RESTAware):
             attachments=attachments,
             flags=flags
         )
-        form_data.add_field("payload_json", json.dumps(payload))
 
         method, url = self._build_url(
             route=MessageRoute.CREATE_MESSAGE,
@@ -217,7 +215,9 @@ class RESTImpl(RESTAware):
         response = await self.http.request(
             method=method,
             url=url,
-            form_data=form_data
+            form_data=form_data,
+            headers={"Authorization": self.token},
+            pre_build_headers=False
         )
         message_json = await response.json()
         return self.entity_factory.deserialize_message(message_json)
@@ -809,9 +809,15 @@ class RESTImpl(RESTAware):
         return str(emoji).replace("<", "").replace(">", "") if emoji.id > 0 else emoji
 
     @staticmethod
-    def _build_url(route: Route, data: Dict[str, Any] = None, query_params: Dict[str, Any] = None) -> Tuple[str, str]:
-        url = route.uri.url_string.format(**data) \
-            if data is not None else route.uri.url_string
+    def _build_url(
+        route: Route,
+        data: Dict[str, Any] = None,
+        query_params: Dict[str, Any] = None
+    ) -> Tuple[str, str]:
+        url = route.uri.url_string
+        print(data)
+        if data is not None:
+            url = route.uri.url_string.format(**data)
 
         if query_params is not None:
             if '?' in url:
@@ -888,7 +894,7 @@ class RESTImpl(RESTAware):
                     content = attachment_data.content
                     buffer = b""
 
-                    async for chunk in content.iter_any():
+                    async for chunk, _ in content.iter_chunks():
                         buffer += chunk
 
                     attachment = buffer
