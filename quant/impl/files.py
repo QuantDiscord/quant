@@ -5,13 +5,7 @@ from io import BytesIO
 from abc import ABC, abstractmethod
 from pathlib import Path
 from urllib import parse
-
-
-def get_filename_ending(filename: str) -> str:
-    if filename.startswith("."):
-        return "txt"
-
-    return filename.split('.')[-1]
+import mimetypes
 
 
 def file_to_bytes(file: File | None) -> bytes:
@@ -83,4 +77,5 @@ class AttachableURL(Attachable):
 
     @property
     def filename(self) -> str:
+        mimetype, _ = mimetypes.guess_type(self.url)
         return os.path.basename(parse.urlparse(self.url).path)

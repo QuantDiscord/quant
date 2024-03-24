@@ -25,7 +25,7 @@ from quant.impl.core.route import (
     Channel as ChannelRoute,
     User as UserRoute
 )
-from quant.impl.files import AttachableURL, File, file_to_bytes, get_filename_ending
+from quant.impl.files import AttachableURL, File, file_to_bytes
 from quant.entities.gateway import GatewayInfo, SessionStartLimitObject
 from quant.impl.core.route import Route
 from quant.entities.factory.entity_factory import EntityFactory
@@ -883,13 +883,11 @@ class RESTImpl(RESTAware):
             body["attachments"] = [self.entity_factory.serialize_attachment(i, attach) for i, attach in enumerate(attachments)]
 
             for attachment_id, attachment in enumerate(attachments):
-                filename = attachment.filename
-
                 if isinstance(attachment, AttachableURL | Attachment):
                     attachment_data = await self.http.request(
                         method="GET",
                         url=attachment.url,
-                        pre_build_headers=False,
+                        pre_build_headers=False
                     )
                     content = attachment_data.content
                     buffer = b""
@@ -903,9 +901,9 @@ class RESTImpl(RESTAware):
                 else:
                     raise ValueError("Unsupported attachment type")
 
-                filename = f"file_{attachment_id}.{get_filename_ending(filename)}"
+                filename = f"files[{attachment_id}]"
                 form_data.add_field(
-                    f"files[{attachment_id}]",
+                    filename,
                     attachment,
                     filename=filename
                 )

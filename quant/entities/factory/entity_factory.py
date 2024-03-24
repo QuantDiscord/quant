@@ -9,7 +9,7 @@ if TYPE_CHECKING:
     from quant.entities.button import Button
     from quant.entities.action_row import ActionRow
 
-from quant.impl.files import AttachableURL, File, get_filename_ending
+from quant.impl.files import AttachableURL, File
 from quant.impl.core.commands import ApplicationCommandObject, ApplicationCommandTypes
 from quant.entities.message import Message, Attachment, MessageFlags
 from quant.entities.embeds import Embed, EmbedField, EmbedAuthor, EmbedImage, EmbedThumbnail, EmbedFooter
@@ -432,7 +432,7 @@ class EntityFactory:
         if isinstance(attachment, AttachableURL | File):
             return {
                 "id": index,
-                "filename": f"pizda_{index}.{get_filename_ending(attachment.filename)}",
+                "filename": f"file_{index}_{attachment.filename}",
                 "url": str(attachment.url)
             }
 
