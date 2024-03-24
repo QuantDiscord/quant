@@ -815,7 +815,6 @@ class RESTImpl(RESTAware):
         query_params: Dict[str, Any] = None
     ) -> Tuple[str, str]:
         url = route.uri.url_string
-        print(data)
         if data is not None:
             url = route.uri.url_string.format(**data)
 
