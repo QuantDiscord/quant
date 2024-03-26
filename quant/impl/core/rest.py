@@ -1,3 +1,26 @@
+"""
+MIT License
+
+Copyright (c) 2023 MagM1go
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+"""
 from __future__ import annotations
 
 import asyncio
@@ -51,6 +74,7 @@ from quant.utils.cache.cache_manager import CacheManager
 X_AUDIT_LOG_REASON: Final[str] = "X-Audit-Log-Reason"
 
 SnowflakeT = TypeVar("SnowflakeT", bound=int | Snowflake)
+AttachmentT = TypeVar("AttachmentT", bound=AttachableURL | File | Attachment)
 
 
 class RESTImpl(RESTAware):
@@ -72,7 +96,7 @@ class RESTImpl(RESTAware):
         components: List[Any] = None,
         files: List[Any] = None,
         payload_json: str = None,
-        attachments: List[Attachment] | None = None,
+        attachments: List[AttachmentT] | None = None,
         flags: int = None,
         thread_name: str = None
     ) -> None:
@@ -189,7 +213,7 @@ class RESTImpl(RESTAware):
         sticker_ids: List = None,
         files: List[Any] | None = None,
         payload_json: str | None = None,
-        attachments: List[Attachment] | None = None,
+        attachments: List[AttachmentT] | None = None,
         flags: int | None = None
     ) -> Message:
         payload, form_data = await self._build_payload(
@@ -325,8 +349,7 @@ class RESTImpl(RESTAware):
         await self.http.request(
             method=method,
             url=url,
-            # why linter warning here?
-            headers=headers,  # type: ignore
+            headers=headers,
             data=payload
         )
 
@@ -391,7 +414,7 @@ class RESTImpl(RESTAware):
         components: List[Any] = None,
         files: List[Any] = None,
         payload_json: str = None,
-        attachments: List[Attachment] | None = None,
+        attachments: List[AttachmentT] | None = None,
         flags: int = None,
         thread_name: str = None
     ) -> None:
@@ -626,7 +649,7 @@ class RESTImpl(RESTAware):
         components: ActionRow | None = None,
         files: List[Any] | None = None,
         payload_json: str | None = None,
-        attachments: List[Attachment] | None = None,
+        attachments: List[AttachmentT] | None = None,
         thread_id: SnowflakeT = None
     ) -> Message:
         method, url = self._build_url(
@@ -842,9 +865,10 @@ class RESTImpl(RESTAware):
         sticker_ids: List | None = None,
         files: Any | None = None,
         payload_json: Any | None = None,
-        attachments: List[Attachment] | None = None,
+        attachments: List[AttachmentT] | None = None,
         flags: int | None = None
     ) -> Tuple[Dict, aiohttp.FormData]:
+        print("раз")
         body = {}
         form_data = aiohttp.FormData()
 
