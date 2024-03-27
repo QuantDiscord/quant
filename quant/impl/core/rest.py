@@ -72,6 +72,7 @@ from quant.entities.webhook import Webhook
 from quant.utils.cache.cache_manager import CacheManager
 
 X_AUDIT_LOG_REASON: Final[str] = "X-Audit-Log-Reason"
+AUTHORIZATION_HEADER: Final[Dict[str, str]] = {"Authorization": "{}"}
 
 SnowflakeT = TypeVar("SnowflakeT", bound=int | Snowflake)
 AttachmentT = TypeVar("AttachmentT", bound=AttachableURL | File | Attachment)
@@ -82,6 +83,8 @@ class RESTImpl(RESTAware):
         self.http = HttpManagerImpl(authorization=token)
         self.token = token
         self.entity_factory = EntityFactory(cache)
+
+        AUTHORIZATION_HEADER["Authorization"] = self.token
 
     async def execute_webhook(
         self,
@@ -100,7 +103,7 @@ class RESTImpl(RESTAware):
         flags: int = None,
         thread_name: str = None
     ) -> None:
-        headers = {"Authorization": self.token}
+        headers = AUTHORIZATION_HEADER
         payload, form_data = await self._build_payload(
             content=content,
             tts=tts,
@@ -240,7 +243,7 @@ class RESTImpl(RESTAware):
             method=method,
             url=url,
             form_data=form_data,
-            headers={"Authorization": self.token},
+            headers=AUTHORIZATION_HEADER,
             pre_build_headers=False
         )
         message_json = await response.json()
@@ -399,7 +402,7 @@ class RESTImpl(RESTAware):
             url=url,
             form_data=form_data,
             pre_build_headers=False,
-            headers={"Authorization": self.token}
+            headers=AUTHORIZATION_HEADER
         )
 
     async def create_followup_message(
@@ -550,6 +553,17 @@ class RESTImpl(RESTAware):
         )
         await self.http.request(method=method, url=url)
 
+    async def delete_global_application_command(
+        self,
+        application_id: int,
+        command_id: SnowflakeT
+    ) -> None:
+        method, url = self._build_url(
+            route=InteractionRoute.DELETE_GLOBAL_APPLICATION_COMMAND,
+            data={"application_id": application_id, "command_id": command_id}
+        )
+        await self.http.request(method=method, url=url)
+
     async def fetch_guild_application_commands(
         self,
         application_id: int,
@@ -562,9 +576,21 @@ class RESTImpl(RESTAware):
                 "application_id": application_id,
                 "guild_id": guild_id
             },
-            query_params={
-                "with_localizations": with_localizations
-            }
+            query_params={"with_localizations": with_localizations}
+        )
+        response = await self.http.request(method=method, url=url)
+
+        return [self.entity_factory.deserialize_application_command(command) for command in await response.json()]
+
+    async def fetch_global_application_commands(
+        self,
+        application_id: int,
+        with_localizations: bool = False
+    ) -> List[ApplicationCommandObject]:
+        method, url = self._build_url(
+            route=InteractionRoute.GET_GLOBAL_APPLICATION_COMMANDS,
+            data={"application_id": application_id},
+            query_params={"with_localizations": with_localizations}
         )
         response = await self.http.request(method=method, url=url)
 
@@ -868,7 +894,6 @@ class RESTImpl(RESTAware):
         attachments: List[AttachmentT] | None = None,
         flags: int | None = None
     ) -> Tuple[Dict, aiohttp.FormData]:
-        print("раз")
         body = {}
         form_data = aiohttp.FormData()
 

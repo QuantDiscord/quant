@@ -119,11 +119,17 @@ class Interaction:
     CREATE_GUILD_APPLICATION_COMMAND: Final[Route] = Route(
         POST, URI("/applications/{application_id}/guilds/{guild_id}/commands")
     )
+    GET_GLOBAL_APPLICATION_COMMANDS: Final[Route] = Route(
+        GET, URI("/applications/{application_id}/commands")
+    )
     GET_GUILD_APPLICATION_COMMANDS: Final[Route] = Route(
         GET, URI("/applications/{application_id}/guilds/{guild_id}/commands")
     )
+    DELETE_GLOBAL_APPLICATION_COMMAND: Final[Route] = Route(
+        DELETE, URI("/applications/{application_id}/commands/{command_id}")
+    )
     DELETE_GUILD_APPLICATION_COMMAND: Final[Route] = Route(
-        GET, URI("/applications/{application_id}/guilds/{guild_id}/commands/{command_id}")
+        DELETE, URI("/applications/{application_id}/guilds/{guild_id}/commands/{command_id}")
     )
 
 

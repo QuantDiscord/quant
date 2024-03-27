@@ -253,12 +253,24 @@ class Gateway:
         since: int | None = None,
         afk: bool = False
     ) -> None:
+        if activity.type == activity.type.CUSTOM:
+            activity.name = "Custom Status"  # Must be here because discord moment
+
+            if activity.state is None and activity.emoji is None:
+                logger.warn("state argument expected but not given. Presence not set.")
+                return
+
         presence = {
             "activities": [
                 {
                     "name": activity.name,
                     "type": activity.type.value,
-                    "url": activity.url
+                    "url": activity.url,
+                    "emoji": activity.emoji,
+                    "details": activity.details,
+                    "state": activity.state,
+                    "created_at": activity.created_at,
+                    "application_id": activity.application_id
                 }
             ],
             "status": status.value,

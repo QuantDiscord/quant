@@ -24,12 +24,14 @@ SOFTWARE.
 from __future__ import annotations as _
 
 import enum
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, List
 
 import attrs
 
 if TYPE_CHECKING:
     from typing_extensions import Self
+
+from quant.entities.snowflake import Snowflake
 
 
 class ActivityStatus(enum.Enum):
@@ -79,10 +81,22 @@ class Activity:
         Activity url (twitch for example)
     type: :class:`ActivityType`
         Activity type
+    created_at: :class:`float`
+        Activity created at timestamp
+    state: :class:`str | None`
+        State text
+    details: :class:`ActivityType`
+        Details text
     """
-    name: str = attrs.field()
+    name: str | None = attrs.field(default=None)
+    created_at: float = attrs.field(default=None)
     url: str | None = attrs.field(default=None)
     type: ActivityType = attrs.field(default=ActivityType.GAME)
+    timestamps: List = attrs.field(default=None)
+    application_id: Snowflake = attrs.field(default=None)
+    details: str = attrs.field(default=None)
+    state: str = attrs.field(default=None)
+    emoji: str = attrs.field(default=None)
 
 
 @attrs.define(hash=True)
@@ -142,12 +156,26 @@ class ActivityBuilder:
 
     def set_activity(
         self,
-        name: str,
+        name: str | None = None,
         url: str | None = None,
-        activity_type: ActivityType = ActivityType.GAME
+        created_at: float = None,
+        activity_type: ActivityType = ActivityType.GAME,
+        application_id: Snowflake | None = None,
+        details: str | None = None,
+        state: str | None = None,
+        emoji: str | None = None,
     ) -> Self:
         """Set an activity"""
-        self._activity = Activity(name=name, url=url, type=activity_type)
+        self._activity = Activity(
+            name=name,
+            url=url,
+            type=activity_type,
+            created_at=created_at,
+            application_id=application_id,
+            details=details,
+            state=state,
+            emoji=emoji
+        )
         return self
 
     def set_status(self, status: ActivityStatus) -> Self:

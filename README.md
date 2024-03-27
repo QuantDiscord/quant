@@ -61,7 +61,7 @@ client.run()
 ## Installation:
 You can install quant using pip:
 
-`pip install quant`
+`pip install quant` (not available at this moment, use `pip install git+https://github.com/QuantDiscord/quant.git`)
 
 # Usage:
 

@@ -29,16 +29,17 @@ from typing import Any, List, TYPE_CHECKING, Dict
 import attrs
 
 if TYPE_CHECKING:
-    from ..action_row import ActionRow
+    from quant.entities.action_row import ActionRow
     from quant.entities.message import Message, Attachment
     from quant.entities.guild import Guild
     from quant.entities.modal.modal import Modal, ModalInteractionCallbackData
 
+from quant.utils import logger
 from quant.entities.message_flags import MessageFlags
-from .choice_response import InteractionDataOption
-from ..message import Message
-from ..channel import Channel
-from .application_command import ApplicationCommandOptionType
+from quant.entities.message import Message
+from quant.entities.channel import Channel
+from quant.entities.interactions.choice_response import InteractionDataOption
+from quant.entities.interactions.application_command import ApplicationCommandOptionType
 from quant.entities.snowflake import Snowflake
 from quant.entities.user import User
 from quant.entities.interactions.component_types import ComponentType
@@ -143,10 +144,15 @@ class Interaction(BaseModel):
         if isinstance(flags, MessageFlags):
             flags = flags.value
 
+        content = str(content) if content is not None else None
+        if len(content) > 2000:
+            logger.warn(f"Content was too long, so it was sliced to 2000 length")
+            content = content[:2000]
+
         await self.client.rest.create_interaction_response(
             InteractionCallbackType.CHANNEL_MESSAGE_WITH_SOURCE,
             InteractionCallbackData(
-                content=str(content) if content is not None else None,
+                content=content,
                 tts=tts,
                 embeds=embeds,
                 allowed_mentions=allowed_mentions,
@@ -159,7 +165,7 @@ class Interaction(BaseModel):
         )
 
     async def respond_modal(self, modal: Modal):
-        from quant.entities.modal.modal import ModalInteractionCallbackData
+        from quant.entities.modal.modal import ModalInteractionCallbackData  # circular import
 
         await self.client.rest.create_interaction_response(
             InteractionCallbackType.MODAL,
