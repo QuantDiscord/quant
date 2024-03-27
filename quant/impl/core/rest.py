@@ -388,10 +388,22 @@ class RESTImpl(RESTAware):
             else:
                 interaction_payload["data"] = self.entity_factory.serialize_interaction_callback_data(interaction_data)
 
+        if len(interaction_data.embeds) == 1:
+            embeds = [interaction_data.embeds[0]]
+        else:
+            embeds = interaction_data.embeds
+
         payload, form_data = await self._build_payload(
-            **attrs.asdict(interaction_data),
+            content=interaction_data.content,
+            tts=interaction_data.tts,
+            embeds=embeds,
+            allowed_mentions=interaction_data.allowed_mentions,
+            components=interaction_data.components,
+            attachments=interaction_data.attachments,
+            flags=interaction_data.flags,
             payload_json=interaction_payload
         )
+
         method, url = self._build_url(
             route=InteractionRoute.CREATE_INTERACTION_RESPONSE,
             data={"interaction_id": interaction_id, "interaction_token": interaction_token}
@@ -889,7 +901,6 @@ class RESTImpl(RESTAware):
         message_reference: MessageReference | None = None,
         components: ActionRow | None = None,
         sticker_ids: List | None = None,
-        files: Any | None = None,
         payload_json: Any | None = None,
         attachments: List[AttachmentT] | None = None,
         flags: int | None = None
@@ -923,9 +934,6 @@ class RESTImpl(RESTAware):
 
         if sticker_ids is not None:
             body["sticker_ids"] = sticker_ids
-
-        if files is not None:
-            body["files"] = files
 
         if attachments is not None:
             body["attachments"] = [self.entity_factory.serialize_attachment(i, attach) for i, attach in enumerate(attachments)]
@@ -961,7 +969,5 @@ class RESTImpl(RESTAware):
 
         if payload_json is not None:
             form_data.add_field("payload_json", json.dumps(payload_json))
-        else:
-            form_data.add_field("payload_json", json.dumps(body))
 
         return body, form_data

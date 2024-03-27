@@ -145,7 +145,7 @@ class Interaction(BaseModel):
             flags = flags.value
 
         content = str(content) if content is not None else None
-        if len(content) > 2000:
+        if content is not None and len(content) > 2000:
             logger.warn(f"Content was too long, so it was sliced to 2000 length")
             content = content[:2000]
 
