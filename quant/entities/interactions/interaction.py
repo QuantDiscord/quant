@@ -144,10 +144,12 @@ class Interaction(BaseModel):
         if isinstance(flags, MessageFlags):
             flags = flags.value
 
-        content = str(content) if content is not None else None
-        if content is not None and len(content) > 2000:
-            logger.warn(f"Content was too long, so it was sliced to 2000 length")
-            content = content[:2000]
+        if content is not None:
+            content = str(content)
+
+            if len(content) > 2000:
+                logger.warn(f"Content was too long, so it was sliced to 2000 length")
+                content = content[:2000]
 
         await self.client.rest.create_interaction_response(
             InteractionCallbackType.CHANNEL_MESSAGE_WITH_SOURCE,
