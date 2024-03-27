@@ -33,7 +33,7 @@ import attrs
 from .slash_option import SlashOptionType
 
 
-@attrs.define(kw_only=True)
+@attrs.define(kw_only=True, hash=True)
 class InteractionDataOption:
     name: str = attrs.field()
     value: str = attrs.field()

@@ -46,7 +46,7 @@ from .emoji import Emoji
 from .message_flags import MessageFlags
 
 
-@attrs.define(kw_only=True)
+@attrs.define(kw_only=True, hash=True)
 class Message(BaseModel):
     """
     Represents a discord message.

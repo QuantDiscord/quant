@@ -34,7 +34,6 @@ if TYPE_CHECKING:
     from .message import MessageReference, Attachment, MessageFlags, Message
     from .action_row import ActionRow
 
-from .emoji import Reaction
 from .model import BaseModel
 from .snowflake import Snowflake
 from .embeds import Embed
@@ -58,7 +57,7 @@ class ChannelType(int, Enum):
     GUILD_MEDIA = 16
 
 
-@attrs.define(kw_only=True)
+@attrs.define(kw_only=True, hash=True)
 class Channel(BaseModel):
     id: Snowflake = attrs.field(default=0)
     type: ChannelType = attrs.field(default=0)
@@ -126,7 +125,7 @@ class Channel(BaseModel):
         )
 
 
-@attrs.define(kw_only=True)
+@attrs.define(kw_only=True, hash=True)
 class ThreadMetadata:
     archived: bool = attrs.field()
     auto_archive_duration: int = attrs.field()
@@ -136,7 +135,7 @@ class ThreadMetadata:
     create_timestamp: datetime = attrs.field()
 
 
-@attrs.define(kw_only=True)
+@attrs.define(kw_only=True, hash=True)
 class VoiceChannel(Channel):
     bitrate: int = attrs.field(default=0)
     user_limit: int = attrs.field(default=0)
@@ -144,14 +143,14 @@ class VoiceChannel(Channel):
     video_quality_mode: int = attrs.field(default=0)
 
 
-@attrs.define(kw_only=True)
+@attrs.define(kw_only=True, hash=True)
 class TextChannel(Channel):
     last_message_id: Snowflake = attrs.field(default=0)
     rate_limit_per_user: int = attrs.field(default=0)
     last_pin_timestamp: datetime = attrs.field(default=None)
 
 
-@attrs.define(kw_only=True)
+@attrs.define(kw_only=True, hash=True)
 class Thread(TextChannel):
     total_message_sent: int = attrs.field()
     message_count: int = attrs.field()

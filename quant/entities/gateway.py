@@ -32,7 +32,7 @@ class SessionStartLimitObject:
     max_concurrency: int = attrs.field()
 
 
-@attrs.define(kw_only=True)
+@attrs.define(kw_only=True, hash=True)
 class GatewayInfo:
     url: str = attrs.field()
     shards: int = attrs.field()

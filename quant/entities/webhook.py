@@ -30,7 +30,7 @@ from .user import User
 from .snowflake import Snowflake
 
 
-@attrs.define()
+@attrs.define(hash=True)
 class Webhook:
     webhook_url: str = attrs.field(alias="url")
     webhook_token: str = attrs.field(alias="token")

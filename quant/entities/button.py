@@ -39,7 +39,7 @@ class ButtonStyle(enum.Enum):
     LINK = 5
 
 
-@attrs.define
+@attrs.define(hash=True)
 class Button(CallbackBackend[ButtonContext]):
     """Represents a discord button
 

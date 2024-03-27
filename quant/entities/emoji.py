@@ -36,10 +36,10 @@ if TYPE_CHECKING:
     from .snowflake import Snowflake
 
 
-@attrs.define
+@attrs.define(hash=True)
 class PartialReaction(BaseModel):
     emoji_name: str = attrs.field(alias="name")
-    emoji_id: Snowflake = attrs.field(default=0, alias="id")
+    emoji_id: Snowflake = attrs.field(default=0, alias="id", hash=True)
     animated: bool = attrs.field(default=False)
 
     def __str__(self) -> str:
@@ -67,6 +67,9 @@ class Emoji(BaseModel):
         else:
             return self.name
 
+    def __hash__(self) -> int:
+        return hash(self.id)
+
 
 @attrs.define
 class Reaction(BaseModel):
@@ -83,3 +86,6 @@ class Reaction(BaseModel):
 
     def __str__(self) -> str:
         return str(self.emoji)
+
+    def __hash__(self) -> int:
+        return hash(self.emoji.emoji_id)

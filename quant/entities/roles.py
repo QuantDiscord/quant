@@ -29,7 +29,7 @@ from .snowflake import Snowflake
 from .permissions import Permissions
 
 
-@attrs.define(kw_only=True)
+@attrs.define(kw_only=True, hash=True)
 class GuildRole:
     id: Snowflake = attrs.field()
     name: str = attrs.field()

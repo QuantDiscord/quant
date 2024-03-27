@@ -27,7 +27,7 @@ from typing import List
 import attrs
 
 
-@attrs.define
+@attrs.define(hash=True)
 class AllowedMentions:
     parse: List[str] = attrs.field()
     roles: List[int] = attrs.field(default=list())

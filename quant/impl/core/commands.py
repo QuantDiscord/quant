@@ -95,7 +95,7 @@ class ApplicationCommandObject(_Command):
         return option
 
     def __hash__(self) -> int:
-        return hash((self.cmd_id, self.name))
+        return hash(self.cmd_id)
 
 
 @attrs.define
@@ -104,4 +104,4 @@ class SlashCommand(ApplicationCommandObject):
     guild_ids: List[Snowflake | int] | None = attrs.field(default=None)
 
     def __hash__(self) -> int:
-        return hash((self.cmd_id, self.name))
+        return hash(self.cmd_id)

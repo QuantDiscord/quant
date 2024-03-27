@@ -28,21 +28,21 @@ import attrs
 from attrs import define, field
 
 
-@define
+@define(hash=True)
 class EmbedField:
     name: str
     value: Any
     inline: bool = False
 
 
-@define
+@define(hash=True)
 class EmbedFooter:
     text: Any
     icon_url: str | None = None
     proxy_icon_url: str | None = None
 
 
-@define
+@define(hash=True)
 class EmbedAuthor:
     name: str
     url: str | None = None
@@ -50,7 +50,7 @@ class EmbedAuthor:
     proxy_icon_url: str | None = None
 
 
-@define
+@define(hash=True)
 class EmbedImage:
     url: str
     proxy_url: str | None = None
@@ -63,7 +63,7 @@ class EmbedImage:
 EmbedThumbnail = EmbedImage
 
 
-@define
+@define(hash=True)
 class Embed:
     title: str = field()
     description: str = field()

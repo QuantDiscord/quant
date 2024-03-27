@@ -41,7 +41,7 @@ class TextInputStyle(Enum):
     PARAGRAPH = 2
 
 
-@attrs.define(kw_only=True)
+@attrs.define(kw_only=True, hash=True)
 class TextInput:
     """Represents a discord text input
 

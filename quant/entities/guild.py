@@ -41,7 +41,7 @@ from .roles import GuildRole
 from .permissions import Permissions
 
 
-@attrs.define
+@attrs.define(hash=True)
 class Guild(BaseModel):
     id: Snowflake = attrs.field()
     name: str = attrs.field()

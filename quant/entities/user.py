@@ -30,7 +30,7 @@ from quant.entities.model import BaseModel
 from .snowflake import Snowflake
 
 
-@attrs.define
+@attrs.define(hash=True)
 class User(BaseModel):
     username: str = attrs.field()
     id: Snowflake = attrs.field(default=0)

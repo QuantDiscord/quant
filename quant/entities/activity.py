@@ -67,7 +67,7 @@ class ActivityType(enum.IntEnum):
     COMPETING = 5
 
 
-@attrs.define
+@attrs.define(hash=True)
 class Activity:
     """Represents a discord activity
 
@@ -85,7 +85,7 @@ class Activity:
     type: ActivityType = attrs.field(default=ActivityType.GAME)
 
 
-@attrs.define
+@attrs.define(hash=True)
 class ActivityAssets:
     """Represents activity assets (image, text)
 
@@ -107,7 +107,7 @@ class ActivityAssets:
     small_text: str = attrs.field(default=None)
 
 
-@attrs.define
+@attrs.define(hash=True)
 class ActivityData:
     """Activity data
 

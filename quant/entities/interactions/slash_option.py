@@ -44,7 +44,7 @@ class SlashOptionType(enum.Enum):
     ATTACHMENT = 11
 
 
-@attrs.define
+@attrs.define(hash=True)
 class ApplicationCommandOption:
     name: str = attrs.field()
     description: str = attrs.field()

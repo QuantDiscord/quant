@@ -35,7 +35,7 @@ from quant.entities.api.backend import CallbackBackend
 from quant.entities.modal.text_input import TextInputStyle, TextInput
 
 
-@attrs.define(kw_only=True)
+@attrs.define(kw_only=True, hash=True)
 class Modal(CallbackBackend[ModalContext]):
     """Represents a discord modal window
 
@@ -103,7 +103,7 @@ class Modal(CallbackBackend[ModalContext]):
         self.components.append(ActionRow([text_input]))
 
 
-@attrs.define(kw_only=True)
+@attrs.define(kw_only=True, hash=True)
 class ModalInteractionCallbackData:
     title: str = attrs.field()
     custom_id: str = attrs.field()

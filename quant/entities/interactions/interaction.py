@@ -67,7 +67,7 @@ class InteractionType(enum.Enum):
     MODAL_SUBMIT = 5
 
 
-@attrs.define(kw_only=True)
+@attrs.define(kw_only=True, hash=True)
 class InteractionCallbackData(BaseModel):
     tts: bool = attrs.field()
     content: str | None = attrs.field()
@@ -78,7 +78,7 @@ class InteractionCallbackData(BaseModel):
     attachments: List[Attachment] | None = attrs.field()
 
 
-@attrs.define(kw_only=True)
+@attrs.define(kw_only=True, hash=True)
 class InteractionData(BaseModel):
     id: Snowflake = attrs.field(default=0)
     component_type: ComponentType = attrs.field(default=0)
@@ -94,13 +94,13 @@ class InteractionData(BaseModel):
     resolved: Dict = attrs.field(default=None)
 
 
-@attrs.define(kw_only=True)
+@attrs.define(kw_only=True, hash=True)
 class InteractionResponse(BaseModel):
     interaction_response_type: InteractionCallbackType = attrs.field(default=InteractionCallbackType.PONG, alias="type")
     interaction_response_data: InteractionCallbackData = attrs.field(default=None)
 
 
-@attrs.define(kw_only=True)
+@attrs.define(kw_only=True, hash=True)
 class Interaction(BaseModel):
     name: str = attrs.field(default=None)
     id: Snowflake = attrs.field(default=0)

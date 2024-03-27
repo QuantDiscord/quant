@@ -54,6 +54,9 @@ class GuildMember(BaseModel):
     guild_id: Snowflake | int = attrs.field()
     unusual_dm_activity_until: Any = attrs.field()
 
+    def __hash__(self) -> int:
+        return hash(self.user)
+
     @property
     def mention(self) -> str:
         return f"<@{self.user.id}>"

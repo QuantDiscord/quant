@@ -31,29 +31,28 @@ from .model import BaseModel
 from .user import User
 
 
-
 class IntegrationExpireBehaviours(enum.Enum):
     NONE = -1
     REMOVE_ROLE = 0
     KICK = 1
 
 
-@attrs.define
+@attrs.define(hash=True)
 class IntegrationAccountObject(BaseModel):
     account_id: str = attrs.field(alias="id", default=None)
     name: str = attrs.field(default=None)
 
 
-@attrs.define
+@attrs.define(hash=True)
 class IntegrationApplicationObject(BaseModel):
     application_id: Snowflake = attrs.field(default=None)
     name: str = attrs.field(default=None)
     icon: str | None = attrs.field(default=None)
     description: str = attrs.field(default=None)
-    bot: User | None = attrs.field(default=None, converter=User.as_dict)
+    bot: User | None = attrs.field(default=None)
 
 
-@attrs.define(kw_only=True)
+@attrs.define(kw_only=True, hash=True)
 class Integration:
     integration_id: Snowflake = attrs.field(alias="id", default=0)
     integration_name: str = attrs.field(default=None, alias="name")
@@ -66,11 +65,9 @@ class Integration:
         default=IntegrationExpireBehaviours.NONE, converter=IntegrationExpireBehaviours
     )
     expire_grace_period: int = attrs.field(default=0)
-    user: User = attrs.field(default=None, converter=User.as_dict)
-    account: IntegrationAccountObject = attrs.field(default=None, converter=IntegrationAccountObject.as_dict)
+    user: User = attrs.field(default=None)
+    account: IntegrationAccountObject = attrs.field(default=None)
     synced_at: datetime = attrs.field(default=None)
     subscriber_count: int = attrs.field(default=0)
     revoked: bool = attrs.field(default=False)
-    application: IntegrationApplicationObject = attrs.field(
-        default=None, converter=IntegrationApplicationObject.as_dict
-    )
+    application: IntegrationApplicationObject = attrs.field(default=None)

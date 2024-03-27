@@ -29,7 +29,7 @@ from .snowflake import Snowflake
 from .member import GuildMember
 
 
-@attrs.define(kw_only=True)
+@attrs.define(kw_only=True, hash=True)
 class VoiceState:
     guild_id: Snowflake = attrs.field()
     channel_id: Snowflake = attrs.field()

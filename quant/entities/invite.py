@@ -48,7 +48,7 @@ class _InviteMetadata:
     created_at: datetime.datetime = attrs.field(default=None)
 
 
-@attrs.define(kw_only=True)
+@attrs.define(hash=True, kw_only=True)
 class Invite:
     code: str
     guild_id: Snowflake | None = attrs.field(default=None)

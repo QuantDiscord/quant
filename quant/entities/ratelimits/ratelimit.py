@@ -26,13 +26,13 @@ from datetime import datetime
 import attrs
 
 
-@attrs.define(kw_only=True)
+@attrs.define(kw_only=True, hash=True)
 class RateLimitBucketReset:
     reset_time: datetime = attrs.field()
     reset_time_milliseconds: float = attrs.field()
 
 
-@attrs.define(kw_only=True)
+@attrs.define(kw_only=True, hash=True)
 class RateLimit:
     max_retries: int = attrs.field()
     remaining_retries: int = attrs.field()
@@ -44,7 +44,7 @@ class RateLimit:
     scope: str | None = attrs.field()
 
 
-@attrs.define(kw_only=True)
+@attrs.define(kw_only=True, hash=True)
 class Bucket:
     rate_limit: RateLimit | None = attrs.field()
     bucket_reset: RateLimitBucketReset = attrs.field()
