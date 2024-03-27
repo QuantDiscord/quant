@@ -23,6 +23,9 @@ SOFTWARE.
 """
 from typing import Any, List, TypeVar
 
+import attrs
+
+from quant.entities.api.backend import CallbackBackend
 from quant.entities.permissions import Permissions
 from quant.entities.interactions.slash_option import ApplicationCommandOption, SlashOptionType
 from quant.impl.core.context import BaseContext, InteractionContext
@@ -32,50 +35,27 @@ from quant.entities.interactions.application_command import ApplicationCommandTy
 ContextT = TypeVar("ContextT", bound=BaseContext | InteractionContext)
 
 
-class Command:
-    def __init__(self, name: str, description: str) -> None:
-        self.name = name
-        self.description = description
-
-    async def callback(self, context: ContextT, *args) -> None:
-        pass
-
-    callback_func = callback
-
-    def set_callback(self, coro):
-        self.callback_func = coro
+@attrs.define
+class Command(CallbackBackend[ContextT]):
+    name: str = attrs.field()
+    description: str = attrs.field()
 
 
+@attrs.define
 class ApplicationCommandObject(Command):
-    def __init__(
-        self,
-        cmd_id: Snowflake,
-        application_id: Snowflake,
-        dm_permissions: bool = False,
-        default_permission: bool = False,
-        nsfw: bool = False,
-        cmd_type: ApplicationCommandTypes = ApplicationCommandTypes.CHAT_INPUT,
-        guild_id: Snowflake | None = None,
-        options: List[ApplicationCommandOption] = None,
-        default_member_permissions: Permissions | None = None,
-        **kwargs
-    ) -> None:
-        super().__init__(kwargs.get("name"), kwargs.get("description"))
-        if default_member_permissions is not None:
-            self.default_member_permissions = default_member_permissions.value
-
-        self.options = options
-        self.guild_id = guild_id
-        self.nsfw = nsfw
-        self.default_permission = default_permission
-        self.dm_permissions = dm_permissions
-        self.type = cmd_type
-        self.id = cmd_id
-        self.application_id = application_id
+    cmd_id: Snowflake = attrs.field(default=Snowflake(0))
+    application_id: Snowflake = attrs.field(default=Snowflake(0))
+    dm_permissions: bool = attrs.field(default=False)
+    default_permission: bool = attrs.field(default=False)
+    nsfw: bool = attrs.field(default=False)
+    cmd_type: ApplicationCommandTypes = attrs.field(default=ApplicationCommandTypes.CHAT_INPUT)
+    guild_id: Snowflake | None = attrs.field(default=None),
+    options: List[ApplicationCommandOption] = attrs.field(default=None),
+    default_member_permissions: Permissions | None = attrs.field(default=None),
 
     @property
     def mention(self) -> str:
-        return f"</{self.name}:{self.id}>"
+        return f"</{self.name}:{self.cmd_id}>"
 
     def option(
         self,
@@ -109,19 +89,13 @@ class ApplicationCommandObject(Command):
 
         if self.options is not None:
             self.options.append(option)
+            return option
 
         self.options = [option]
         return option
 
 
+@attrs.define
 class SlashCommand(ApplicationCommandObject):
-    def __init__(
-        self,
-        options: List[ApplicationCommandOption] = None,
-        guild_ids: List[Snowflake | int] | None = None,
-        **kwargs
-    ) -> None:
-        super().__init__(kwargs.get("name"), kwargs.get("description"), **kwargs)
-
-        self.options = options
-        self.guild_ids = guild_ids
+    options: List[ApplicationCommandOption] | None = attrs.field(default=None)
+    guild_ids: List[Snowflake | int] | None = attrs.field(default=None)

@@ -105,7 +105,6 @@ class HttpManagerImpl(HttpManager):
             headers = {}
 
         header_keys = {"Authorization": self.authorization, "Content-Type": AcceptContentType.APPLICATION_JSON}
-
         for key, value in header_keys.items():
             if headers.get(key) is None:
                 headers[key] = value
@@ -161,12 +160,12 @@ class HttpManagerImpl(HttpManager):
                         return response
                     await asyncio.sleep(ratelimit.retry_after)
                 return response
-            case http.HTTPStatus.NO_CONTENT:
-                return
             case http.HTTPStatus.FORBIDDEN:
                 raise Forbidden("Missing permissions")
             case http.HTTPStatus.INTERNAL_SERVER_ERROR:
                 raise InternalServerError("Server issue, try again")
+            case http.HTTPStatus.NO_CONTENT:
+                return
 
         if response.status not in (
             http.HTTPStatus.TOO_MANY_REQUESTS,

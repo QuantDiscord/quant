@@ -159,9 +159,8 @@ class CacheHandlers(CacheManager):
         del self.__cached_guilds[Snowflake(kwargs["id"])]
 
     def handle_voice_state_update(self, **kwargs) -> None:
-        guild_id = kwargs.get('guild_id')
-        guild = self.get_guild(Snowflake(guild_id))
         state = self.entity_factory.deserialize_voice_state(kwargs)
+        guild = self.get_guild(state.guild_id)
 
         if len(guild.voice_states) == 0:
             guild.voice_states.append(state)
