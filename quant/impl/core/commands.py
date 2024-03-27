@@ -36,13 +36,13 @@ ContextT = TypeVar("ContextT", bound=BaseContext | InteractionContext)
 
 
 @attrs.define
-class Command(CallbackBackend[ContextT]):
+class _Command(CallbackBackend[ContextT]):
     name: str = attrs.field()
     description: str = attrs.field()
 
 
 @attrs.define
-class ApplicationCommandObject(Command):
+class ApplicationCommandObject(_Command):
     cmd_id: Snowflake = attrs.field(default=Snowflake(0))
     application_id: Snowflake = attrs.field(default=Snowflake(0))
     dm_permissions: bool = attrs.field(default=False)
@@ -94,8 +94,14 @@ class ApplicationCommandObject(Command):
         self.options = [option]
         return option
 
+    def __hash__(self) -> int:
+        return hash((self.cmd_id, self.name))
+
 
 @attrs.define
 class SlashCommand(ApplicationCommandObject):
     options: List[ApplicationCommandOption] | None = attrs.field(default=None)
     guild_ids: List[Snowflake | int] | None = attrs.field(default=None)
+
+    def __hash__(self) -> int:
+        return hash((self.cmd_id, self.name))
