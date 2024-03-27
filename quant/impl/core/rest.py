@@ -111,7 +111,6 @@ class RESTImpl(RESTAware):
             embeds=embeds,
             allowed_mentions=allowed_mentions,
             components=components,
-            files=files,
             payload_json=payload_json,
             attachments=attachments,
             flags=flags
@@ -229,7 +228,6 @@ class RESTImpl(RESTAware):
             message_reference=message_reference,
             components=components,
             sticker_ids=sticker_ids,
-            files=files,
             payload_json=payload_json,
             attachments=attachments,
             flags=flags
@@ -376,27 +374,24 @@ class RESTImpl(RESTAware):
     async def create_interaction_response(
         self,
         interaction_type: InteractionCallbackType,
-        interaction_data: InteractionCallbackData | None,
+        interaction_data: InteractionCallbackData | ModalInteractionCallbackData | None,
         interaction_id: int,
         interaction_token: str
     ) -> None:
         interaction_payload = {"type": interaction_type.value}
+        data_converter = {
+            ModalInteractionCallbackData: self.entity_factory.serialize_modal_interaction_callback_data,
+            InteractionCallbackData: self.entity_factory.serialize_interaction_callback_data
+        }
 
         if interaction_data is not None:
-            if isinstance(interaction_data, ModalInteractionCallbackData):
-                interaction_payload["data"] = self.entity_factory.serialize_modal_interaction_callback_data(interaction_data)
-            else:
-                interaction_payload["data"] = self.entity_factory.serialize_interaction_callback_data(interaction_data)
-
-        if len(interaction_data.embeds) == 1:
-            embeds = [interaction_data.embeds[0]]
-        else:
-            embeds = interaction_data.embeds
+            if converter := data_converter.get(type(interaction_data)):
+                interaction_payload["data"] = converter(interaction_data)
 
         payload, form_data = await self._build_payload(
             content=interaction_data.content,
             tts=interaction_data.tts,
-            embeds=embeds,
+            embeds=interaction_data.embeds,
             allowed_mentions=interaction_data.allowed_mentions,
             components=interaction_data.components,
             attachments=interaction_data.attachments,
@@ -445,7 +440,6 @@ class RESTImpl(RESTAware):
             embeds=embeds,
             allowed_mentions=allowed_mentions,
             components=components,
-            files=files,
             payload_json=payload_json,
             attachments=attachments,
             flags=flags
@@ -701,7 +695,6 @@ class RESTImpl(RESTAware):
             embeds=embeds,
             allowed_mentions=allowed_mentions,
             components=components,
-            files=files,
             payload_json=payload_json,
             attachments=attachments
         )
