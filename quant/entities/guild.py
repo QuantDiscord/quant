@@ -59,7 +59,6 @@ class Guild(BaseModel):
     guild_hashes: List[Any] = attrs.field()
     lazy: bool = attrs.field()
     application_command_counts: int = attrs.field()
-    joined_at: datetime.datetime = attrs.field()
     member_count: int = attrs.field()
     presences: List[Any] = attrs.field()
     members: List[GuildMember] = attrs.field()

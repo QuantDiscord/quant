@@ -23,7 +23,7 @@ SOFTWARE.
 """
 from __future__ import annotations
 
-from typing import List, TYPE_CHECKING, Dict
+from typing import List, TYPE_CHECKING, Dict, TypeVar
 
 if TYPE_CHECKING:
     from quant.entities.factory.entity_factory import EntityFactory
@@ -38,6 +38,7 @@ from quant.entities.channel import Channel
 from quant.utils.cache.cacheable import CacheableType
 from quant.entities.roles import GuildRole
 
+SnowflakeOrInt = TypeVar("SnowflakeOrInt", bound=Snowflake | int)
 
 class CacheManager:
     __cached_guilds: Dict[Snowflake, Guild] = {}
@@ -79,15 +80,21 @@ class CacheManager:
     def add_role(self, role: GuildRole):
         self.__cached_roles[role.id] = role
 
-    def get_user(self, user_id: int | Snowflake) -> User | None:
+    def get_user(self, user_id: SnowflakeOrInt) -> User | None:
         """Get user from cache."""
         return self.__cached_users[user_id]
+
+    def get_member(self, guild_id: SnowflakeOrInt, member_id: SnowflakeOrInt):
+        member_list = self.get_guild(guild_id=guild_id).members
+        for member in member_list:
+            if member.id == member_id:
+                return member
 
     def get_users(self) -> List[User]:
         """Get all cached users."""
         return list(self.__cached_users.values())
 
-    def get_message(self, message_id: int | Snowflake) -> Message | None:
+    def get_message(self, message_id: SnowflakeOrInt) -> Message | None:
         """Get message from cache."""
         return self.__cached_messages[message_id]
 
@@ -95,7 +102,7 @@ class CacheManager:
         """Get all cached message."""
         return list(self.__cached_messages.values())
 
-    def get_guild(self, guild_id: int | Snowflake) -> Guild | None:
+    def get_guild(self, guild_id: SnowflakeOrInt) -> Guild | None:
         """Get guild from cache."""
         return self.__cached_guilds[guild_id]
 
@@ -103,11 +110,11 @@ class CacheManager:
         """Get all cached guilds."""
         return list(self.__cached_guilds.values())
 
-    def get_emoji(self, emoji_id: int | Snowflake) -> Emoji | Reaction:
+    def get_emoji(self, emoji_id: SnowflakeOrInt) -> Emoji | Reaction:
         """Get emoji from cache."""
         return self.__cached_emojis[emoji_id]
 
-    def get_channel(self, channel_id: int | Snowflake) -> Channel:
+    def get_channel(self, channel_id: SnowflakeOrInt) -> Channel:
         """Get channel from cache"""
         return self.__cached_channels[channel_id]
 

@@ -228,9 +228,9 @@ class RESTImpl(RESTAware):
             message_reference=message_reference,
             components=components,
             sticker_ids=sticker_ids,
-            payload_json=payload_json,
             attachments=attachments,
-            flags=flags
+            flags=flags,
+            payload_json=payload_json
         )
 
         method, url = self._build_url(
@@ -245,6 +245,7 @@ class RESTImpl(RESTAware):
             pre_build_headers=False
         )
         message_json = await response.json()
+
         return self.entity_factory.deserialize_message(message_json)
 
     async def fetch_guild(self, guild_id: int, with_counts: bool = False) -> Guild:
@@ -398,7 +399,6 @@ class RESTImpl(RESTAware):
             flags=interaction_data.flags,
             payload_json=interaction_payload
         )
-
         method, url = self._build_url(
             route=InteractionRoute.CREATE_INTERACTION_RESPONSE,
             data={"interaction_id": interaction_id, "interaction_token": interaction_token}
@@ -422,7 +422,6 @@ class RESTImpl(RESTAware):
         embeds: List[Embed] = None,
         allowed_mentions: AllowedMentions = None,
         components: List[Any] = None,
-        files: List[Any] = None,
         payload_json: str = None,
         attachments: List[AttachmentT] | None = None,
         flags: int = None,
@@ -962,5 +961,7 @@ class RESTImpl(RESTAware):
 
         if payload_json is not None:
             form_data.add_field("payload_json", json.dumps(payload_json))
+        else:
+            form_data.add_field("payload_json", json.dumps(body))
 
         return body, form_data

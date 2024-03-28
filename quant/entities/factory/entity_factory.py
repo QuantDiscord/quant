@@ -682,7 +682,6 @@ class EntityFactory:
             guild_hashes=payload.get("guild_hashes", []),
             lazy=payload.get("lazy", False),
             application_command_counts=payload.get("application_command_counts", 0),
-            joined_at=payload.get("joined_at", None),
             member_count=payload.get("member_count", 0),
             presences=payload.get("presences", []),
             members=[],

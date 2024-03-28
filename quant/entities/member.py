@@ -43,7 +43,7 @@ class GuildMember(BaseModel):
     mute: bool = attrs.field()
     flags: int = attrs.field()
     pending: bool = attrs.field(repr=False)
-    permissions: Permissions | None = attrs.field()
+    permissions: Permissions | None = attrs.field(repr=False)
     nick: str | None = attrs.field()
     avatar: str | None = attrs.field()
     roles: List[GuildRole] | None = attrs.field(repr=False)
