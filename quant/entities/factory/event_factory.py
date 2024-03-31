@@ -52,7 +52,7 @@ EventT: TypeVar = TypeVar("EventT", Event, DiscordEvent, InternalEvent)
 
 class EventFactory:
     def __init__(self, cache_manager: CacheManager) -> None:
-        self.added_listeners: Dict[EventT, Callable] = {}
+        self.added_listeners: Dict[EventT, List[Callable]] = {}
         self._listener_transformer: Dict[str, EventT] = {}
         self.cache = cache_manager
         self.entity_factory = entities.factory.EntityFactory(self.cache)
@@ -75,7 +75,13 @@ class EventFactory:
             return event.build(event, *args)
 
     def add_event(self, event: Any, callback: Callable) -> None:
-        self.added_listeners[event] = callback
+        if event not in self.added_listeners:
+            self.added_listeners[event] = [callback]
+        else:
+            callbacks = self.added_listeners[event]
+            callbacks.append(callback)
+
+            self.added_listeners[event] = callbacks
 
         if not hasattr(event, "event_api_name"):
             return

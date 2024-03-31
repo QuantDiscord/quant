@@ -34,7 +34,7 @@ from quant.api.core.http_manager_abc import HttpManager, AcceptContentType
 from quant.entities.ratelimits.ratelimit import RateLimit, RateLimitBucketReset, Bucket
 from quant.impl.core.exceptions.http_exception import Forbidden, InternalServerError, HTTPException
 
-DataT = TypeVar("DataT", bound=Dict[str, Any] | FormData)
+DataT = TypeVar("DataT", bound=Dict[str, Any] | FormData | list)
 HeadersT = TypeVar("HeadersT", bound=Dict[str, Any] | None)
 
 

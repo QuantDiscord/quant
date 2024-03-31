@@ -67,9 +67,11 @@ class EventController:
     async def dispatch(self, *args) -> None:
         if len(args) == 1:
             event = args[0]
-            event_callback = self.factory.added_listeners.get(type(event))
-            if event_callback is not None:
-                await event_callback(event)
+            event_callbacks = self.factory.added_listeners.get(type(event))
+
+            if event_callbacks is not None:
+                for event_callback in event_callbacks:
+                    await event_callback(event)
 
             if event is not None:
                 await event.call()

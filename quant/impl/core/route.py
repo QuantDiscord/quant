@@ -21,7 +21,10 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
-from typing import Final
+from __future__ import annotations as _
+
+from urllib.parse import urlencode
+from typing import Final, Dict
 
 import attrs
 
@@ -43,6 +46,22 @@ class Route(attrs.AttrsInstance):
     method: str
     uri: URI
     api_version: int = 10
+
+    def build(self, query_params: Dict | None = None, **kwargs) -> Route:
+        url = self.uri.url_string
+        if query_params is not None:
+            if '?' in url:
+                separator = '&'
+            else:
+                separator = '?'
+
+            query_string = urlencode(query_params)
+            url += f"{separator}{query_string}"
+
+        return Route(
+            method=self.method,
+            uri=URI(url.format(**kwargs), auto_format=False)
+        )
 
 
 GET: Final[str] = "GET"
@@ -130,6 +149,12 @@ class Interaction:
     )
     DELETE_GUILD_APPLICATION_COMMAND: Final[Route] = Route(
         DELETE, URI("/applications/{application_id}/guilds/{guild_id}/commands/{command_id}")
+    )
+    BULK_OVERWRITE_GLOBAL_APPLICATION_COMMAND: Final[Route] = Route(
+        PUT, URI("/applications/{application_id}/commands")
+    )
+    BULK_OVERWRITE_GUILD_APPLICATION_COMMAND: Final[Route] = Route(
+        PUT, URI("/applications/{application_id}/guilds/{guild_id}/commands")
     )
 
 

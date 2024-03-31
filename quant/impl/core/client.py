@@ -276,6 +276,7 @@ class Client:
             self._add_listener_from_coro(args[0])
         else:
             event, coro = args
+            print(event, coro)
             self._add_listener_from_event_and_coro(event, coro)
 
     def _add_listener_from_event_and_coro(self, event: T, coro: CoroutineT) -> None:
@@ -320,7 +321,10 @@ class Client:
         #     if command.id in self.slash_commands
         raise NotImplementedError
 
-    def add_slash_command(self, *commands: SlashCommand, app_id: Snowflake | int = None) -> None:
+    def _add_client_slash_command(self, command: ApplicationCommandObject) -> None:
+        self.slash_commands[command.name] = command
+
+    def add_slash_command(self, commands: List[SlashCommand], app_id: Snowflake | int = None) -> None:
         """Adds your slash commands
 
         Parameters
@@ -334,7 +338,12 @@ class Client:
         if len(self.slash_commands) == 100:
             raise DiscordException("You can't create more than 100 slash commands.")
 
+        synced_guilds = []
+
+        self.loop.run_until_complete(self._sync_application_commands())
         for command in commands:
+            self._add_client_slash_command(command)
+
             if not inspect.iscoroutinefunction(command.callback_func):
                 raise DiscordException("Callback function must be coroutine")
 
@@ -349,19 +358,31 @@ class Client:
             guild_ids = command.guild_ids
             if guild_ids:
                 for guild_id in guild_ids:
+                    if guild_id not in synced_guilds:
+                        self.loop.run_until_complete(self._sync_application_commands(guild_id=guild_id))
+                        synced_guilds.append(guild_id)
+
                     application_command: ApplicationCommandObject = self.loop.run_until_complete(
                         self.rest.create_guild_application_command(
                             **command_data,
                             guild_id=guild_id
                         )
                     )
+
             else:
                 application_command: ApplicationCommandObject = self.loop.run_until_complete(
                     self.rest.create_application_command(**command_data)
                 )
 
             application_command.set_callback(command.callback_func)
-            self.slash_commands[application_command.name] = application_command
+            self._add_client_slash_command(application_command)
+
+    async def _sync_application_commands(self, guild_id: Snowflake | None = None) -> None:
+        if guild_id is not None:
+            await self.rest.bulk_overwrite_guild_app_commands(self.client_id, guild_id)
+            return
+
+        await self.rest.bulk_overwrite_global_app_commands(self.client_id)
 
     def add_modal(self, *modals: Modal) -> None:
         """Adds your modals

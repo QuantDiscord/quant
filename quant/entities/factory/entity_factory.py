@@ -99,6 +99,15 @@ class EntityFactory:
             unusual_dm_activity_until=payload.get("unusual_dm_activity_until")
         )
 
+    def serialize_application_command(self, command: ApplicationCommandObject) -> Dict[str, Any] | None:
+        if command is None:
+            return
+
+        return {
+            "name": command.name,
+            "description": command.description
+        }
+
     def serialize_action_row(self, row: ActionRow) -> Dict[str, Any] | None:
         from quant.entities.button import Button
         from quant.entities.action_row import ActionRow

@@ -244,6 +244,7 @@ class Gateway:
         await asyncio.sleep(20)
 
         if (self._heartbeat + float(60)) < time.perf_counter():
+            logger.warn("Reconnecting (keep alive)")
             await self.reconnect(code=4000)
 
     async def send_presence(
