@@ -33,7 +33,7 @@ if TYPE_CHECKING:
     from quant.entities.action_row import ActionRow
 
 from quant.impl.files import AttachableURL, File
-from quant.impl.core.commands import ApplicationCommandObject, ApplicationCommandTypes
+from quant.impl.core.commands import ApplicationCommandObject, ApplicationCommandTypes, ApplicationCommandContexts
 from quant.entities.message import Message, Attachment, MessageFlags
 from quant.entities.embeds import Embed, EmbedField, EmbedAuthor, EmbedImage, EmbedThumbnail, EmbedFooter
 from quant.entities.voice_state_update import VoiceState
@@ -53,6 +53,7 @@ from quant.entities.emoji import Reaction, PartialReaction, Emoji
 from quant.entities.interactions.slash_option import SlashOptionType, ApplicationCommandOption
 from quant.entities.interactions.component_types import ComponentType
 from quant.entities.snowflake import Snowflake
+from quant.entities.integration import IntegrationTypes
 from quant.utils.parser import iso_to_datetime
 from quant.utils.parser import parse_permissions
 
@@ -474,6 +475,12 @@ class EntityFactory:
         if (options := payload.get("options")) is not None:
             options = [self.deserialize_slash_option(option) for option in options]
 
+        if (integration_types := payload.get("integration_types")) is not None:
+            integration_types = [IntegrationTypes(i_type) for i_type in integration_types]
+
+        if (contexts := payload.get("contexts")) is not None:
+            contexts = [ApplicationCommandContexts(context) for context in contexts]
+
         return ApplicationCommandObject(
             cmd_id=Snowflake(payload.get("id")),
             cmd_type=ApplicationCommandTypes(payload.get("type")),
@@ -484,7 +491,9 @@ class EntityFactory:
             options=options,
             default_member_permissions=parse_permissions(payload.get("default_member_permissions")),
             dm_permissions=payload.get("dm_permissions"),
-            nsfw=payload.get("nsfw", False)
+            nsfw=payload.get("nsfw", False),
+            integration_types=integration_types,
+            contexts=contexts
         )
 
     def deserialize_message(self, payload: Dict | None) -> Message | None:

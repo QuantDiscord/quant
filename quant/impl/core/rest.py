@@ -34,7 +34,7 @@ import aiohttp
 import attrs
 
 if TYPE_CHECKING:
-    from quant.impl.core.commands import ApplicationCommandObject
+    from quant.impl.core.commands import ApplicationCommandObject, ApplicationCommandContexts
     from quant.entities.action_row import ActionRow
 
 from quant.impl.core.route import (
@@ -49,6 +49,7 @@ from quant.impl.core.route import (
 from quant.impl.files import AttachableURL, File, file_to_bytes
 from quant.entities.gateway import GatewayInfo, SessionStartLimitObject
 from quant.impl.core.route import Route
+from quant.entities.interactions.application_command import ApplicationCommandTypes
 from quant.entities.factory.entity_factory import EntityFactory
 from quant.entities.message import MessageReference
 from quant.entities.interactions.slash_option import ApplicationCommandOption
@@ -60,6 +61,7 @@ from quant.entities.user import User
 from quant.entities.roles import GuildRole
 from quant.entities.emoji import Emoji
 from quant.entities.invite import Invite
+from quant.entities.integration import IntegrationTypes
 from quant.entities.modal.modal import ModalInteractionCallbackData
 from quant.entities.interactions.interaction import InteractionCallbackData, InteractionCallbackType
 from quant.entities.allowed_mentions import AllowedMentions
@@ -439,13 +441,16 @@ class RESTImpl(RESTAware):
         application_id: int,
         name: str,
         description: str,
+        app_cmd_type: ApplicationCommandTypes = ApplicationCommandTypes.CHAT_INPUT,
         default_permissions: bool = False,
         dm_permissions: bool = False,
         default_member_permissions: str = None,
         options: List[ApplicationCommandOption] = None,
-        nsfw: bool = False
+        nsfw: bool = False,
+        integration_types: List[IntegrationTypes] = None,
+        contexts: List[ApplicationCommandContexts] = None
     ) -> ApplicationCommandObject:
-        body = {"name": name, "description": description}
+        body = {"name": name, "description": description, "type": app_cmd_type.value}
         route = InteractionRoute.CREATE_APPLICATION_COMMAND.build(application_id=application_id)
 
         if default_permissions:
@@ -463,8 +468,16 @@ class RESTImpl(RESTAware):
         if nsfw:
             body["nsfw"] = nsfw
 
+        if integration_types is not None:
+            body["integration_types"] = [i.value for i in integration_types]
+
+        if contexts is not None:
+            body["contexts"] = [i.value for i in contexts]
+
         response = await self._request(route=route, data=body)
 
+        print(body)
+        print(await response.json())
         return self.entity_factory.deserialize_application_command(await response.json())
 
     async def create_guild_application_command(
@@ -473,13 +486,16 @@ class RESTImpl(RESTAware):
         name: str,
         description: str,
         guild_id: SnowflakeT,
+        app_cmd_type: ApplicationCommandTypes = ApplicationCommandTypes.CHAT_INPUT,
         default_permissions: bool = False,
         dm_permissions: bool = False,
         default_member_permissions: str = None,
         options: List[ApplicationCommandOption] = None,
-        nsfw: bool = False
+        nsfw: bool = False,
+        integration_types: List[IntegrationTypes] = None,
+        contexts: List[ApplicationCommandContexts] = None
     ) -> ApplicationCommandObject:
-        body = {"name": name, "description": description}
+        body = {"name": name, "description": description, "type": app_cmd_type.value}
         route = InteractionRoute.CREATE_GUILD_APPLICATION_COMMAND.build(
             application_id=application_id, guild_id=guild_id
         )
@@ -501,6 +517,12 @@ class RESTImpl(RESTAware):
 
         if nsfw:
             body["nsfw"] = nsfw
+
+        if integration_types is not None:
+            body["integration_types"] = [i.value for i in integration_types]
+
+        if contexts is not None:
+            body["contexts"] = [i.value for i in contexts]
 
         response = await self._request(route=route, data=body)
 

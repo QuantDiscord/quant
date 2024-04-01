@@ -36,5 +36,6 @@ __all__ = (
     "InteractionResponse",
     "InteractionData",
     "ApplicationCommandOption",
-    "SlashOptionType"
+    "SlashOptionType",
+    "ApplicationCommandContexts"
 )

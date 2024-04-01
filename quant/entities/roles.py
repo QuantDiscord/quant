@@ -47,3 +47,20 @@ class GuildRole:
     @property
     def mention(self) -> str:
         return f"<@&{self.id}>"
+
+
+def empty_role() -> GuildRole:
+    return GuildRole(
+        id=Snowflake(0),
+        name="",
+        color=0,
+        hoist=False,
+        icon=None,
+        unicode_emoji=None,
+        position=0,
+        permissions=Permissions.NONE,
+        managed=False,
+        mentionable=False,
+        tags=[],
+        flags=0
+    )

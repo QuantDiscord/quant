@@ -30,10 +30,11 @@ import attrs
 
 from quant.entities.api.backend import CallbackBackend
 from quant.entities.permissions import Permissions
+from quant.entities.integration import IntegrationTypes
 from quant.entities.interactions.slash_option import ApplicationCommandOption, SlashOptionType
 from quant.impl.core.context import BaseContext, InteractionContext
 from quant.entities.snowflake import Snowflake
-from quant.entities.interactions.application_command import ApplicationCommandTypes
+from quant.entities.interactions.application_command import ApplicationCommandTypes, ApplicationCommandContexts
 
 ContextT = TypeVar("ContextT", bound=BaseContext | InteractionContext)
 
@@ -55,6 +56,8 @@ class ApplicationCommandObject(_Command):
     guild_id: Snowflake | None = attrs.field(default=None),
     options: List[ApplicationCommandOption] = attrs.field(default=None),
     default_member_permissions: Permissions | None = attrs.field(default=None),
+    integration_types: List[IntegrationTypes] | None = attrs.field(default=None)
+    contexts: List[ApplicationCommandContexts] | None = attrs.field(default=None)
 
     @property
     def mention(self) -> str:

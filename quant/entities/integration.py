@@ -31,6 +31,11 @@ from .model import BaseModel
 from .user import User
 
 
+class IntegrationTypes(enum.Enum):
+    GUILD_INSTALL = 0
+    USER_INSTALL = 1
+
+
 class IntegrationExpireBehaviours(enum.Enum):
     NONE = -1
     REMOVE_ROLE = 0

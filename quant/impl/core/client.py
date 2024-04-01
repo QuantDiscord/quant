@@ -119,7 +119,8 @@ class Client:
         token: str,
         intents: Intents = Intents.ALL_UNPRIVILEGED,
         mobile: bool = False,
-        asyncio_debug: bool = False
+        asyncio_debug: bool = False,
+        sync_commands: bool = True
     ) -> None:
         self.me: User | None = None
         self.shards: List[Shard] = []
@@ -134,6 +135,7 @@ class Client:
         self.gateway: Gateway | None = None
         self.mobile = mobile
         self.asyncio_debug = asyncio_debug
+        self.sync_commands = sync_commands
         self._gateway_info: GatewayInfo = self.loop.run_until_complete(self.rest.get_gateway())
 
         self._modals: Dict[str, Modal] = {}
@@ -276,7 +278,6 @@ class Client:
             self._add_listener_from_coro(args[0])
         else:
             event, coro = args
-            print(event, coro)
             self._add_listener_from_event_and_coro(event, coro)
 
     def _add_listener_from_event_and_coro(self, event: T, coro: CoroutineT) -> None:
@@ -351,7 +352,9 @@ class Client:
                 "application_id": app_id,
                 "name": command.name,
                 "description": command.description,
-                "options": command.options
+                "options": command.options,
+                "integration_types": command.integration_types,
+                "contexts": command.contexts
             }
 
             application_command: ApplicationCommandObject | None = None
@@ -368,7 +371,6 @@ class Client:
                             guild_id=guild_id
                         )
                     )
-
             else:
                 application_command: ApplicationCommandObject = self.loop.run_until_complete(
                     self.rest.create_application_command(**command_data)
@@ -378,6 +380,9 @@ class Client:
             self._add_client_slash_command(application_command)
 
     async def _sync_application_commands(self, guild_id: Snowflake | None = None) -> None:
+        if self.sync_commands is False:
+            return
+        
         if guild_id is not None:
             await self.rest.bulk_overwrite_guild_app_commands(self.client_id, guild_id)
             return

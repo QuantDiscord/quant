@@ -58,8 +58,10 @@ from .interactions import (
     InteractionDataOption,
     ApplicationCommandOptionType,
     ApplicationCommandOption,
-    SlashOptionType
+    SlashOptionType,
+    ApplicationCommandContexts
 )
+from .integration import IntegrationTypes, Integration
 from .permissions import Permissions
 from .message import Message, MessageReference, Attachment
 
@@ -122,5 +124,8 @@ __all__ = (
     "embed",
     "button",
     "Permissions",
-    "GuildRole"
+    "GuildRole",
+    "Integration",
+    "IntegrationTypes",
+    "ApplicationCommandContexts"
 )

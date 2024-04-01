@@ -36,7 +36,7 @@ from quant.entities.guild import Guild
 from quant.entities.emoji import Emoji, Reaction
 from quant.entities.channel import Channel
 from quant.utils.cache.cacheable import CacheableType
-from quant.entities.roles import GuildRole
+from quant.entities.roles import GuildRole, empty_role
 
 SnowflakeOrInt = TypeVar("SnowflakeOrInt", bound=Snowflake | int)
 
@@ -130,7 +130,10 @@ class CacheManager:
                 if state.guild_id == state.guild_id and state.user_id == user_id][0]
 
     def get_role(self, role_id: Snowflake | int) -> GuildRole:
-        return self.__cached_roles[role_id]
+        try:
+            return self.__cached_roles[role_id]
+        except KeyError:
+            return empty_role()
 
 
 class CacheHandlers(CacheManager):

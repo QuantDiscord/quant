@@ -42,3 +42,9 @@ class ApplicationCommandTypes(Enum):
     CHAT_INPUT = 1
     USER = 2
     MESSAGE = 3
+
+
+class ApplicationCommandContexts(Enum):
+    GUILD = 0
+    BOT_DM = 1
+    PRIVATE_CHANNEL = 2
