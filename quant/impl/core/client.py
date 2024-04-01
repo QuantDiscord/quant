@@ -111,6 +111,10 @@ class Client:
         The gateway used for communicating with Discord.
     mobile: :class:`bool`
         Specifies whether the bot is running in a mobile environment.
+    asyncio_debug: :class:`bool`
+        Enable asyncio debug or no
+    sync_commands: :class:`bool`
+        Sync application commands or no. If False, syncing will be disabled
     """
     T = TypeVar("T")
 
@@ -382,7 +386,7 @@ class Client:
     async def _sync_application_commands(self, guild_id: Snowflake | None = None) -> None:
         if self.sync_commands is False:
             return
-        
+
         if guild_id is not None:
             await self.rest.bulk_overwrite_guild_app_commands(self.client_id, guild_id)
             return
