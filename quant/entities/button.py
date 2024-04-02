@@ -61,7 +61,7 @@ class Button(CallbackBackend[ButtonContext]):
     BUTTON_COMPONENT_TYPE = 2
     INTERACTION_TYPE = 3
 
-    custom_id: str = attrs.field()
+    custom_id: str = attrs.field(default=None)
     label: str | None = attrs.field(default=None)
     style: ButtonStyle = attrs.field(default=ButtonStyle.PRIMARY)
     emoji: Emoji | str | None = attrs.field(default=None)
@@ -70,7 +70,7 @@ class Button(CallbackBackend[ButtonContext]):
 
 
 def button(
-    custom_id: str,
+    custom_id: str | None = None,
     label: str | None = None,
     style: ButtonStyle | int = ButtonStyle.PRIMARY,
     emoji: Emoji | str | None = None,
@@ -80,7 +80,7 @@ def button(
     if isinstance(style, int):
         style = ButtonStyle(style)
 
-    return Button(
+    btn = Button(
         custom_id=custom_id,
         label=label,
         style=style,
@@ -88,3 +88,14 @@ def button(
         url=url,
         disabled=disabled
     )
+
+    if custom_id is None or url is None:
+        if url is None:
+            raise TypeError(f"Specify url in button with label {label}")
+
+        if url is not None:
+            return btn
+        else:
+            TypeError(f"Specify custom_id in button with label {label}")
+
+    return btn

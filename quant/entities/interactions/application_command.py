@@ -39,6 +39,7 @@ class ApplicationCommandOptionType(Enum):
 
 
 class ApplicationCommandTypes(Enum):
+    NONE = 0
     CHAT_INPUT = 1
     USER = 2
     MESSAGE = 3

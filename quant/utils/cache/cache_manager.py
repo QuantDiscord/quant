@@ -82,6 +82,9 @@ class CacheManager:
 
     def get_user(self, user_id: SnowflakeOrInt) -> User | None:
         """Get user from cache."""
+        if user_id not in self.__cached_users:
+            return
+
         return self.__cached_users[user_id]
 
     def get_member(self, guild_id: SnowflakeOrInt, member_id: SnowflakeOrInt):
@@ -96,6 +99,9 @@ class CacheManager:
 
     def get_message(self, message_id: SnowflakeOrInt) -> Message | None:
         """Get message from cache."""
+        if message_id not in self.__cached_messages:
+            return
+
         return self.__cached_messages[message_id]
 
     def get_messages(self) -> List[Message]:
@@ -104,6 +110,9 @@ class CacheManager:
 
     def get_guild(self, guild_id: SnowflakeOrInt) -> Guild | None:
         """Get guild from cache."""
+        if guild_id not in self.__cached_guilds:
+            return
+
         return self.__cached_guilds[guild_id]
 
     def get_guilds(self) -> List[Guild]:

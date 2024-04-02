@@ -26,6 +26,7 @@ from .commands import SlashCommand
 from .client import Client
 from .rest import RESTImpl
 from .gateway import Gateway
+from .http_bot import HTTPBot
 
 __all__ = (
     "InteractionContext",
@@ -34,5 +35,6 @@ __all__ = (
     "SlashCommand",
     "Client",
     "RESTImpl",
-    "Gateway"
+    "Gateway",
+    "HTTPBot"
 )
