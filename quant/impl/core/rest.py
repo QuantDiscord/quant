@@ -476,8 +476,6 @@ class RESTImpl(RESTAware):
 
         response = await self._request(route=route, data=body)
 
-        print(body)
-        print(await response.json())
         return self.entity_factory.deserialize_application_command(await response.json())
 
     async def create_guild_application_command(
