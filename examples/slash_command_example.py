@@ -28,7 +28,7 @@ class SayCommand(quant.SlashCommand):
     # Here lint warning, I fix that later
     async def callback(self, context: quant.InteractionContext) -> None:
         message = await context.get_option("message")
-        await context.interaction.respond(content=" ".join(message))
+        await context.interaction.respond(content=message)
 
 
 client.add_slash_command(SayCommand())
