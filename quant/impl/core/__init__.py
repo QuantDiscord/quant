@@ -27,6 +27,7 @@ from .client import Client
 from .rest import RESTImpl
 from .gateway import Gateway
 from .http_bot import HTTPBot
+from .exceptions import NotEnoughPermissions
 
 __all__ = (
     "InteractionContext",
@@ -36,5 +37,6 @@ __all__ = (
     "Client",
     "RESTImpl",
     "Gateway",
-    "HTTPBot"
+    "HTTPBot",
+    "NotEnoughPermissions"
 )

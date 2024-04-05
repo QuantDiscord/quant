@@ -23,6 +23,7 @@ SOFTWARE.
 """
 import logging
 
+from quant.impl.core.exceptions.command_exceptions import NotEnoughPermissions
 from quant.entities.permissions import Permissions
 
 __all__ = (
@@ -32,8 +33,21 @@ __all__ = (
 
 
 def has_permissions(member_permissions: Permissions, needed_permissions: Permissions) -> bool:
+    if member_permissions == Permissions.NONE:
+        return False
+
     if member_permissions == Permissions.ADMINISTRATOR or member_permissions & Permissions.ADMINISTRATOR:
         return True
+
+    missing_permissions = needed_permissions & ~member_permissions
+    if missing_permissions == Permissions.NONE:
+        return True
+
+    if missing_permissions is not None:
+        raise NotEnoughPermissions(
+            f"Missing permissions: {missing_permissions} ({missing_permissions.value})",
+            missing=missing_permissions
+        )
 
     return member_permissions.value & needed_permissions.value
 

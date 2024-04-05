@@ -21,6 +21,9 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
+from typing import List
+
+from quant.entities.permissions import Permissions
 
 
 class CommandNotFoundException(Exception):
@@ -29,3 +32,10 @@ class CommandNotFoundException(Exception):
 
 class CommandArgumentsNotFound(Exception):
     ...
+
+
+class NotEnoughPermissions(Exception):
+    def __init__(self, message: str, missing: Permissions, *args) -> None:
+        super().__init__(*args)
+        self.message = message
+        self.permissions = [permission for permission in Permissions if permission & missing]
