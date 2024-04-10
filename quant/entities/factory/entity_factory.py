@@ -33,7 +33,13 @@ if TYPE_CHECKING:
     from quant.entities.action_row import ActionRow
 
 from quant.impl.files import AttachableURL, File
-from quant.impl.core.commands import ApplicationCommandObject, ApplicationCommandTypes, ApplicationCommandContexts
+from quant.impl.core.commands import (
+    ApplicationCommandObject,
+    ApplicationCommandTypes,
+    ApplicationCommandContexts,
+    SlashSubCommand,
+    SlashSubGroup
+)
 from quant.entities.message import Message, Attachment, MessageFlags
 from quant.entities.embeds import Embed, EmbedField, EmbedAuthor, EmbedImage, EmbedThumbnail, EmbedFooter
 from quant.entities.voice_state_update import VoiceState
@@ -646,7 +652,8 @@ class EntityFactory:
             channel_types=payload.get("channel_types"),
             options=options,
             choices=payload.get("choices"),
-            required=payload.get("required")
+            required=payload.get("required"),
+            type=payload.get("type")
         )
 
     def serialize_slash_option(self, option: ApplicationCommandOption) -> Dict:

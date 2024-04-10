@@ -23,10 +23,10 @@ SOFTWARE.
 """
 from __future__ import annotations as _
 
-from typing import Any, List, TypeVar
+import inspect
+from typing import Any, List, TypeVar, Callable
 
 import attrs
-
 
 from quant.entities.api.backend import CallbackBackend
 from quant.entities.permissions import Permissions
@@ -102,6 +102,16 @@ class ApplicationCommandObject(_Command):
 
     def __hash__(self) -> int:
         return hash(self.cmd_id)
+
+
+@attrs.define
+class SlashSubCommand(ApplicationCommandOption, CallbackBackend[ContextT]):
+    type: SlashOptionType = attrs.field(default=SlashOptionType.SUB_COMMAND)
+
+
+@attrs.define
+class SlashSubGroup(ApplicationCommandOption):
+    type: SlashOptionType = attrs.field(default=SlashOptionType.SUB_COMMAND_GROUP)
 
 
 @attrs.define

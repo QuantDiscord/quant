@@ -24,7 +24,6 @@ SOFTWARE.
 from __future__ import annotations as _
 
 import asyncio
-import warnings
 import base64
 import inspect
 from typing import (
@@ -35,7 +34,8 @@ from typing import (
     Dict,
     overload,
     TypeVar,
-    TYPE_CHECKING
+    TYPE_CHECKING,
+    cast
 )
 
 from quant.entities.factory import EventFactory
@@ -59,7 +59,8 @@ from quant.impl.events.bot.exception_event import QuantExceptionEvent
 from quant.impl.events.bot.ready_event import ReadyEvent
 from quant.entities.interactions.interaction import InteractionType
 from quant.entities.modal.modal import Modal
-from quant.impl.core.commands import SlashCommand
+from quant.impl.core.commands import SlashCommand, SlashSubCommand, SlashSubGroup
+from quant.entities.interactions.slash_option import SlashOptionType
 from quant.impl.core.context import InteractionContext, ModalContext, ButtonContext
 from quant.impl.events.bot.interaction_create_event import InteractionCreateEvent
 from quant.impl.core.gateway import Gateway
@@ -380,6 +381,7 @@ class Client:
                     self.rest.create_application_command(**command_data)
                 )
 
+            application_command.options = command.options
             application_command.set_callback(command.callback_func)
             self._add_client_slash_command(application_command)
 
@@ -421,21 +423,11 @@ class Client:
 
             self._buttons[str(button.custom_id)] = button
 
-    @property
-    def slash_commands(self) -> Dict[str, ApplicationCommandObject | CoroutineT]:
-        return self._slash_commands
-
-    @property
-    def modals(self) -> Dict[str, Modal]:
-        return self._modals
-
-    @property
-    def buttons(self) -> Dict[str, Button]:
-        return self._buttons
-
-    @property
-    def gateway_info(self) -> GatewayInfo:
-        return self._gateway_info
+    @staticmethod
+    def _handle_sub_command(options: List[ApplicationCommandOption]) -> Callable:
+        for option in options:
+            if option.type == SlashOptionType.SUB_COMMAND:
+                return option.callback_func
 
     async def handle_application_command(self, interaction: Interaction) -> None:
         context = InteractionContext(self, interaction)
@@ -444,12 +436,23 @@ class Client:
         if command_name not in self.slash_commands.keys():
             return
 
+        subcommand_called = False
         command = self.slash_commands[command_name]
-        if inspect.isfunction(command):
-            await command(context)
-            return
+        used_subcommand = interaction.data.options[0]
 
-        await command.callback_func(context)
+        for option in command.options:
+            if used_subcommand.name == option.name:
+                subcommand_called = True
+
+                if option.type == SlashOptionType.SUB_COMMAND:
+                    await option.callback_func(context)
+
+                if option.type == SlashOptionType.SUB_COMMAND_GROUP:
+                    callback = self._handle_sub_command(option.options)
+                    await callback(context)
+
+        if not subcommand_called:
+            await command.callback_func(context)
 
     async def handle_modal_submit(self, interaction: Interaction) -> None:
         if interaction.data is None:
@@ -519,3 +522,19 @@ class Client:
 
     async def _set_client_user_on_ready(self, _: ReadyEvent) -> None:
         self.me = self.cache.get_users()[0]
+
+    @property
+    def slash_commands(self) -> Dict[str, ApplicationCommandObject | CoroutineT]:
+        return self._slash_commands
+
+    @property
+    def modals(self) -> Dict[str, Modal]:
+        return self._modals
+
+    @property
+    def buttons(self) -> Dict[str, Button]:
+        return self._buttons
+
+    @property
+    def gateway_info(self) -> GatewayInfo:
+        return self._gateway_info

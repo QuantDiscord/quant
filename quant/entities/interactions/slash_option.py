@@ -24,9 +24,15 @@ SOFTWARE.
 from __future__ import annotations as _
 
 import enum
+import warnings
 from typing import List, Any, TYPE_CHECKING
 
+if TYPE_CHECKING:
+    from typing_extensions import Self
+
 import attrs
+
+from quant.entities.api.backend import CallbackBackend, CoroutineT
 
 
 class SlashOptionType(enum.Enum):
@@ -45,7 +51,7 @@ class SlashOptionType(enum.Enum):
 
 
 @attrs.define(hash=True)
-class ApplicationCommandOption:
+class ApplicationCommandOption(CallbackBackend):
     name: str = attrs.field()
     description: str = attrs.field()
     min_value: int = attrs.field(default=None)
@@ -57,4 +63,12 @@ class ApplicationCommandOption:
     options: List[ApplicationCommandOption] = attrs.field(default=None)
     choices: List[Any] = attrs.field(default=None)
     required: bool = attrs.field(default=False)
-    type: SlashOptionType = attrs.field(default=SlashOptionType.STRING)
+    type: SlashOptionType = attrs.field(default=None)
+
+    def set_callback(self, coro: CoroutineT) -> Self:
+        if self.type != SlashOptionType.SUB_COMMAND:
+            warnings.warn("Impossible set callback to other option type instead of SUB_COMMAND")
+            return
+
+        self.callback_func = coro
+        return self

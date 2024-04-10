@@ -40,6 +40,7 @@ from quant.entities.roles import GuildRole, empty_role
 
 SnowflakeOrInt = TypeVar("SnowflakeOrInt", bound=Snowflake | int)
 
+
 class CacheManager:
     __cached_guilds: Dict[Snowflake, Guild] = {}
     __cached_users: Dict[Snowflake, User] = {}

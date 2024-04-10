@@ -22,7 +22,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 from .context import InteractionContext, ModalContext, ButtonContext
-from .commands import SlashCommand
+from .commands import SlashCommand, SlashSubCommand, SlashSubGroup
 from .client import Client
 from .rest import RESTImpl
 from .gateway import Gateway
@@ -38,5 +38,7 @@ __all__ = (
     "RESTImpl",
     "Gateway",
     "HTTPBot",
-    "NotEnoughPermissions"
+    "NotEnoughPermissions",
+    "SlashSubCommand",
+    "SlashSubGroup"
 )

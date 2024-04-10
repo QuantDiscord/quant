@@ -21,7 +21,12 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
-from typing import TypeVar, Callable, Coroutine, Any, Generic
+from __future__ import annotations as _
+
+from typing import TypeVar, Callable, Coroutine, Any, Generic, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from typing_extensions import Self
 
 ContextT = TypeVar("ContextT")
 CoroutineT = TypeVar("CoroutineT", bound=Callable[..., Coroutine[Any, Any, Any]])
@@ -33,5 +38,6 @@ class CallbackBackend(Generic[ContextT]):
 
     callback_func = callback
 
-    def set_callback(self, coro: CoroutineT):
+    def set_callback(self, coro: CoroutineT) -> Self:
         self.callback_func = coro
+        return self

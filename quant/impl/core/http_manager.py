@@ -24,7 +24,7 @@ SOFTWARE.
 import asyncio
 import http
 import json
-from typing import Dict, Any, TypeVar
+from typing import Dict, Any, TypeVar, Tuple
 from datetime import datetime
 
 from aiohttp import ClientSession, ClientResponse, FormData
@@ -45,12 +45,6 @@ class HttpManagerImpl(HttpManager):
         self.session = ClientSession()
 
     async def parse_ratelimits(self, response: ClientResponse) -> Bucket | None:
-        if response.status != http.HTTPStatus.TOO_MANY_REQUESTS:
-            return
-
-        if response.content_type != AcceptContentType.APPLICATION_JSON:
-            return
-
         headers = response.headers
         if headers is None:
             return
@@ -65,6 +59,12 @@ class HttpManagerImpl(HttpManager):
             headers.get("x-RateLimit-Scope"),
             headers.get("X-RateLimit-Bucket")
         )
+
+        if response.status != http.HTTPStatus.TOO_MANY_REQUESTS:
+            return
+
+        if response.content_type != AcceptContentType.APPLICATION_JSON:
+            return
 
         time = parser.timestamp_to_datetime(int(ratelimit_reset[:-4]))
         bucket_reset_time = RateLimitBucketReset(
@@ -133,31 +133,34 @@ class HttpManagerImpl(HttpManager):
         if headers is not None:
             request_data["headers"] = headers
 
-        async def perform_request() -> ClientResponse:
+        async def perform_request() -> Tuple[ClientResponse, Bucket]:
             if data is not None:
                 request_data["data"] = json.dumps(data)
 
             if form_data is not None:
                 request_data["data"] = form_data
 
-            return await self.session.request(**request_data)
+            response = await self.session.request(**request_data)
+            bucket = await self.parse_ratelimits(response=response)
+            return response, bucket
 
-        response = await perform_request()
+        response, bucket = await perform_request()
         if response.ok:
             return response
 
         match response.status:
             case http.HTTPStatus.TOO_MANY_REQUESTS:
-                ratelimits_bucket = await self.parse_ratelimits(response)
-                ratelimit = ratelimits_bucket.rate_limit
+                ratelimit = bucket.rate_limit
                 for i in range(ratelimit.max_retries):
                     logger.warn(
                         f"You're being rate limited, retrying "
                         f"(attempt: {i + 1}, retry time: {ratelimit.retry_after}, scope: {ratelimit.scope})"
                     )
-                    response = await perform_request()
+                    response, bucket = await perform_request()
                     if response.ok:
                         return response
+
+                    ratelimit = bucket.rate_limit
                     await asyncio.sleep(ratelimit.retry_after)
                 return response
             case http.HTTPStatus.FORBIDDEN:
@@ -171,9 +174,10 @@ class HttpManagerImpl(HttpManager):
             http.HTTPStatus.TOO_MANY_REQUESTS,
             http.HTTPStatus.NO_CONTENT
         ):
+            response_text = await response.read()
             raise HTTPException(
                 f"Request corrupted or invalid request body. More data below\n"
-                f"Response: {await response.read()}\n"
+                f"Response: {response_text}\n"
                 f"Method: {method}\n"
                 f"URL: {response.url}\n"
                 f"Data: {data}\n"

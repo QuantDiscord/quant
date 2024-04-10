@@ -50,6 +50,8 @@ class Shard:
         self.mobile = mobile
         self.activity = activity
 
+        self._latency: float = float("nan")
+
     async def start(self, client: Client, loop: asyncio.AbstractEventLoop = None) -> None:
         self.gateway = Gateway(
             intents=self.intents,
@@ -69,3 +71,11 @@ class Shard:
 
     async def close(self) -> None:
         asyncio.create_task(self.gateway.close())
+
+    @property
+    def latency(self) -> float:
+        return self._latency
+
+    @latency.setter
+    def latency(self, value: float) -> None:
+        self._latency = value
