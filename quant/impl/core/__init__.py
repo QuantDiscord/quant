@@ -34,11 +34,11 @@ __all__ = (
     "ModalContext",
     "ButtonContext",
     "SlashCommand",
+    "SlashSubCommand",
+    "SlashSubGroup",
     "Client",
     "RESTImpl",
     "Gateway",
     "HTTPBot",
-    "NotEnoughPermissions",
-    "SlashSubCommand",
-    "SlashSubGroup"
+    "NotEnoughPermissions"
 )

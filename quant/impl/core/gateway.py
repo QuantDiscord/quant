@@ -180,7 +180,8 @@ class Gateway:
                 self.client.event_factory.cache_item(received_event_type, **event_details)
                 await self.client.event_controller.dispatch(received_event_type, event_details)
             case OpCode.INVALID_SESSION:
-                await self.websocket.close(code=4000)
+                logger.warn("Invalid session. Reconnecting.")
+
                 await self.reconnect(code=4000)
             case OpCode.HELLO:
                 await self._send_hello(data.get("heartbeat_interval"))

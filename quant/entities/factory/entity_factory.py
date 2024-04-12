@@ -211,7 +211,6 @@ class EntityFactory:
             channel=channel,
             channel_id=Snowflake(payload.get("channel_id")),
             token=payload.get("token"),
-            guild=self.deserialize_guild(payload.get("guild")),
             type=InteractionType(payload.get("type", InteractionType.PING.value)),
             member=member,
             user=user,

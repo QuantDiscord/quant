@@ -131,7 +131,12 @@ class HttpManagerImpl(HttpManager):
         }
 
         if headers is not None:
-            request_data["headers"] = headers
+            request_headers = request_data.get("headers")
+            if request_headers is None:
+                request_data["headers"] = headers
+
+            if isinstance(request_headers, dict):
+                request_headers.update(headers)
 
         async def perform_request() -> Tuple[ClientResponse, Bucket]:
             if data is not None:

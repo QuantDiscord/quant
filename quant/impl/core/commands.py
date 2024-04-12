@@ -42,7 +42,7 @@ ContextT = TypeVar("ContextT", bound=BaseContext | InteractionContext)
 @attrs.define
 class _Command(CallbackBackend[ContextT]):
     name: str = attrs.field()
-    description: str = attrs.field()
+    description: str = attrs.field(default="Empty description")
 
 
 @attrs.define
@@ -53,9 +53,9 @@ class ApplicationCommandObject(_Command):
     default_permission: bool = attrs.field(default=False)
     nsfw: bool = attrs.field(default=False)
     cmd_type: ApplicationCommandTypes = attrs.field(default=ApplicationCommandTypes.CHAT_INPUT)
-    guild_id: Snowflake | None = attrs.field(default=None),
+    guild_id: Snowflake = attrs.field(default=Snowflake(0)),
     options: List[ApplicationCommandOption] = attrs.field(default=None),
-    default_member_permissions: Permissions | None = attrs.field(default=None),
+    default_member_permissions: Permissions = attrs.field(default=Permissions.NONE),
     integration_types: List[IntegrationTypes] | None = attrs.field(default=None)
     contexts: List[ApplicationCommandContexts] | None = attrs.field(default=None)
 
@@ -87,7 +87,7 @@ class ApplicationCommandObject(_Command):
             max_length=max_length,
             autocomplete=autocomplete,
             channel_types=channel_types,
-            options=options,
+            options=options if options else [],
             choices=choices,
             required=required,
             type=option_type
@@ -104,12 +104,12 @@ class ApplicationCommandObject(_Command):
         return hash(self.cmd_id)
 
 
-@attrs.define
+@attrs.define(hash=True)
 class SlashSubCommand(ApplicationCommandOption, CallbackBackend[ContextT]):
     type: SlashOptionType = attrs.field(default=SlashOptionType.SUB_COMMAND)
 
 
-@attrs.define
+@attrs.define(hash=True)
 class SlashSubGroup(ApplicationCommandOption):
     type: SlashOptionType = attrs.field(default=SlashOptionType.SUB_COMMAND_GROUP)
 

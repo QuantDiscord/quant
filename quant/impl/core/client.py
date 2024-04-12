@@ -302,6 +302,8 @@ class Client:
         try:
             event_type = list(annotations[1].values())[0]
 
+            if isinstance(event_type, str):
+                raise DiscordException("Can't handle an event class. Try .add_listener(EventType, function)")
             if not issubclass(event_type, (InternalEvent, Event, DiscordEvent)):
                 raise DiscordException(f"{event_type.__name__} must be subclass of Event")
 
@@ -436,13 +438,22 @@ class Client:
         if command_name not in self.slash_commands.keys():
             return
 
-        subcommand_called = False
         command = self.slash_commands[command_name]
+
+        if interaction.data.options is None:
+            await command.callback_func(context)
+            return
+
         used_subcommand = interaction.data.options[0]
 
         for option in command.options:
             if used_subcommand.name == option.name:
-                subcommand_called = True
+                match option.type:
+                    case SlashOptionType.SUB_COMMAND:
+                        await option.callback_func(context)
+                    case SlashOptionType.SUB_COMMAND_GROUP:
+                        callback = self._handle_sub_command(option.options)
+                        await callback(context)
 
                 if option.type == SlashOptionType.SUB_COMMAND:
                     await option.callback_func(context)
@@ -450,9 +461,6 @@ class Client:
                 if option.type == SlashOptionType.SUB_COMMAND_GROUP:
                     callback = self._handle_sub_command(option.options)
                     await callback(context)
-
-        if not subcommand_called:
-            await command.callback_func(context)
 
     async def handle_modal_submit(self, interaction: Interaction) -> None:
         if interaction.data is None:

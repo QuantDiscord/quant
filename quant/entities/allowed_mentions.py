@@ -46,3 +46,27 @@ class AllowedMentionsTypes(enum.Enum):
     USER_AND_EVERYONE = [USER_MENTIONS, EVERYONE_MENTIONS]
 
     ALL = [ROLE_MENTIONS, USER_MENTIONS, EVERYONE_MENTIONS]
+
+
+def suppress_mentions(
+    roles: bool = False,
+    users: bool = False,
+    replied_user: bool = False,
+    everyone: bool = False,
+    suppress_all: bool = False
+) -> AllowedMentions:
+    if all((roles, users, replied_user, everyone)) is False:
+        return AllowedMentions(parse=[])
+
+    if suppress_all:
+        return AllowedMentions(parse=[])
+
+    parse = []
+    if roles:
+        parse.append(AllowedMentionsTypes.ROLE_MENTIONS.value)
+    if users:
+        parse.append(AllowedMentionsTypes.USER_MENTIONS.value)
+    if everyone:
+        parse.append(AllowedMentionsTypes.EVERYONE_MENTIONS.value)
+
+    return AllowedMentions(parse=parse, replied_user=replied_user)

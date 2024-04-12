@@ -31,7 +31,7 @@ from .activity import (
     ActivityAssets,
     ActivityData
 )
-from .allowed_mentions import AllowedMentions, AllowedMentionsTypes
+from .allowed_mentions import AllowedMentions, AllowedMentionsTypes, suppress_mentions
 from .button import Button, ButtonStyle, button
 from .channel import Channel, Thread, ThreadMetadata, ChannelType, VoiceChannel
 from .embeds import *
@@ -127,5 +127,6 @@ __all__ = (
     "GuildRole",
     "Integration",
     "IntegrationTypes",
-    "ApplicationCommandContexts"
+    "ApplicationCommandContexts",
+    "suppress_mentions"
 )

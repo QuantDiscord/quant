@@ -53,7 +53,7 @@ class SlashOptionType(enum.Enum):
 @attrs.define(hash=True)
 class ApplicationCommandOption(CallbackBackend):
     name: str = attrs.field()
-    description: str = attrs.field()
+    description: str = attrs.field(default="Empty description")
     min_value: int = attrs.field(default=None)
     max_value: int = attrs.field(default=None)
     min_length: int = attrs.field(default=None)

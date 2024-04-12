@@ -21,6 +21,8 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
+from __future__ import annotations as _
+
 from enum import Flag
 
 
@@ -73,6 +75,15 @@ class Permissions(Flag):
     CREATE_EVENTS = 1 << 44
     USE_EXTERNAL_SOUNDS = 1 << 45
     SEND_VOICE_MESSAGES = 1 << 46
+
+    @classmethod
+    def all_permissions(cls) -> Permissions:
+        permissions = Permissions.NONE
+
+        for permission in Permissions:
+            permissions |= permission
+
+        return permissions
 
     def __repr__(self) -> str:
         return f"Permissions <{self.value}>"

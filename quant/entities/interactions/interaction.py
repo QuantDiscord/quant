@@ -117,15 +117,14 @@ class Interaction(BaseModel):
     member: GuildMember | None = attrs.field(default=None)
     user: User | None = attrs.field(default=None)
     token: str = attrs.field(default=None)
-    version: int = attrs.field(default=-1)
+    version: int = attrs.field(default=1)  # always 1
     app_permissions: str = attrs.field(default=None)
     locale: str = attrs.field(default=None)
     guild_locale: str = attrs.field(default=None)
     entitlements: List[Any] = attrs.field(default=None)
     entitlement_sku_ids: Any = attrs.field(default=None)
     message: Message = attrs.field(default=None)
-    guild: Guild = attrs.field(default=None)
-    _authorizing_integration_owners: Any = attrs.field(default=None)
+    authorizing_integration_owners: Any = attrs.field(default=None)
 
     async def respond(
         self,
@@ -209,7 +208,7 @@ class Interaction(BaseModel):
             attachments=attachments
         )
 
-    async def deferred(self, flags: MessageFlags | int | None = None) -> None:
+    async def defer(self, flags: MessageFlags | int | None = None) -> None:
         await self.client.rest.create_interaction_response(
             interaction_type=InteractionCallbackType.DEFERRED_CHANNEL_MESSAGE_WITH_SOURCE,
             interaction_data=InteractionCallbackData(
@@ -223,9 +222,4 @@ class Interaction(BaseModel):
             ),
             interaction_id=self.id,
             interaction_token=self.token
-        )
-        await self.client.rest.create_followup_message(
-            application_id=self.application_id,
-            interaction_token=self.token,
-            flags=flags,
         )
