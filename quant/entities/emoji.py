@@ -49,26 +49,28 @@ class PartialReaction(BaseModel):
             return self.emoji_name
 
 
-@attrs.define
-class Emoji(BaseModel):
-    id: Snowflake = attrs.field()
+@attrs.define(hash=True)
+class PartialEmoji:
+    id: Snowflake | int = attrs.field()
     name: str = attrs.field()
+    animated: bool = attrs.field(default=False)
+
+    def __str__(self) -> str:
+        if self.id > 0:
+            animated = "a" if self.animated else ""
+            return f"<{animated}:{self.name}:{self.id}>"
+        else:
+            return self.name
+
+
+@attrs.define(kw_only=True, hash=True)
+class Emoji(PartialEmoji):
     roles: List[Any] = attrs.field()
     user: User = attrs.field()
     require_colons: bool = attrs.field()
     managed: bool = attrs.field()
-    animated: bool = attrs.field()
     available: bool = attrs.field()
     version: int = attrs.field()
-
-    def __str__(self) -> str:
-        if self.id > 0:
-            return f"<:{self.name}:{self.id}>"
-        else:
-            return self.name
-
-    def __hash__(self) -> int:
-        return hash(self.id)
 
 
 @attrs.define

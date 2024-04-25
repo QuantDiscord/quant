@@ -35,7 +35,7 @@ from .allowed_mentions import AllowedMentions, AllowedMentionsTypes, suppress_me
 from .button import Button, ButtonStyle, button
 from .channel import Channel, Thread, ThreadMetadata, ChannelType, VoiceChannel
 from .embeds import *
-from .emoji import Emoji, Reaction, PartialReaction
+from .emoji import Emoji, Reaction, PartialReaction, PartialEmoji
 from .guild import Guild
 from .invite import Invite
 from .intents import Intents
@@ -64,6 +64,8 @@ from .interactions import (
 from .integration import IntegrationTypes, Integration
 from .permissions import Permissions
 from .message import Message, MessageReference, Attachment
+from .color import Color, RGB, Hex
+from .poll import Poll, PollResults, PollAnswer, PollMedia, PollMediaType, poll, Answer
 
 
 __all__ = (
@@ -128,5 +130,15 @@ __all__ = (
     "Integration",
     "IntegrationTypes",
     "ApplicationCommandContexts",
-    "suppress_mentions"
+    "suppress_mentions",
+    "Color",
+    "RGB",
+    "Hex",
+    "PollMedia",
+    "Poll",
+    "PollMediaType",
+    "PollResults",
+    "poll",
+    "Answer",
+    "PartialEmoji"
 )

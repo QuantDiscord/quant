@@ -95,6 +95,12 @@ class Message:
     DELETE_ALL_REACTION_FOR_EMOJI: Final[Route] = Route(
         DELETE, URI("/channels/{channel_id}/messages/{message_id}/reactions/{emoji}")
     )
+    GET_POLL_ANSWER_VOTES: Final[Route] = Route(
+        GET, URI("/channels/{channel_id}/polls/{message_id}/answers/{answer_id}")
+    )
+    POST_END_POLL: Final[Route] = Route(
+        POST, URI("/channels/{channel_id}/polls/{message_id}/expire")
+    )
 
 
 class WebHook:

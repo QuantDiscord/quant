@@ -30,6 +30,7 @@ if TYPE_CHECKING:
     from quant.impl.core.client import Client
     from quant.entities.interactions.interaction import Interaction
 
+from quant.entities.emoji import PartialEmoji
 from quant.entities.permissions import Permissions
 from quant.entities.interactions.slash_option import SlashOptionType
 
@@ -40,7 +41,7 @@ async def parse_option_type(
     option_type: SlashOptionType,
     value: Any
 ) -> Any | None:
-    guild = interaction.guild
+    guild = client.cache.get_guild(interaction.guild_id)
 
     match option_type:
         case SlashOptionType.USER:
@@ -85,3 +86,19 @@ def timestamp_to_datetime(time: str | int = None) -> datetime | None:
         return
 
     return datetime.fromtimestamp(time)
+
+
+def clamp(x: int) -> int:
+    return max(0, min(x, 255))
+
+
+def string_to_emoji(emoji: str) -> PartialEmoji:
+    animated = emoji.startswith("<a:")
+    split_emoji = emoji.replace("<a:", "").replace(">", "").replace("<", "").split(":")
+
+    if len(split_emoji) == 1:
+        emoji_name, emoji_id = split_emoji[0], None
+    else:
+        emoji_name, emoji_id = split_emoji
+
+    return PartialEmoji(id=emoji_id, name=emoji_name, animated=animated)

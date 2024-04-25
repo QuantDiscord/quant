@@ -28,7 +28,7 @@ import enum
 import time
 import zlib
 from typing import (
-    Dict,
+    NoReturn,
     TypeVar,
     List,
     TYPE_CHECKING
@@ -117,7 +117,7 @@ class Gateway:
         self._session_id: int | None = None
         self._heartbeat = 0
 
-    async def connect(self) -> None:
+    async def connect(self) -> NoReturn:
         ws_url = GatewayRoute.DISCORD_WS_URL.uri.url_string.format(10)
 
         self.session = aiohttp.ClientSession()

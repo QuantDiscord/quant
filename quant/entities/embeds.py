@@ -93,6 +93,9 @@ def embed(
     if isinstance(image, str):
         image = EmbedImage(url=image, proxy_url=None, width=1024, height=1024)
 
+    if fields is None:
+        fields = []
+
     return Embed(
         title=title,
         description=description,

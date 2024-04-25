@@ -36,9 +36,7 @@ from quant.impl.files import AttachableURL, File
 from quant.impl.core.commands import (
     ApplicationCommandObject,
     ApplicationCommandTypes,
-    ApplicationCommandContexts,
-    SlashSubCommand,
-    SlashSubGroup
+    ApplicationCommandContexts
 )
 from quant.entities.message import Message, Attachment, MessageFlags
 from quant.entities.embeds import Embed, EmbedField, EmbedAuthor, EmbedImage, EmbedThumbnail, EmbedFooter
@@ -60,8 +58,8 @@ from quant.entities.interactions.slash_option import SlashOptionType, Applicatio
 from quant.entities.interactions.component_types import ComponentType
 from quant.entities.snowflake import Snowflake
 from quant.entities.integration import IntegrationTypes
-from quant.utils.parser import iso_to_datetime
-from quant.utils.parser import parse_permissions
+from quant.entities.poll import Poll, PollResults, PollAnswer, PollMedia, PollMediaType
+from quant.utils.parser import iso_to_datetime, parse_permissions, string_to_emoji
 
 
 class EntityFactory:
@@ -629,9 +627,9 @@ class EntityFactory:
             custom_id=payload.get("custom_id"),
             style=TextInputStyle(payload.get("style", 0)),
             label=payload.get("label", None),
-            min_length=payload.get("min_length", None),
-            max_length=payload.get("max_length", None),
-            required=payload.get("required", None),
+            min_length=payload.get("min_length", 0),
+            max_length=payload.get("max_length", 4000),
+            required=payload.get("required", False),
             value=payload.get("value", None),
             placeholder=payload.get("placeholder", None)
         )
@@ -728,7 +726,7 @@ class EntityFactory:
             system_channel_id=payload.get("system_channel_id", 0),
             system_channel_flags=payload.get("system_channel_flags", 0),
             rules_channel_id=payload.get("rules_channel_id", 0),
-            max_presences=payload.get("max_presences", None),
+            max_presences=payload.get("max_presences", 0),
             max_members=payload.get("max_members", 0),
             vanity_url_code=payload.get("vanity_url_code", None),
             description=payload.get("description", None),
@@ -791,6 +789,35 @@ class EntityFactory:
             guild_scheduled_event=payload.get("guild_scheduled_event"),
             metadata=self._deserialize_invite_metadata(payload)
         )
+
+    def serialize_poll(self, poll: Poll) -> Dict:
+        return {
+            "question": {"text": poll.question},
+            "answers": self.serialize_poll_answers(poll.answers),
+            "expiry": poll.expiry,
+            "allow_multiselect": poll.allow_multiselect,
+            "layout_type": poll.layout_type.value
+        }
+
+    @staticmethod
+    def serialize_poll_answers(answers: List[PollAnswer]) -> List[Dict]:
+        done_answers = []
+
+        for answer in answers:
+            done = {"answer_id": answer.answer_id}
+            poll_media = {"text": answer.poll_media.text}
+
+            if answer.poll_media.emoji is not None:
+                emoji = answer.poll_media.emoji
+                if emoji.id:
+                    poll_media["emoji"] = attrs.asdict(answer.poll_media.emoji)
+                else:
+                    poll_media["emoji"] = {"id": None, "name": answer.poll_media.emoji.name}
+
+            done["poll_media"] = poll_media
+            done_answers.append(done)
+
+        return done_answers
 
     @staticmethod
     def _deserialize_invite_metadata(payload: Dict) -> _InviteMetadata | None:

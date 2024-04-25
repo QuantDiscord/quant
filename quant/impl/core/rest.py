@@ -69,6 +69,7 @@ from quant.impl.core.http_manager import HttpManagerImpl, AcceptContentType, Hea
 from quant.entities.message import Message, Attachment
 from quant.entities.embeds import Embed
 from quant.entities.webhook import Webhook
+from quant.entities.poll import Poll, PollMedia, PollMediaType, PollAnswer, PollResults
 from quant.utils.cache.cache_manager import CacheManager
 
 X_AUDIT_LOG_REASON: Final[str] = "X-Audit-Log-Reason"
@@ -140,7 +141,7 @@ class RESTImpl(RESTAware):
 
     async def fetch_emoji(self, guild_id: int, emoji: str) -> Emoji:
         if re.match(r"<:(\w+):(\w+)>", emoji):
-            emoji_name, emoji_id = emoji.replace(">", "").replace("<", "").split(":")[1:]
+            emoji_name, emoji_id = emoji.replace(">", "").replace("<", "").split(":")
             route = MessageRoute.GET_GUILD_EMOJI.build(guild_id=guild_id, emoji_id=emoji_id)
 
             headers = {"Content-Type": AcceptContentType.APPLICATION_X_WWW_FORM_URLENCODED}
@@ -218,7 +219,8 @@ class RESTImpl(RESTAware):
         files: List[Any] | None = None,
         payload_json: str | None = None,
         attachments: List[AttachmentT] | None = None,
-        flags: int | None = None
+        flags: int | None = None,
+        poll: Poll | None = None
     ) -> Message:
         payload, form_data = await self._build_payload(
             content=content,
@@ -232,6 +234,7 @@ class RESTImpl(RESTAware):
             sticker_ids=sticker_ids,
             attachments=attachments,
             flags=flags,
+            poll=poll,
             payload_json=payload_json
         )
 
@@ -821,9 +824,7 @@ class RESTImpl(RESTAware):
         user_id: SnowflakeT,
         role_id: SnowflakeT
     ) -> None:
-        route = GuildRoute.ADD_GUILD_MEMBER_ROLE.build(
-            guild_id=guild_id, user_id=user_id, role_id=role_id
-        )
+        route = GuildRoute.ADD_GUILD_MEMBER_ROLE.build(guild_id=guild_id, user_id=user_id, role_id=role_id)
         await self._request(route=route)
 
     async def get_gateway(self) -> GatewayInfo:
@@ -836,6 +837,28 @@ class RESTImpl(RESTAware):
             shards=payload.get("shards"),
             session_start_limit=SessionStartLimitObject(**payload.get("session_start_limit"))
         )
+
+    async def get_poll_answers(
+        self,
+        channel_id: SnowflakeT,
+        message_id: SnowflakeT,
+        answer_id: int,
+        after: Snowflake | None = Snowflake(0),
+        limit: int = 100
+    ) -> List[User]:
+        response = await self._request(route=MessageRoute.GET_POLL_ANSWER_VOTES.build(
+            query_params={"after": after, "limit": limit},
+            channel_id=channel_id,
+            message_id=message_id,
+            answer_id=answer_id
+        ))
+        users = (await response.json())["users"]
+        return [self.entity_factory.deserialize_user(user) for user in users]
+
+    async def end_poll_immediately(self, channel_id: SnowflakeT, message_id: SnowflakeT) -> Message:
+        route = MessageRoute.POST_END_POLL.build(channel_id=channel_id, message_id=message_id)
+        response = await self._request(route=route)
+        return self.entity_factory.deserialize_message(await response.json())
 
     @staticmethod
     def _parse_emoji(emoji: str | Emoji | SnowflakeT) -> str:
@@ -875,7 +898,8 @@ class RESTImpl(RESTAware):
         sticker_ids: List | None = None,
         payload_json: Any | None = None,
         attachments: List[AttachmentT] | None = None,
-        flags: int | None = None
+        flags: int | None = None,
+        poll: Poll | None = None
     ) -> Tuple[Dict, aiohttp.FormData]:
         body = {}
         form_data = aiohttp.FormData()
@@ -938,6 +962,9 @@ class RESTImpl(RESTAware):
 
         if flags is not None:
             body["flags"] = flags
+
+        if poll is not None:
+            body["poll"] = self.entity_factory.serialize_poll(poll)
 
         if payload_json is not None:
             form_data.add_field("payload_json", json.dumps(payload_json))

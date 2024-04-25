@@ -21,8 +21,9 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
+from __future__ import annotations as _
+
 from typing import Any
-from datetime import datetime
 
 import attrs
 
@@ -57,3 +58,6 @@ class User(BaseModel):
 
     def get_avatar(self, size: int = 1024) -> str:
         return f"https://cdn.discordapp.com/avatars/{self.id}/{self.avatar}.png?size={size}"
+
+    async def fetch(self) -> User:
+        return await self.client.rest.fetch_user(user_id=self.id)
