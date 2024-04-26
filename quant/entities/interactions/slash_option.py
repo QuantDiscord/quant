@@ -25,13 +25,14 @@ from __future__ import annotations as _
 
 import enum
 import warnings
-from typing import List, Any, TYPE_CHECKING
+from typing import List, Any, TYPE_CHECKING, Dict
 
 if TYPE_CHECKING:
     from typing_extensions import Self
 
 import attrs
 
+from quant.entities.locales import DiscordLocale
 from quant.entities.api.backend import CallbackBackend, CoroutineT
 
 
@@ -54,6 +55,8 @@ class SlashOptionType(enum.Enum):
 class ApplicationCommandOption(CallbackBackend):
     name: str = attrs.field()
     description: str = attrs.field(default="Empty description")
+    name_localizations: Dict[DiscordLocale, str] = attrs.field(default=None)
+    description_localizations: Dict[DiscordLocale, str] = attrs.field(default=None)
     min_value: int = attrs.field(default=None)
     max_value: int = attrs.field(default=None)
     min_length: int = attrs.field(default=None)

@@ -262,7 +262,7 @@ class Client:
 
         Examples
         --------
-        .. highlight:: python
+        . highlight:: python
             :linenothreshold: 5
 
         With two arguments: ::
@@ -361,7 +361,9 @@ class Client:
                 "description": command.description,
                 "options": command.options,
                 "integration_types": command.integration_types,
-                "contexts": command.contexts
+                "contexts": command.contexts,
+                "name_localizations": command.name_localizations,
+                "description_localizations": command.description_localizations
             }
 
             application_command: ApplicationCommandObject | None = None

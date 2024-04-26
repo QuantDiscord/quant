@@ -23,18 +23,18 @@ SOFTWARE.
 """
 from __future__ import annotations as _
 
-import inspect
-from typing import Any, List, TypeVar, Callable
+from typing import Any, List, TypeVar, Dict
 
 import attrs
 
 from quant.entities.api.backend import CallbackBackend
-from quant.entities.permissions import Permissions
 from quant.entities.integration import IntegrationTypes
-from quant.entities.interactions.slash_option import ApplicationCommandOption, SlashOptionType
-from quant.impl.core.context import BaseContext, InteractionContext
-from quant.entities.snowflake import Snowflake
 from quant.entities.interactions.application_command import ApplicationCommandTypes, ApplicationCommandContexts
+from quant.entities.interactions.slash_option import ApplicationCommandOption, SlashOptionType
+from quant.entities.permissions import Permissions
+from quant.entities.snowflake import Snowflake
+from quant.entities.locales import DiscordLocale
+from quant.impl.core.context import BaseContext, InteractionContext
 
 ContextT = TypeVar("ContextT", bound=BaseContext | InteractionContext)
 
@@ -47,6 +47,8 @@ class _Command(CallbackBackend[ContextT]):
 
 @attrs.define
 class ApplicationCommandObject(_Command):
+    name_localizations: Dict[DiscordLocale, str] = attrs.field(default=None)
+    description_localizations: Dict[DiscordLocale, str] = attrs.field(default=None)
     cmd_id: Snowflake = attrs.field(default=Snowflake(0))
     application_id: Snowflake = attrs.field(default=Snowflake(0))
     dm_permissions: bool = attrs.field(default=False)

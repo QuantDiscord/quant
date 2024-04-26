@@ -27,8 +27,8 @@ import datetime
 import json
 import re
 import warnings
-from urllib.parse import urlencode
 from typing import List, Any, Dict, Tuple, Final, TYPE_CHECKING, TypeVar
+from urllib.parse import urlencode
 
 import aiohttp
 import attrs
@@ -43,7 +43,6 @@ from quant.impl.core.route import (
     WebHook as WebhookRoute,
     Guild as GuildRoute,
     Interaction as InteractionRoute,
-    Channel as ChannelRoute,
     User as UserRoute
 )
 from quant.impl.files import AttachableURL, File, file_to_bytes
@@ -69,7 +68,8 @@ from quant.impl.core.http_manager import HttpManagerImpl, AcceptContentType, Hea
 from quant.entities.message import Message, Attachment
 from quant.entities.embeds import Embed
 from quant.entities.webhook import Webhook
-from quant.entities.poll import Poll, PollMedia, PollMediaType, PollAnswer, PollResults
+from quant.entities.poll import Poll
+from quant.entities.locales import DiscordLocale
 from quant.utils.cache.cache_manager import CacheManager
 
 X_AUDIT_LOG_REASON: Final[str] = "X-Audit-Log-Reason"
@@ -105,7 +105,7 @@ class RESTImpl(RESTAware):
         thread_name: str = None
     ) -> None:
         headers = AUTHORIZATION_HEADER
-        payload, form_data = await self._build_payload(
+        payload, form_data = await self._build_message_payload(
             content=content,
             tts=tts,
             embed=embed,
@@ -222,7 +222,7 @@ class RESTImpl(RESTAware):
         flags: int | None = None,
         poll: Poll | None = None
     ) -> Message:
-        payload, form_data = await self._build_payload(
+        payload, form_data = await self._build_message_payload(
             content=content,
             nonce=nonce,
             tts=tts,
@@ -375,7 +375,7 @@ class RESTImpl(RESTAware):
             if converter := data_converter.get(type(interaction_data)):
                 interaction_payload["data"] = converter(interaction_data)
 
-        payload, form_data = await self._build_payload(
+        payload, form_data = await self._build_message_payload(
             content=interaction_data.content,
             tts=interaction_data.tts,
             embeds=interaction_data.embeds,
@@ -416,7 +416,7 @@ class RESTImpl(RESTAware):
             application_id=application_id,
             interaction_token=interaction_token
         )
-        payload, _ = await self._build_payload(
+        payload, _ = await self._build_message_payload(
             content=content,
             tts=tts,
             embed=embed,
@@ -444,6 +444,8 @@ class RESTImpl(RESTAware):
         application_id: int,
         name: str,
         description: str,
+        name_localizations: Dict[DiscordLocale, str] | None = None,
+        description_localizations: Dict[DiscordLocale, str] | None = None,
         app_cmd_type: ApplicationCommandTypes = ApplicationCommandTypes.CHAT_INPUT,
         default_permissions: bool = False,
         dm_permissions: bool = False,
@@ -453,30 +455,21 @@ class RESTImpl(RESTAware):
         integration_types: List[IntegrationTypes] = None,
         contexts: List[ApplicationCommandContexts] = None
     ) -> ApplicationCommandObject:
-        body = {"name": name, "description": description, "type": app_cmd_type.value}
+        body = self._build_application_payload(
+            name=name,
+            description=description,
+            name_localizations=name_localizations,
+            description_localizations=description_localizations,
+            app_cmd_type=app_cmd_type,
+            default_permissions=default_permissions,
+            dm_permissions=dm_permissions,
+            default_member_permissions=default_member_permissions,
+            options=options,
+            nsfw=nsfw,
+            integration_types=integration_types,
+            contexts=contexts
+        )
         route = InteractionRoute.CREATE_APPLICATION_COMMAND.build(application_id=application_id)
-
-        if default_permissions:
-            body["default_permissions"] = default_permissions
-
-        if dm_permissions:
-            body["dm_permissions"] = dm_permissions
-
-        if default_member_permissions is not None:
-            body["default_member_permissions"] = default_member_permissions
-
-        if options is not None:
-            body["options"] = [self.entity_factory.serialize_slash_option(option) for option in options]
-
-        if nsfw:
-            body["nsfw"] = nsfw
-
-        if integration_types is not None:
-            body["integration_types"] = [i.value for i in integration_types]
-
-        if contexts is not None:
-            body["contexts"] = [i.value for i in contexts]
-
         response = await self._request(route=route, data=body)
 
         return self.entity_factory.deserialize_application_command(await response.json())
@@ -487,6 +480,8 @@ class RESTImpl(RESTAware):
         name: str,
         description: str,
         guild_id: SnowflakeT,
+        name_localizations: Dict[DiscordLocale, str] | None = None,
+        description_localizations: Dict[DiscordLocale, str] | None = None,
         app_cmd_type: ApplicationCommandTypes = ApplicationCommandTypes.CHAT_INPUT,
         default_permissions: bool = False,
         dm_permissions: bool = False,
@@ -496,35 +491,24 @@ class RESTImpl(RESTAware):
         integration_types: List[IntegrationTypes] = None,
         contexts: List[ApplicationCommandContexts] = None
     ) -> ApplicationCommandObject:
-        body = {"name": name, "description": description, "type": app_cmd_type.value}
+        body = self._build_application_payload(
+            name=name,
+            description=description,
+            guild_id=guild_id,
+            name_localizations=name_localizations,
+            description_localizations=description_localizations,
+            app_cmd_type=app_cmd_type,
+            default_permissions=default_permissions,
+            dm_permissions=dm_permissions,
+            default_member_permissions=default_member_permissions,
+            options=options,
+            nsfw=nsfw,
+            integration_types=integration_types,
+            contexts=contexts
+        )
         route = InteractionRoute.CREATE_GUILD_APPLICATION_COMMAND.build(
             application_id=application_id, guild_id=guild_id
         )
-
-        if default_permissions:
-            body["default_permissions"] = default_permissions
-
-        if dm_permissions:
-            body["dm_permissions"] = dm_permissions
-
-        if default_member_permissions is not None:
-            body["default_member_permissions"] = default_member_permissions
-
-        if guild_id is not None:
-            body["guild_id"] = guild_id
-
-        if options is not None:
-            body["options"] = [self.entity_factory.serialize_slash_option(option) for option in options]
-
-        if nsfw:
-            body["nsfw"] = nsfw
-
-        if integration_types is not None:
-            body["integration_types"] = [i.value for i in integration_types]
-
-        if contexts is not None:
-            body["contexts"] = [i.value for i in contexts]
-
         response = await self._request(route=route, data=body)
 
         return self.entity_factory.deserialize_application_command(await response.json())
@@ -597,7 +581,7 @@ class RESTImpl(RESTAware):
         allowed_mentions: AllowedMentions | None = None,
         components: ActionRow | None = None
     ) -> Message:
-        payload, _ = await self._build_payload(
+        payload, _ = await self._build_message_payload(
             content=content,
             embeds=embeds,
             embed=embed,
@@ -652,7 +636,7 @@ class RESTImpl(RESTAware):
         route = InteractionRoute.EDIT_ORIGINAL_INTERACTION_RESPONSE.build(
             application_id=application_id, interaction_token=interaction_token
         )
-        payload, _ = await self._build_payload(
+        payload, _ = await self._build_message_payload(
             content=content,
             embed=embed,
             embeds=embeds,
@@ -885,7 +869,7 @@ class RESTImpl(RESTAware):
 
         return route.method, url
 
-    async def _build_payload(
+    async def _build_message_payload(
         self,
         content: str | None = None,
         nonce: str | int | None = None,
@@ -972,6 +956,56 @@ class RESTImpl(RESTAware):
             form_data.add_field("payload_json", json.dumps(body))
 
         return body, form_data
+
+    def _build_application_payload(
+        self,
+        name: str,
+        description: str,
+        guild_id: SnowflakeT = None,
+        name_localizations: Dict[DiscordLocale, str] | None = None,
+        description_localizations: Dict[DiscordLocale, str] | None = None,
+        app_cmd_type: ApplicationCommandTypes = ApplicationCommandTypes.CHAT_INPUT,
+        default_permissions: bool = False,
+        dm_permissions: bool = False,
+        default_member_permissions: str = None,
+        options: List[ApplicationCommandOption] = None,
+        nsfw: bool = False,
+        integration_types: List[IntegrationTypes] = None,
+        contexts: List[ApplicationCommandContexts] = None
+    ) -> Dict:
+        body = {"name": name, "description": description, "type": app_cmd_type.value}
+
+        if name_localizations is not None:
+            body["name_localizations"] = name_localizations
+
+        if description_localizations is not None:
+            body["description_localizations"] = description_localizations
+
+        if default_permissions:
+            body["default_permissions"] = default_permissions
+
+        if dm_permissions:
+            body["dm_permissions"] = dm_permissions
+
+        if default_member_permissions is not None:
+            body["default_member_permissions"] = default_member_permissions
+
+        if guild_id is not None:
+            body["guild_id"] = guild_id
+
+        if options is not None:
+            body["options"] = [self.entity_factory.serialize_slash_option(option) for option in options]
+
+        if nsfw:
+            body["nsfw"] = nsfw
+
+        if integration_types is not None:
+            body["integration_types"] = [i.value for i in integration_types]
+
+        if contexts is not None:
+            body["contexts"] = [i.value for i in contexts]
+
+        return body
 
     async def _request(
         self,

@@ -66,6 +66,7 @@ from .permissions import Permissions
 from .message import Message, MessageReference, Attachment
 from .color import Color, RGB, Hex
 from .poll import Poll, PollResults, PollAnswer, PollMedia, PollMediaType, poll, Answer
+from .locales import DiscordLocale
 
 
 __all__ = (
@@ -140,5 +141,6 @@ __all__ = (
     "PollResults",
     "poll",
     "Answer",
-    "PartialEmoji"
+    "PartialEmoji",
+    "DiscordLocale"
 )
