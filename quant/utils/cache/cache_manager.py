@@ -30,7 +30,7 @@ if TYPE_CHECKING:
     from quant.entities.user import User
     from quant.entities.message import Message
 
-from quant.entities.snowflake import Snowflake
+from quant.entities.snowflake import Snowflake, SnowflakeOrInt
 from quant.entities.voice_state_update import VoiceState
 from quant.entities.guild import Guild
 from quant.entities.emoji import Emoji, Reaction
@@ -38,20 +38,18 @@ from quant.entities.channel import Channel
 from quant.utils.cache.cacheable import CacheableType
 from quant.entities.roles import GuildRole, empty_role
 
-SnowflakeOrInt = TypeVar("SnowflakeOrInt", bound=Snowflake | int)
-
 
 class CacheManager:
-    __cached_guilds: Dict[Snowflake, Guild] = {}
-    __cached_users: Dict[Snowflake, User] = {}
-    __cached_messages: Dict[Snowflake, Message] = {}
-    __cached_emojis: Dict[Snowflake, Emoji | Reaction] = {}
+    __cached_guilds: Dict[SnowflakeOrInt, Guild] = {}
+    __cached_users: Dict[SnowflakeOrInt, User] = {}
+    __cached_messages: Dict[SnowflakeOrInt, Message] = {}
+    __cached_emojis: Dict[SnowflakeOrInt, Emoji | Reaction] = {}
     __cached_components: List = []
-    __cached_channels: Dict[Snowflake, Channel] = {}
-    __cached_roles: Dict[Snowflake, GuildRole] = {}
+    __cached_channels: Dict[SnowflakeOrInt, Channel] = {}
+    __cached_roles: Dict[SnowflakeOrInt, GuildRole] = {}
 
-    def __init__(self, cacheable: CacheableType | None = None) -> None:
-        self.cacheable = cacheable.value if cacheable is not None else None
+    def __init__(self, cacheable: CacheableType) -> None:
+        self.cacheable = cacheable
 
     def add_user(self, user: User):
         """Adds user to cache."""
@@ -147,36 +145,55 @@ class CacheManager:
 
 
 class CacheHandlers(CacheManager):
-    def __init__(self, factory: EntityFactory) -> None:
+    def __init__(self, factory: EntityFactory, cacheable: CacheableType) -> None:
         self.entity_factory = factory
-        super().__init__()
+        super().__init__(cacheable=cacheable)
 
     def handle_ready(self, **kwargs) -> None:
         self.add_user(self.entity_factory.deserialize_user(kwargs))
 
+    def handle_user(self, **kwargs) -> None:
+        self.add_user(self.entity_factory.deserialize_user(kwargs))
+
     def handle_message(self, **kwargs) -> None:
+        if not self.cacheable & CacheableType.MESSAGE:
+            return
+
         self.add_message(self.entity_factory.deserialize_message(kwargs))
 
     def handle_guild(self, **kwargs) -> None:
+        if not self.cacheable & CacheableType.GUILD:
+            return
+
         guild_object = self.entity_factory.deserialize_guild(kwargs)
         self.add_guild(guild_object)
 
-        for role in guild_object.roles:
-            self.add_role(role)
+        if self.cacheable & CacheableType.ROLE:
+            for role in guild_object.roles:
+                self.add_role(role)
 
-        for channel in guild_object.channels:
-            self.add_channel(channel)
+        if self.cacheable & CacheableType.CHANNEL:
+            for channel in guild_object.channels:
+                self.add_channel(channel)
 
-        for emoji in guild_object.emojis:
-            self.add_emoji(emoji)
+        if self.cacheable & CacheableType.EMOJI:
+            for emoji in guild_object.emojis:
+                self.add_emoji(emoji)
 
         guild_object.members = [
             self.entity_factory.deserialize_member(member_data, Snowflake(guild_object.id))
             for member_data in kwargs.get("members", [])
         ]
 
+        if self.cacheable & CacheableType.USER:
+            for member in guild_object.members:
+                self.add_user(member.user)
+
     def handle_guild_delete(self, **kwargs) -> None:
-        del self.__cached_guilds[Snowflake(kwargs["id"])]
+        guild_id = Snowflake(kwargs.get("id"))
+
+        if guild_id in self.__cached_guilds:
+            del self.__cached_guilds[Snowflake(kwargs["id"])]
 
     def handle_voice_state_update(self, **kwargs) -> None:
         state = self.entity_factory.deserialize_voice_state(kwargs)
@@ -187,5 +204,3 @@ class CacheHandlers(CacheManager):
 
     def handle_channel_create(self, **kwargs) -> None:
         self.add_channel(self.entity_factory.deserialize_channel(kwargs))
-
-# мама сказала, что я умный (fr)

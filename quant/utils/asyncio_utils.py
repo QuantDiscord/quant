@@ -20,31 +20,28 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
-
-import asyncio
 import warnings
-from asyncio import AbstractEventLoop
+from asyncio import AbstractEventLoop, get_event_loop_policy, new_event_loop, set_event_loop
 from contextlib import suppress
 
 
-# https://github.com/hikari-py/hikari/blob/4eda2eef15681143ca7957f6f5cec1df1461fd39/hikari/internal/aio.py#L195
 def get_loop() -> AbstractEventLoop:
     with suppress(RuntimeError):
         with warnings.catch_warnings():
             warnings.simplefilter("ignore", DeprecationWarning)
-            loop = asyncio.get_event_loop_policy().get_event_loop()
+            loop = get_event_loop_policy().get_event_loop()
 
         if not loop.is_closed():
             return loop
 
-    loop = asyncio.new_event_loop()
-    asyncio.set_event_loop(loop)
+    loop = new_event_loop()
+    set_event_loop(loop)
     return loop
 
 
-def create_loop() -> asyncio.AbstractEventLoop:
-    loop = asyncio.new_event_loop()
-    asyncio.set_event_loop(loop)
+def create_loop() -> AbstractEventLoop:
+    loop = new_event_loop()
+    set_event_loop(loop)
 
     return loop
 
@@ -56,5 +53,5 @@ def kill_loop() -> None:
         return
 
     loop.close()
-    asyncio.set_event_loop(None)
+    set_event_loop(None)
     loop.stop()

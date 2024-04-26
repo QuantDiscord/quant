@@ -38,15 +38,15 @@ from typing import (
     cast
 )
 
-from quant.entities.factory import EventFactory
-from quant.entities.factory.event_controller import EventController
-from quant.utils.cache.cache_manager import CacheManager
-
 if TYPE_CHECKING:
     from quant.impl.core.commands import ApplicationCommandObject
     from quant.entities.button import Button
 
 import quant.utils.asyncio_utils as asyncio_utils
+from quant.entities.factory import EventFactory
+from quant.entities.factory.event_controller import EventController
+from quant.utils.cache.cache_manager import CacheManager
+from quant.utils.cache.cacheable import CacheableType
 from quant.utils import logger
 from quant.entities.interactions.slash_option import ApplicationCommandOption
 from quant.entities.gateway import GatewayInfo
@@ -70,6 +70,7 @@ from quant.impl.core.rest import RESTImpl
 from quant.impl.events.event import Event, InternalEvent, DiscordEvent
 from quant.entities.model import BaseModel
 from quant.entities.activity import ActivityData
+from quant.utils.cache.cacheable import CacheableType
 
 CoroutineT = TypeVar("CoroutineT", bound=Callable[..., Coroutine[Any, Any, Any]])
 
@@ -125,14 +126,15 @@ class Client:
         intents: Intents = Intents.ALL_UNPRIVILEGED,
         mobile: bool = False,
         asyncio_debug: bool = False,
-        sync_commands: bool = True
+        sync_commands: bool = True,
+        cacheable: CacheableType = CacheableType.ALL
     ) -> None:
         self.me: User | None = None
         self.shards: List[Shard] = []
         self.token = token
         self.intents = intents
         self.loop = asyncio_utils.get_loop()
-        self.cache = CacheManager()
+        self.cache = CacheManager(cacheable=cacheable)
         self.event_factory = EventFactory(self.cache)
         self.event_controller = EventController(self.event_factory)
         self.rest = RESTImpl(token, cache=self.cache)

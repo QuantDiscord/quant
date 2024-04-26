@@ -23,7 +23,7 @@ SOFTWARE.
 """
 from .entities import *
 from .impl import *
-from .utils import has_permissions
+from .utils import has_permissions, CacheableType
 
 
 __version__ = "1.5"

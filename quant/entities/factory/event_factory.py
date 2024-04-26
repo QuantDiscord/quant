@@ -90,7 +90,7 @@ class EventFactory:
         self._listener_transformer[fields.event_api_name.default] = event
 
     def cache_item(self, event_name: EventTypes, **kwargs) -> None:
-        cache_handler = CacheHandlers(self.entity_factory)
+        cache_handler = CacheHandlers(self.entity_factory, cacheable=self.cache.cacheable)
         handlers = {
             EventTypes.READY_EVENT: cache_handler.handle_ready,
             EventTypes.MESSAGE_CREATE: cache_handler.handle_message,

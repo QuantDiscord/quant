@@ -25,10 +25,12 @@ import logging
 
 from quant.impl.core.exceptions.command_exceptions import NotEnoughPermissions
 from quant.entities.permissions import Permissions
+from quant.utils.cache.cacheable import CacheableType
 
 __all__ = (
     "has_permissions",
-    "logger"
+    "logger",
+    "CacheableType"
 )
 
 

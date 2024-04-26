@@ -22,6 +22,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 from functools import reduce
+from typing import TypeVar
 
 
 class SnowflakeException(Exception):
@@ -67,3 +68,6 @@ class Snowflake(int):
             self.increment = 0
 
         return reduce(lambda x, y: x + y, snowflake_segments)
+
+
+SnowflakeOrInt = TypeVar("SnowflakeOrInt", bound=Snowflake | int)
