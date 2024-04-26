@@ -41,7 +41,7 @@ class ChannelCreateEvent(DiscordEvent):
     channel: Channel = attrs.field(default=None)
 
     def emit(self, *args, **kwargs) -> Self:
-        self.channel = Channel(**kwargs)
+        self.channel = self.entity_factory.deserialize_channel(kwargs)
         self.cache_manager.add_channel(self.channel)
 
         return self

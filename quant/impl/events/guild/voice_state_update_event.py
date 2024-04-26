@@ -41,5 +41,5 @@ class VoiceStateUpdateEvent(DiscordEvent):
     state: VoiceState = attrs.field(default=None)
 
     def emit(self, *args, **kwargs) -> Self:
-        self.state = VoiceState(**kwargs)
+        self.state = self.entity_factory.deserialize_voice_state(kwargs)
         return self

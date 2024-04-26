@@ -45,7 +45,7 @@ class MessageCreateEvent(DiscordEvent):
         if kwargs is None:
             return
 
-        self.message = Message(**kwargs)
+        self.message = self.entity_factory.deserialize_message(kwargs)
         self.cache_manager.add_message(self.message)
 
         return self
@@ -58,7 +58,7 @@ class MessageEditEvent(DiscordEvent):
     new_message: Message = attrs.field(default=None)
 
     def emit(self, *args, **kwargs) -> Self:
-        self.new_message = Message(**kwargs)
+        self.new_message = self.entity_factory.deserialize_message(kwargs)
         message = self.cache_manager.get_message(int(kwargs.get("id")))
 
         if message is None:

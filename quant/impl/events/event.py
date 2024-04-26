@@ -32,6 +32,7 @@ if TYPE_CHECKING:
     from typing_extensions import Self
 
 from quant.impl.events.types import EventTypes
+from quant.entities.factory.entity_factory import EntityFactory
 from quant.utils.cache.cache_manager import CacheManager
 
 
@@ -56,3 +57,4 @@ class InternalEvent(ABC, Event):
 class DiscordEvent(Event):
     event_api_name: EventTypes = attrs.field()
     cache_manager: CacheManager = attrs.field()
+    entity_factory: EntityFactory = attrs.field()

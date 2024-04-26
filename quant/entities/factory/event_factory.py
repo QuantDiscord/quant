@@ -135,7 +135,8 @@ class EventFactory:
                 self_video=self_video,
                 suppress=suppress,
                 request_to_speak_timestamp=request_to_speak_timestamp
-            )
+            ),
+            entity_factory=self.entity_factory
         )
 
     def deserialize_voice_server_update_event(
@@ -150,7 +151,8 @@ class EventFactory:
                 token=token,
                 guild_id=guild_id,
                 endpoint=endpoint
-            )
+            ),
+            entity_factory=self.entity_factory
         )
 
     def deserialize_reaction_create_event(
@@ -179,7 +181,8 @@ class EventFactory:
                 emoji=emoji,
                 burst=burst,
                 burst_colors=burst_colors
-            )
+            ),
+            entity_factory=self.entity_factory
         )
 
     def deserialize_reaction_remove_event(
@@ -208,14 +211,16 @@ class EventFactory:
                 emoji=emoji,
                 burst=burst,
                 burst_colors=burst_colors
-            )
+            ),
+            entity_factory=self.entity_factory
         )
 
     def deserialize_message_create_event(self, payload: Dict) -> events.MessageCreateEvent:
         message = self.entity_factory.deserialize_message(payload)
         return events.MessageCreateEvent(
             cache_manager=self.cache,
-            message=message
+            message=message,
+            entity_factory=self.entity_factory
         )
 
     def deserialize_message_delete_event(self, payload: Dict) -> events.MessageDeleteEvent:
@@ -223,28 +228,32 @@ class EventFactory:
         return events.MessageDeleteEvent(
             cache_manager=self.cache,
             author=message.author,
-            message=message
+            message=message,
+            entity_factory=self.entity_factory
         )
 
     def deserialize_message_edit_event(self, payload: Dict) -> events.MessageEditEvent:
         return events.MessageEditEvent(
             cache_manager=self.cache,
             old_message=self.cache.get_message(entities.Snowflake(payload.get("id"))),
-            new_message=self.entity_factory.deserialize_message(payload)
+            new_message=self.entity_factory.deserialize_message(payload),
+            entity_factory=self.entity_factory
         )
 
     def deserialize_guild_create_event(self, payload: Dict) -> events.GuildCreateEvent:
         return events.GuildCreateEvent(
             cache_manager=self.cache,
-            guild=self.entity_factory.deserialize_guild(payload)
+            guild=self.entity_factory.deserialize_guild(payload),
+            entity_factory=self.entity_factory
         )
 
     def deserialize_interaction_event(self, payload: Dict) -> events.InteractionCreateEvent:
         interaction = self.entity_factory.deserialize_interaction(payload)
         return events.InteractionCreateEvent(
             cache_manager=self.cache,
-            interaction=interaction
+            interaction=interaction,
+            entity_factory=self.entity_factory
         )
 
     def deserialize_ready_event(self, _: Dict) -> events.ReadyEvent:
-        return events.ReadyEvent(cache_manager=self.cache)
+        return events.ReadyEvent(cache_manager=self.cache, entity_factory=self.entity_factory)

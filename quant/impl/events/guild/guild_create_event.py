@@ -41,7 +41,7 @@ class GuildCreateEvent(DiscordEvent):
     guild: Guild = attrs.field(default=None)
 
     def emit(self, *args, **kwargs) -> Self:
-        self.guild = Guild(**kwargs)
+        self.guild = self.entity_factory.deserialize_guild(kwargs)
         self.cache_manager.add_guild(self.guild)
 
         return self
