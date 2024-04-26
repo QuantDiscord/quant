@@ -262,7 +262,7 @@ class Client:
 
         Examples
         --------
-        . highlight:: python
+        .. highlight:: python
             :linenothreshold: 5
 
         With two arguments: ::
