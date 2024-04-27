@@ -23,3 +23,5 @@ SOFTWARE.
 """
 from .http_manager_abc import HttpManager
 from .rest_aware import RESTAware
+
+__all__ = ("RESTAware", "HttpManager")
