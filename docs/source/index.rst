@@ -13,6 +13,7 @@ Quant created because why not?
     :caption: Documentation
 
     start
+    rest
     client
     message
     activity

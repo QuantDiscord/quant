@@ -21,24 +21,40 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
-from __future__ import annotations as _
+from __future__ import annotations
 
-from typing import List, Any, Dict, TYPE_CHECKING
+import datetime
 from abc import ABC, abstractmethod
+from typing import List, Any, Dict, TYPE_CHECKING, TypeVar
 
 if TYPE_CHECKING:
+    from quant.impl.core.commands import ApplicationCommandObject, ApplicationCommandContexts
     from quant.entities.action_row import ActionRow
 
+from quant.impl.files import AttachableURL, File
+from quant.entities.gateway import GatewayInfo
+from quant.entities.interactions.application_command import ApplicationCommandTypes
+from quant.entities.message import MessageReference
 from quant.entities.interactions.slash_option import ApplicationCommandOption
+from quant.entities.snowflake import Snowflake
+from quant.entities.member import GuildMember
 from quant.entities.guild import Guild
+from quant.entities.user import User
+from quant.entities.roles import GuildRole
 from quant.entities.emoji import Emoji
-from quant.entities.interactions.interaction import InteractionCallbackType, InteractionCallbackData
+from quant.entities.invite import Invite
+from quant.entities.integration import IntegrationTypes
+from quant.entities.modal.modal import ModalInteractionCallbackData
+from quant.entities.interactions.interaction import InteractionCallbackData, InteractionCallbackType
 from quant.entities.allowed_mentions import AllowedMentions
 from quant.entities.message import Message, Attachment
 from quant.entities.embeds import Embed
 from quant.entities.webhook import Webhook
-from quant.entities.snowflake import Snowflake
-from quant.entities.invite import Invite
+from quant.entities.poll import Poll
+from quant.entities.locales import DiscordLocale
+
+SnowflakeT = TypeVar("SnowflakeT", bound=int | Snowflake)
+AttachmentT = TypeVar("AttachmentT", bound=AttachableURL | File | Attachment)
 
 
 class RESTAware(ABC):
@@ -56,19 +72,48 @@ class RESTAware(ABC):
         components: List[Any] = None,
         files: List[Any] = None,
         payload_json: str = None,
-        attachments: List[Attachment] = None,
+        attachments: List[AttachmentT] | None = None,
         flags: int = None,
         thread_name: str = None
     ) -> None:
-        raise NotImplementedError
+        """
+        Executes a webhook.
+
+        webhook_url: :class:`str`
+        content: :class:`str`, optional
+        username: :class:`str`, optional
+        avatar_url: :class:`str`, optional
+        tts: :class:`bool`, optional
+        embed: :class:`Embed`, optional
+        embeds: List[:class:`Embed`], optional
+        allowed_mentions: :class:`AllowedMentions`, optional
+        components: List[:class:`Any`], optional
+        files: List[:class:`Any`], optional
+        payload_json: :class:`str`, optional
+        attachments: List[:class:`AttachmentT`] | None, optional
+        flags: :class:`int`, optional
+        thread_name: :class:`str`, optional
+        """
 
     @abstractmethod
     async def create_webhook(self, channel_id: int, name: str, avatar: str = None, reason: str = None) -> Webhook:
-        raise NotImplementedError
+        """
+        Creates a webhook.
+
+        channel_id: :class:`int`
+        name: :class:`str`
+        avatar: :class:`str`, optional
+        reason: :class:`str`, optional
+        """
 
     @abstractmethod
     async def fetch_emoji(self, guild_id: int, emoji: str) -> Emoji:
-        raise NotImplementedError
+        """
+        Fetches an emoji.
+
+        guild_id: :class:`int`
+        emoji: :class:`str`
+        """
 
     @abstractmethod
     async def create_reaction(
@@ -79,39 +124,81 @@ class RESTAware(ABC):
         message_id: int = None,
         reason: str = None
     ) -> Emoji | str:
-        raise NotImplementedError
+        """
+        Creates a reaction.
+
+        emoji: :class:`str`
+        guild_id: :class:`int`, optional
+        channel_id: :class:`int`, optional
+        message_id: :class:`int`, optional
+        reason: :class:`str`, optional
+        """
 
     @abstractmethod
     async def delete_message(self, channel_id: int, message_id: int, reason: str = None) -> None:
-        raise NotImplementedError
+        """
+        Deletes a message.
+
+        channel_id: :class:`int`
+        message_id: :class:`int`
+        reason: :class:`str`, optional
+        """
 
     @abstractmethod
     async def create_message(
         self,
         channel_id: int,
-        content: str = None,
-        nonce: str | int = None,
+        content: str | None = None,
+        nonce: str | int | None = None,
         tts: bool = False,
-        embed: Embed = None,
-        embeds: List[Embed] = None,
-        allowed_mentions: AllowedMentions = None,
-        message_reference=None,
-        components: List[Dict[str, Any]] = None,
+        embed: Embed | None = None,
+        embeds: List[Embed] | None = None,
+        allowed_mentions: AllowedMentions | None = None,
+        message_reference: MessageReference = None,
+        components: ActionRow | None = None,
         sticker_ids: List = None,
-        files=None,
-        payload_json: str = None,
-        attachments: List[Attachment] = None,
-        flags: int = None
-    ):
-        raise NotImplementedError
+        files: List[Any] | None = None,
+        payload_json: str | None = None,
+        attachments: List[AttachmentT] | None = None,
+        flags: int | None = None,
+        poll: Poll | None = None
+    ) -> Message:
+        """
+        Creates a message.
+
+        channel_id: :class:`int`
+        content: :class:`str`, optional
+        nonce: :class:`str` | :class:`int`, optional
+        tts: :class:`bool`, optional
+        embed: :class:`Embed`, optional
+        embeds: List[:class:`Embed`] | None, optional
+        allowed_mentions: :class:`AllowedMentions` | None, optional
+        message_reference: :class:`MessageReference`, optional
+        components: :class:`ActionRow` | None, optional
+        sticker_ids: :class:`List`, optional
+        files: List[:class:`Any`] | None, optional
+        payload_json: :class:`str` | None, optional
+        attachments: List[:class:`AttachmentT`] | None, optional
+        flags: :class:`int` | None, optional
+        poll: :class:`Poll` | None, optional
+        """
 
     @abstractmethod
     async def fetch_guild(self, guild_id: int, with_counts: bool = False) -> Guild:
-        raise NotImplementedError
+        """
+        Fetches a guild.
+
+        guild_id: :class:`int`
+        with_counts: :class:`bool`, optional
+        """
 
     @abstractmethod
     async def delete_guild(self, guild_id: int) -> None:
-        raise NotImplementedError
+        """
+        Deletes a guild.
+
+        guild_id: :class:`int`
+        """
 
     @abstractmethod
     async def create_guild(
@@ -129,19 +216,115 @@ class RESTAware(ABC):
         system_channel_id: int | None = None,
         system_channel_flags: int = 0
     ) -> Guild:
-        raise NotImplementedError
+        """
+        Creates a guild.
+
+        name: :class:`str`
+        region: :class:`str`, optional
+        icon: :class:`Any`, optional
+        verification_level: :class:`int` | None, optional
+        default_message_notifications: :class:`int` | None, optional
+        explicit_content_filter: :class:`int` | None, optional
+        roles: :class:`List`, optional
+        channels: :class:`List`, optional
+        afk_channel_id: :class:`int` | None, optional
+        afk_timeout: :class:`int` | None, optional
+        system_channel_id: :class:`int` | None, optional
+        system_channel_flags: :class:`int`, optional
+        """
+
+    @abstractmethod
+    async def create_guild_ban(
+        self,
+        guild_id: SnowflakeT,
+        member_id: SnowflakeT,
+        reason: str,
+        delete_message_days: int,
+        delete_message_seconds: int
+    ) -> None:
+        """
+        Bans a member from a guild.
+
+        guild_id: :class:`SnowflakeT`
+        member_id: :class:`SnowflakeT`
+        reason: :class:`str`
+        delete_message_days: :class:`int`
+        delete_message_seconds: :class:`int`
+        """
+
+    @abstractmethod
+    async def remove_guild_member(
+        self,
+        user_id: SnowflakeT,
+        guild_id: SnowflakeT,
+        reason: str | None = None
+    ) -> None:
+        """
+        Removes a member from a guild.
+
+        user_id: :class:`SnowflakeT`
+        guild_id: :class:`SnowflakeT`
+        reason: :class:`str` | None, optional
+        """
 
     @abstractmethod
     async def create_interaction_response(
-        self, interaction_type: InteractionCallbackType,
-        interaction_data: InteractionCallbackData, interaction_id: int,
+        self,
+        interaction_type: InteractionCallbackType,
+        interaction_data: InteractionCallbackData | ModalInteractionCallbackData | None,
+        interaction_id: int,
         interaction_token: str
     ) -> None:
-        raise NotImplementedError
+        """
+        Creates an interaction response.
+
+        interaction_type: :class:`InteractionCallbackType`
+        interaction_data: :class:`InteractionCallbackData` | :class:`ModalInteractionCallbackData` | None
+        interaction_id: :class:`int`
+        interaction_token: :class:`str`
+        """
+
+    @abstractmethod
+    async def create_followup_message(
+        self,
+        application_id: int,
+        interaction_token: str,
+        content: str = None,
+        tts: bool = False,
+        embed: Embed = None,
+        embeds: List[Embed] = None,
+        allowed_mentions: AllowedMentions = None,
+        components: List[Any] = None,
+        payload_json: str = None,
+        attachments: List[AttachmentT] | None = None,
+        flags: int = None,
+        thread_name: str = None
+    ) -> None:
+        """
+        Creates a follow-up message for an interaction.
+
+        application_id: :class:`int`
+        interaction_token: :class:`str`
+        content: :class:`str`
+        tts: :class:`bool`
+        embed: :class:`Embed`
+        embeds: :class:`List[Embed]`
+        allowed_mentions: :class:`AllowedMentions`
+        components: :class:`List[Any]`
+        payload_json: :class:`str`
+        attachments: List[:class:`AttachmentT`] | None
+        flags: :class:`int`
+        thread_name: :class:`str`
+        """
 
     @abstractmethod
     async def fetch_message(self, channel_id: int, message_id: int) -> Message:
-        raise NotImplementedError
+        """
+        Fetches a message.
+
+        channel_id: :class:`int`
+        message_id: :class:`int`
+        """
 
     @abstractmethod
     async def create_application_command(
@@ -149,13 +332,34 @@ class RESTAware(ABC):
         application_id: int,
         name: str,
         description: str,
+        name_localizations: Dict[DiscordLocale, str] | None = None,
+        description_localizations: Dict[DiscordLocale, str] | None = None,
+        app_cmd_type: ApplicationCommandTypes = ApplicationCommandTypes.CHAT_INPUT,
         default_permissions: bool = False,
         dm_permissions: bool = False,
         default_member_permissions: str = None,
         options: List[ApplicationCommandOption] = None,
-        nsfw: bool = False
-    ) -> None:
-        raise NotImplementedError
+        nsfw: bool = False,
+        integration_types: List[IntegrationTypes] = None,
+        contexts: List[ApplicationCommandContexts] = None
+    ) -> ApplicationCommandObject:
+        """
+        Creates a global application command.
+
+        application_id: :class:`int`
+        name: :class:`str`
+        description: :class:`str`
+        name_localizations: Dict[:class:`DiscordLocale`, :class:`str`] | None
+        description_localizations: Dict[:class:`DiscordLocale`, :class:`str`] | None
+        app_cmd_type: :class:`ApplicationCommandTypes`
+        default_permissions: :class:`bool`
+        dm_permissions: :class:`bool`
+        default_member_permissions: :class:`str`
+        options: List[:class:`ApplicationCommandOption`]
+        nsfw: :class:`bool`
+        integration_types: List[:class:`IntegrationTypes`]
+        contexts: List[:class:`ApplicationCommandContexts`]
+        """
 
     @abstractmethod
     async def create_guild_application_command(
@@ -163,52 +367,157 @@ class RESTAware(ABC):
         application_id: int,
         name: str,
         description: str,
-        guild_id: int | Snowflake,
+        guild_id: SnowflakeT,
+        name_localizations: Dict[DiscordLocale, str] | None = None,
+        description_localizations: Dict[DiscordLocale, str] | None = None,
+        app_cmd_type: ApplicationCommandTypes = ApplicationCommandTypes.CHAT_INPUT,
         default_permissions: bool = False,
         dm_permissions: bool = False,
         default_member_permissions: str = None,
         options: List[ApplicationCommandOption] = None,
-        nsfw: bool = False
-    ) -> None:
-        raise NotImplementedError
+        nsfw: bool = False,
+        integration_types: List[IntegrationTypes] = None,
+        contexts: List[ApplicationCommandContexts] = None
+    ) -> ApplicationCommandObject:
+        """
+        Creates a guild application command.
 
+        application_id: :class:`int`
+        name: :class:`str`
+        description: :class:`str`
+        guild_id: :class:`SnowflakeT`
+        name_localizations: Dict[:class:`DiscordLocale`, :class:`str`] | None
+        description_localizations: Dict[:class:`DiscordLocale`, :class:`str`] | None
+        app_cmd_type: :class:`ApplicationCommandTypes`
+        default_permissions: :class:`bool`
+        dm_permissions: :class:`bool`
+        default_member_permissions: :class:`str`
+        options: :class:`List[ApplicationCommandOption]`
+        nsfw: :class:`bool`
+        integration_types: :class:`List[IntegrationTypes]`
+        contexts: :class:`List[ApplicationCommandContexts]`
+        """
+
+    @abstractmethod
+    async def delete_guild_application_command(
+        self,
+        application_id: int,
+        guild_id: SnowflakeT,
+        command_id: SnowflakeT
+    ) -> None:
+        """
+        Deletes a guild application command.
+
+        application_id: :class:`int`
+        guild_id: :class:`SnowflakeT`
+        command_id: :class:`SnowflakeT`
+        """
+
+    @abstractmethod
+    async def delete_global_application_command(
+        self,
+        application_id: int,
+        command_id: SnowflakeT
+    ) -> None:
+        """
+        Deletes a global application command.
+
+        application_id: :class:`int`
+        command_id: :class:`SnowflakeT`
+        """
+
+    @abstractmethod
+    async def fetch_guild_application_commands(
+        self,
+        application_id: int,
+        guild_id: int,
+        with_localizations: bool = False
+    ) -> List[ApplicationCommandObject]:
+        """
+        Fetches guild application commands.
+
+        application_id: :class:`int`
+        guild_id: :class:`int`
+        with_localizations: :class:`bool`
+        """
+
+    @abstractmethod
+    async def fetch_global_application_commands(
+        self,
+        application_id: int,
+        with_localizations: bool = False
+    ) -> List[ApplicationCommandObject]:
+        """
+        Fetches global application commands.
+
+        application_id: :class:`int`
+        with_localizations: :class:`bool`
+        """
 
     @abstractmethod
     async def fetch_initial_interaction_response(self, application_id: int, interaction_token: str) -> Message:
-        raise NotImplementedError
+        """
+        Fetches the initial interaction response.
+
+        application_id: :class:`int`
+        interaction_token: :class:`str`
+        """
 
     @abstractmethod
     async def edit_message(
         self,
-        channel_id: Snowflake | int,
-        message_id: Snowflake | int,
+        channel_id: SnowflakeT,
+        message_id: SnowflakeT,
         content: str | None = None,
         embed: Embed | None = None,
         embeds: List[Embed] | None = None,
         flags: int | None = None,
         allowed_mentions: AllowedMentions | None = None,
         components: ActionRow | None = None
-    ) -> Message:  # TODO: File uploading later
-        raise NotImplementedError
+    ) -> Message:
+        """
+        Edits a message.
+
+        channel_id: :class:`SnowflakeT`
+        message_id: :class:`SnowflakeT`
+        content: :class:`str`
+        embed: :class:`Embed`
+        embeds: :class:`List[Embed]` | None
+        flags: :class:`int` | None
+        allowed_mentions: :class:`AllowedMentions` | None
+        components: :class:`ActionRow` | None
+        """
 
     @abstractmethod
     async def delete_all_reactions(self, channel_id: Snowflake, message_id: Snowflake) -> None:
-        raise NotImplementedError
+        """
+        Deletes all reactions from a message.
+
+        channel_id: :class:`Snowflake`
+        message_id: :class:`Snowflake`
+        """
 
     @abstractmethod
     async def delete_all_reactions_for_emoji(
         self,
-        guild_id: Snowflake | int,
-        channel_id: Snowflake | int,
-        message_id: Snowflake | int,
+        guild_id: SnowflakeT,
+        channel_id: SnowflakeT,
+        message_id: SnowflakeT,
         emoji: str | Snowflake | Emoji
-    ):
-        raise NotImplementedError
+    ) -> None:
+        """
+        Deletes all reactions for a specific emoji from a message.
+
+        guild_id: :class:`SnowflakeT`
+        channel_id: :class:`SnowflakeT`
+        message_id: :class:`SnowflakeT`
+        emoji: :class:`str` | :class:`Snowflake` | :class:`Emoji`
+        """
 
     @abstractmethod
     async def edit_original_interaction_response(
         self,
-        application_id: int | Snowflake,
+        application_id: SnowflakeT,
         interaction_token: str,
         content: str | None = None,
         embed: Embed | None = None,
@@ -217,10 +526,50 @@ class RESTAware(ABC):
         components: ActionRow | None = None,
         files: List[Any] | None = None,
         payload_json: str | None = None,
-        attachments: List[Attachment] | None = None,
-        thread_id: int | Snowflake | None = None
+        attachments: List[AttachmentT] | None = None,
+        thread_id: SnowflakeT = None
     ) -> Message:
-        raise NotImplementedError
+        """
+        Edits the original interaction response.
+
+        application_id: :class:`SnowflakeT`
+        interaction_token: :class:`str`
+        content: :class:`str`
+        embed: :class:`Embed`
+        embeds: :class:`List[Embed]`
+        allowed_mentions: :class:`AllowedMentions`
+        components: :class:`ActionRow`
+        files: :class:`List[Any]`
+        payload_json: :class:`str`
+        attachments: :class:`List[AttachmentT]`
+        thread_id: :class:`SnowflakeT`
+        """
+
+    @abstractmethod
+    async def bulk_overwrite_global_app_commands(
+        self, application_id: SnowflakeT, commands: List[ApplicationCommandObject] | None = None
+    ) -> List[ApplicationCommandObject]:
+        """
+        Bulk overwrites global application commands.
+
+        application_id: :class:`SnowflakeT`
+        commands: List[:class:`ApplicationCommandObject`]
+        """
+
+    @abstractmethod
+    async def bulk_overwrite_guild_app_commands(
+        self,
+        application_id: SnowflakeT,
+        guild_id: SnowflakeT,
+        commands: List[ApplicationCommandObject] | None = None
+    ) -> List[ApplicationCommandObject]:
+        """
+        Bulk overwrites guild application commands.
+
+        application_id: :class:`SnowflakeT`
+        guild_id: :class:`SnowflakeT`
+        commands: List[:class:`ApplicationCommandObject`]
+        """
 
     @abstractmethod
     async def fetch_invite(
@@ -230,12 +579,147 @@ class RESTAware(ABC):
         with_expiration: bool = False,
         guild_scheduled_event_id: Snowflake | None = None
     ) -> Invite:
-        raise NotImplementedError
+        """
+        Fetches an invite.
+
+        invite_code: :class:`str`
+        with_counts: :class:`bool`
+        with_expiration: :class:`bool`
+        guild_scheduled_event_id: :class:`Snowflake`
+        """
 
     @abstractmethod
     async def delete_invite(self, invite_code: str, reason: str | None = None) -> Invite:
-        raise NotImplementedError
+        """
+        Deletes an invite.
+
+        invite_code: :class:`str`
+        reason: :class:`str`
+        """
 
     @abstractmethod
     async def fetch_guild_invites(self, guild_id: Snowflake) -> List[Invite]:
-        raise NotImplementedError
+        """
+        Fetches invites for a guild.
+
+        guild_id: :class:`Snowflake`
+        """
+
+    @abstractmethod
+    async def fetch_guild_members(
+        self,
+        guild_id: SnowflakeT,
+        limit: int = 1,
+        after: Snowflake = Snowflake(0)
+    ) -> List[GuildMember]:
+        """
+        Fetches guild members.
+
+        guild_id: :class:`SnowflakeT`
+        limit: :class:`int`
+        after: :class:`Snowflake`
+        """
+
+    @abstractmethod
+    async def fetch_guild_roles(self, guild_id: SnowflakeT) -> List[GuildRole]:
+        """
+        Fetches guild roles.
+
+        guild_id: :class:`SnowflakeT`
+        """
+
+    @abstractmethod
+    async def fetch_user(self, user_id: SnowflakeT) -> User:
+        """
+        Fetches a user.
+
+        user_id: :class:`SnowflakeT`
+        """
+
+    @abstractmethod
+    async def fetch_guild_member(self, guild_id: SnowflakeT, user_id: SnowflakeT) -> GuildMember:
+        """
+        Fetches a guild member.
+
+        guild_id: :class:`SnowflakeT`
+        user_id: :class:`SnowflakeT`
+        """
+
+    @abstractmethod
+    async def modify_guild_member(
+        self,
+        user_id: SnowflakeT,
+        guild_id: SnowflakeT,
+        nick: str | None = None,
+        roles: List[SnowflakeT] | None = None,
+        mute: bool | None = None,
+        deaf: bool | None = None,
+        move_channel_id: SnowflakeT = None,
+        communication_disabled_until: datetime.datetime | None = None,
+        flags: int | None = None,
+        reason: str | None = None
+    ) -> GuildMember:
+        """
+        Modifies a guild member.
+
+        user_id: :class:`SnowflakeT`
+        guild_id: :class:`SnowflakeT`
+        nick: :class:`str`
+        roles: :class:`List[SnowflakeT]`
+        mute: :class:`bool`
+        deaf: :class:`bool`
+        move_channel_id: :class:`SnowflakeT`
+        communication_disabled_until: :class:`datetime.datetime`
+        flags: :class:`int`
+        reason: :class:`str`
+        """
+
+    @abstractmethod
+    async def add_guild_member_role(
+        self,
+        guild_id: SnowflakeT,
+        user_id: SnowflakeT,
+        role_id: SnowflakeT
+    ) -> None:
+        """
+        Adds a role to a guild member.
+
+        guild_id: :class:`SnowflakeT`
+        user_id: :class:`SnowflakeT`
+        role_id: :class:`SnowflakeT`
+        """
+
+    @abstractmethod
+    async def get_gateway(self) -> GatewayInfo:
+        """
+        Gets the gateway information.
+        """
+
+    @abstractmethod
+    async def get_poll_answers(
+        self,
+        channel_id: SnowflakeT,
+        message_id: SnowflakeT,
+        answer_id: int,
+        after: Snowflake | None = Snowflake(0),
+        limit: int = 100
+    ) -> List[User]:
+        """
+        Gets poll answers.
+
+        channel_id: :class:`SnowflakeT`
+        message_id: :class:`SnowflakeT`
+        answer_id: :class:`int`
+        after: :class:`Snowflake`
+        limit: :class:`int`
+        """
+
+    @abstractmethod
+    async def end_poll_immediately(self, channel_id: SnowflakeT, message_id: SnowflakeT) -> Message:
+        """[coro]
+
+        Ends poll
+
+        channel_id: :class:`SnowflakeT`
+        message_id: :class:`SnowflakeT`
+        """
