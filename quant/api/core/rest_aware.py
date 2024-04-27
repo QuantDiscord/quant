@@ -82,18 +82,31 @@ class RESTAware(ABC):
         Parameters
         ==========
         webhook_url: :class:`str`
+        
         content: :class:`str`
+
         username: :class:`str`
+
         avatar_url: :class:`str`
+
         tts: :class:`bool`
+
         embed: :class:`Embed`
+
         embeds: List[:class:`Embed`]
+
         allowed_mentions: :class:`AllowedMentions`
+
         components: List[:class:`Any`]
+
         files: List[:class:`Any`]
+
         payload_json: :class:`str`
+
         attachments: List[:class:`AttachmentT`] | None
+
         flags: :class:`int`
+
         thread_name: :class:`str`
         """
 
@@ -106,8 +119,11 @@ class RESTAware(ABC):
         Parameters
         ==========
         channel_id: :class:`int`
+
         name: :class:`str`
+
         avatar: :class:`str`
+
         reason: :class:`str`
         """
 
@@ -119,6 +135,7 @@ class RESTAware(ABC):
         Parameters
         ==========
         guild_id: :class:`int`
+
         emoji: :class:`str`
         """
 
@@ -137,9 +154,13 @@ class RESTAware(ABC):
         Parameters
         ==========
         emoji: :class:`str`
+
         guild_id: :class:`int`
+
         channel_id: :class:`int`
+
         message_id: :class:`int`
+
         reason: :class:`str`
         """
 
@@ -151,7 +172,9 @@ class RESTAware(ABC):
         Parameters
         ==========
         channel_id: :class:`int`
+
         message_id: :class:`int`
+
         reason: :class:`str`
         """
 
@@ -180,19 +203,33 @@ class RESTAware(ABC):
         Parameters
         ==========
         channel_id: :class:`int`
+
         content: :class:`str`
+
         nonce: :class:`str` | :class:`int`
+
         tts: :class:`bool`
+
         embed: :class:`Embed`
+
         embeds: List[:class:`Embed`] | None
+
         allowed_mentions: :class:`AllowedMentions` | None
+
         message_reference: :class:`MessageReference`
+
         components: :class:`ActionRow` | None
+
         sticker_ids: :class:`List`
+
         files: List[:class:`Any`] | None
+
         payload_json: :class:`str` | None
+
         attachments: List[:class:`AttachmentT`] | None
+
         flags: :class:`int` | None
+
         poll: :class:`Poll` | None
         """
 
@@ -204,6 +241,7 @@ class RESTAware(ABC):
         Parameters
         ==========
         guild_id: :class:`int`
+
         with_counts: :class:`bool`
         """
 
@@ -239,16 +277,27 @@ class RESTAware(ABC):
         Parameters
         ==========
         name: :class:`str`
+
         region: :class:`str`
+
         icon: :class:`Any`
+
         verification_level: :class:`int` | None
+
         default_message_notifications: :class:`int` | None
+
         explicit_content_filter: :class:`int` | None
+
         roles: :class:`List`
+
         channels: :class:`List`
+
         afk_channel_id: :class:`int` | None
+
         afk_timeout: :class:`int` | None
+
         system_channel_id: :class:`int` | None
+
         system_channel_flags: :class:`int`
         """
 
@@ -267,9 +316,13 @@ class RESTAware(ABC):
         Parameters
         ==========
         guild_id: :class:`SnowflakeT`
+
         member_id: :class:`SnowflakeT`
+
         reason: :class:`str`
+
         delete_message_days: :class:`int`
+
         delete_message_seconds: :class:`int`
         """
 
@@ -286,7 +339,9 @@ class RESTAware(ABC):
         Parameters
         ==========
         user_id: :class:`SnowflakeT`
+
         guild_id: :class:`SnowflakeT`
+
         reason: :class:`str | None`
         """
 
@@ -304,8 +359,11 @@ class RESTAware(ABC):
         Parameters
         ==========
         interaction_type: :class:`InteractionCallbackType`
+
         interaction_data: :class:`InteractionCallbackData | ModalInteractionCallbackData | None`
+
         interaction_id: :class:`int`
+
         interaction_token: :class:`str`
         """
 
@@ -331,16 +389,27 @@ class RESTAware(ABC):
         Parameters
         ==========
         application_id: :class:`int`
+
         interaction_token: :class:`str`
+
         content: :class:`str`
+
         tts: :class:`bool`
+
         embed: :class:`Embed`
+
         embeds: :class:`List[Embed]`
+
         allowed_mentions: :class:`AllowedMentions`
+
         components: :class:`List[Any]`
+
         payload_json: :class:`str`
+
         attachments: List[:class:`AttachmentT`] | None
+
         flags: :class:`int`
+
         thread_name: :class:`str`
         """
 
@@ -352,6 +421,7 @@ class RESTAware(ABC):
         Parameters
         ==========
         channel_id: :class:`int`
+
         message_id: :class:`int`
         """
 
@@ -378,17 +448,29 @@ class RESTAware(ABC):
         Parameters
         ==========
         application_id: :class:`int`
+
         name: :class:`str`
+
         description: :class:`str`
+
         name_localizations: Dict[:class:`DiscordLocale`, :class:`str`] | None
+
         description_localizations: Dict[:class:`DiscordLocale`, :class:`str`] | None
+
         app_cmd_type: :class:`ApplicationCommandTypes`
+
         default_permissions: :class:`bool`
+
         dm_permissions: :class:`bool`
+
         default_member_permissions: :class:`str`
+
         options: List[:class:`ApplicationCommandOption`]
+
         nsfw: :class:`bool`
+
         integration_types: List[:class:`IntegrationTypes`]
+
         contexts: List[:class:`ApplicationCommandContexts`]
         """
 
@@ -416,18 +498,31 @@ class RESTAware(ABC):
         Parameters
         ==========
         application_id: :class:`int`
+
         name: :class:`str`
+
         description: :class:`str`
+
         guild_id: :class:`SnowflakeT`
+
         name_localizations: Dict[:class:`DiscordLocale`, :class:`str`] | None
+
         description_localizations: Dict[:class:`DiscordLocale`, :class:`str`] | None
+
         app_cmd_type: :class:`ApplicationCommandTypes`
+
         default_permissions: :class:`bool`
+
         dm_permissions: :class:`bool`
+
         default_member_permissions: :class:`str`
+
         options: :class:`List[ApplicationCommandOption]`
+
         nsfw: :class:`bool`
+
         integration_types: :class:`List[IntegrationTypes]`
+
         contexts: :class:`List[ApplicationCommandContexts]`
         """
 
@@ -444,7 +539,9 @@ class RESTAware(ABC):
         Parameters
         ==========
         application_id: :class:`int`
+
         guild_id: :class:`SnowflakeT`
+
         command_id: :class:`SnowflakeT`
         """
 
@@ -458,6 +555,7 @@ class RESTAware(ABC):
         Deletes a global application command.
 
         application_id: :class:`int`
+
         command_id: :class:`SnowflakeT`
         """
 
@@ -474,7 +572,9 @@ class RESTAware(ABC):
         Parameters
         ==========
         application_id: :class:`int`
+
         guild_id: :class:`int`
+
         with_localizations: :class:`bool`
         """
 
@@ -490,6 +590,7 @@ class RESTAware(ABC):
         Parameters
         ==========
         application_id: :class:`int`
+
         with_localizations: :class:`bool`
         """
 
@@ -501,6 +602,7 @@ class RESTAware(ABC):
         Parameters
         ==========
         application_id: :class:`int`
+
         interaction_token: :class:`str`
         """
 
@@ -522,12 +624,19 @@ class RESTAware(ABC):
         Parameters
         ==========
         channel_id: :class:`SnowflakeT`
+
         message_id: :class:`SnowflakeT`
+
         content: :class:`str`
+
         embed: :class:`Embed`
+
         embeds: :class:`List[Embed]` | None
+
         flags: :class:`int` | None
+
         allowed_mentions: :class:`AllowedMentions` | None
+
         components: :class:`ActionRow` | None
         """
 
@@ -539,6 +648,7 @@ class RESTAware(ABC):
         Parameters
         ==========
         channel_id: :class:`Snowflake`
+
         message_id: :class:`Snowflake`
         """
 
@@ -556,8 +666,11 @@ class RESTAware(ABC):
         Parameters
         ==========
         guild_id: :class:`SnowflakeT`
+
         channel_id: :class:`SnowflakeT`
+
         message_id: :class:`SnowflakeT`
+
         emoji: :class:`str` | :class:`Snowflake` | :class:`Emoji`
         """
 
@@ -582,15 +695,25 @@ class RESTAware(ABC):
         Parameters
         ==========
         application_id: :class:`SnowflakeT`
+
         interaction_token: :class:`str`
+
         content: :class:`str`
+
         embed: :class:`Embed`
+
         embeds: :class:`List[Embed]`
+
         allowed_mentions: :class:`AllowedMentions`
+
         components: :class:`ActionRow`
+
         files: :class:`List[Any]`
+
         payload_json: :class:`str`
+
         attachments: :class:`List[AttachmentT]`
+
         thread_id: :class:`SnowflakeT`
         """
 
@@ -604,6 +727,7 @@ class RESTAware(ABC):
         Parameters
         ==========
         application_id: :class:`SnowflakeT`
+
         commands: List[:class:`ApplicationCommandObject`]
         """
 
@@ -620,7 +744,9 @@ class RESTAware(ABC):
         Parameters
         ==========
         application_id: :class:`SnowflakeT`
+
         guild_id: :class:`SnowflakeT`
+
         commands: List[:class:`ApplicationCommandObject`]
         """
 
@@ -638,8 +764,11 @@ class RESTAware(ABC):
         Parameters
         ==========
         invite_code: :class:`str`
+
         with_counts: :class:`bool`
+
         with_expiration: :class:`bool`
+
         guild_scheduled_event_id: :class:`Snowflake`
         """
 
@@ -651,6 +780,7 @@ class RESTAware(ABC):
         Parameters
         ==========
         invite_code: :class:`str`
+
         reason: :class:`str`
         """
 
@@ -677,7 +807,9 @@ class RESTAware(ABC):
         Parameters
         ==========
         guild_id: :class:`SnowflakeT`
+
         limit: :class:`int`
+
         after: :class:`Snowflake`
         """
 
@@ -709,6 +841,7 @@ class RESTAware(ABC):
         Parameters
         ==========
         guild_id: :class:`SnowflakeT`
+
         user_id: :class:`SnowflakeT`
         """
 
@@ -732,14 +865,23 @@ class RESTAware(ABC):
         Parameters
         ==========
         user_id: :class:`SnowflakeT`
+
         guild_id: :class:`SnowflakeT`
+
         nick: :class:`str`
+
         roles: :class:`List[SnowflakeT]`
+
         mute: :class:`bool`
+
         deaf: :class:`bool`
+
         move_channel_id: :class:`SnowflakeT`
+
         communication_disabled_until: :class:`datetime.datetime`
+
         flags: :class:`int`
+
         reason: :class:`str`
         """
 
@@ -756,7 +898,9 @@ class RESTAware(ABC):
         Parameters
         ==========
         guild_id: :class:`SnowflakeT`
+
         user_id: :class:`SnowflakeT`
+
         role_id: :class:`SnowflakeT`
         """
 
@@ -781,9 +925,13 @@ class RESTAware(ABC):
         Parameters
         ==========
         channel_id: :class:`SnowflakeT`
+
         message_id: :class:`SnowflakeT`
+
         answer_id: :class:`int`
+
         after: :class:`Snowflake`
+
         limit: :class:`int`
         """
 
@@ -796,5 +944,6 @@ class RESTAware(ABC):
         Parameters
         ==========
         channel_id: :class:`SnowflakeT`
+
         message_id: :class:`SnowflakeT`
         """
