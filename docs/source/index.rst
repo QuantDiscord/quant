@@ -17,3 +17,4 @@ Quant created because why not?
     message
     activity
     components
+    locales
