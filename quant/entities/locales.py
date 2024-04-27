@@ -1,8 +1,7 @@
-import attrs
+from enum import Enum
 
 
-@attrs.define(kw_only=True, hash=True)
-class DiscordLocale:
+class DiscordLocale(str, Enum):
     """Provides discord locales"""
 
     """Indonesian"""
