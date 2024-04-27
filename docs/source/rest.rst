@@ -5,4 +5,4 @@ REST implementation
 
 .. attributetable:: RESTImpl
 
-.. autoclass:: RESTAware
+.. autoclass:: api.core.RESTAware
