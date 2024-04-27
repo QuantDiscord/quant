@@ -79,20 +79,22 @@ class RESTAware(ABC):
         """
         Executes a webhook.
 
+        Parameters
+        ==========
         webhook_url: :class:`str`
-        content: :class:`str`, optional
-        username: :class:`str`, optional
-        avatar_url: :class:`str`, optional
-        tts: :class:`bool`, optional
-        embed: :class:`Embed`, optional
-        embeds: List[:class:`Embed`], optional
-        allowed_mentions: :class:`AllowedMentions`, optional
-        components: List[:class:`Any`], optional
-        files: List[:class:`Any`], optional
-        payload_json: :class:`str`, optional
-        attachments: List[:class:`AttachmentT`] | None, optional
-        flags: :class:`int`, optional
-        thread_name: :class:`str`, optional
+        content: :class:`str`
+        username: :class:`str`
+        avatar_url: :class:`str`
+        tts: :class:`bool`
+        embed: :class:`Embed`
+        embeds: List[:class:`Embed`]
+        allowed_mentions: :class:`AllowedMentions`
+        components: List[:class:`Any`]
+        files: List[:class:`Any`]
+        payload_json: :class:`str`
+        attachments: List[:class:`AttachmentT`] | None
+        flags: :class:`int`
+        thread_name: :class:`str`
         """
 
     @abstractmethod
@@ -100,10 +102,13 @@ class RESTAware(ABC):
         """
         Creates a webhook.
 
+
+        Parameters
+        ==========
         channel_id: :class:`int`
         name: :class:`str`
-        avatar: :class:`str`, optional
-        reason: :class:`str`, optional
+        avatar: :class:`str`
+        reason: :class:`str`
         """
 
     @abstractmethod
@@ -111,6 +116,8 @@ class RESTAware(ABC):
         """
         Fetches an emoji.
 
+        Parameters
+        ==========
         guild_id: :class:`int`
         emoji: :class:`str`
         """
@@ -127,11 +134,13 @@ class RESTAware(ABC):
         """
         Creates a reaction.
 
+        Parameters
+        ==========
         emoji: :class:`str`
-        guild_id: :class:`int`, optional
-        channel_id: :class:`int`, optional
-        message_id: :class:`int`, optional
-        reason: :class:`str`, optional
+        guild_id: :class:`int`
+        channel_id: :class:`int`
+        message_id: :class:`int`
+        reason: :class:`str`
         """
 
     @abstractmethod
@@ -139,9 +148,11 @@ class RESTAware(ABC):
         """
         Deletes a message.
 
+        Parameters
+        ==========
         channel_id: :class:`int`
         message_id: :class:`int`
-        reason: :class:`str`, optional
+        reason: :class:`str`
         """
 
     @abstractmethod
@@ -166,21 +177,23 @@ class RESTAware(ABC):
         """
         Creates a message.
 
+        Parameters
+        ==========
         channel_id: :class:`int`
-        content: :class:`str`, optional
-        nonce: :class:`str` | :class:`int`, optional
-        tts: :class:`bool`, optional
-        embed: :class:`Embed`, optional
-        embeds: List[:class:`Embed`] | None, optional
-        allowed_mentions: :class:`AllowedMentions` | None, optional
-        message_reference: :class:`MessageReference`, optional
-        components: :class:`ActionRow` | None, optional
-        sticker_ids: :class:`List`, optional
-        files: List[:class:`Any`] | None, optional
-        payload_json: :class:`str` | None, optional
-        attachments: List[:class:`AttachmentT`] | None, optional
-        flags: :class:`int` | None, optional
-        poll: :class:`Poll` | None, optional
+        content: :class:`str`
+        nonce: :class:`str` | :class:`int`
+        tts: :class:`bool`
+        embed: :class:`Embed`
+        embeds: List[:class:`Embed`] | None
+        allowed_mentions: :class:`AllowedMentions` | None
+        message_reference: :class:`MessageReference`
+        components: :class:`ActionRow` | None
+        sticker_ids: :class:`List`
+        files: List[:class:`Any`] | None
+        payload_json: :class:`str` | None
+        attachments: List[:class:`AttachmentT`] | None
+        flags: :class:`int` | None
+        poll: :class:`Poll` | None
         """
 
     @abstractmethod
@@ -188,8 +201,10 @@ class RESTAware(ABC):
         """
         Fetches a guild.
 
+        Parameters
+        ==========
         guild_id: :class:`int`
-        with_counts: :class:`bool`, optional
+        with_counts: :class:`bool`
         """
 
     @abstractmethod
@@ -197,6 +212,8 @@ class RESTAware(ABC):
         """
         Deletes a guild.
 
+        Parameters
+        ==========
         guild_id: :class:`int`
         """
 
@@ -219,18 +236,20 @@ class RESTAware(ABC):
         """
         Creates a guild.
 
+        Parameters
+        ==========
         name: :class:`str`
-        region: :class:`str`, optional
-        icon: :class:`Any`, optional
-        verification_level: :class:`int` | None, optional
-        default_message_notifications: :class:`int` | None, optional
-        explicit_content_filter: :class:`int` | None, optional
-        roles: :class:`List`, optional
-        channels: :class:`List`, optional
-        afk_channel_id: :class:`int` | None, optional
-        afk_timeout: :class:`int` | None, optional
-        system_channel_id: :class:`int` | None, optional
-        system_channel_flags: :class:`int`, optional
+        region: :class:`str`
+        icon: :class:`Any`
+        verification_level: :class:`int` | None
+        default_message_notifications: :class:`int` | None
+        explicit_content_filter: :class:`int` | None
+        roles: :class:`List`
+        channels: :class:`List`
+        afk_channel_id: :class:`int` | None
+        afk_timeout: :class:`int` | None
+        system_channel_id: :class:`int` | None
+        system_channel_flags: :class:`int`
         """
 
     @abstractmethod
@@ -245,6 +264,8 @@ class RESTAware(ABC):
         """
         Bans a member from a guild.
 
+        Parameters
+        ==========
         guild_id: :class:`SnowflakeT`
         member_id: :class:`SnowflakeT`
         reason: :class:`str`
@@ -262,9 +283,11 @@ class RESTAware(ABC):
         """
         Removes a member from a guild.
 
+        Parameters
+        ==========
         user_id: :class:`SnowflakeT`
         guild_id: :class:`SnowflakeT`
-        reason: :class:`str` | None, optional
+        reason: :class:`str | None`
         """
 
     @abstractmethod
@@ -278,8 +301,10 @@ class RESTAware(ABC):
         """
         Creates an interaction response.
 
+        Parameters
+        ==========
         interaction_type: :class:`InteractionCallbackType`
-        interaction_data: :class:`InteractionCallbackData` | :class:`ModalInteractionCallbackData` | None
+        interaction_data: :class:`InteractionCallbackData | ModalInteractionCallbackData | None`
         interaction_id: :class:`int`
         interaction_token: :class:`str`
         """
@@ -303,6 +328,8 @@ class RESTAware(ABC):
         """
         Creates a follow-up message for an interaction.
 
+        Parameters
+        ==========
         application_id: :class:`int`
         interaction_token: :class:`str`
         content: :class:`str`
@@ -322,6 +349,8 @@ class RESTAware(ABC):
         """
         Fetches a message.
 
+        Parameters
+        ==========
         channel_id: :class:`int`
         message_id: :class:`int`
         """
@@ -346,6 +375,8 @@ class RESTAware(ABC):
         """
         Creates a global application command.
 
+        Parameters
+        ==========
         application_id: :class:`int`
         name: :class:`str`
         description: :class:`str`
@@ -382,6 +413,8 @@ class RESTAware(ABC):
         """
         Creates a guild application command.
 
+        Parameters
+        ==========
         application_id: :class:`int`
         name: :class:`str`
         description: :class:`str`
@@ -408,6 +441,8 @@ class RESTAware(ABC):
         """
         Deletes a guild application command.
 
+        Parameters
+        ==========
         application_id: :class:`int`
         guild_id: :class:`SnowflakeT`
         command_id: :class:`SnowflakeT`
@@ -436,6 +471,8 @@ class RESTAware(ABC):
         """
         Fetches guild application commands.
 
+        Parameters
+        ==========
         application_id: :class:`int`
         guild_id: :class:`int`
         with_localizations: :class:`bool`
@@ -450,6 +487,8 @@ class RESTAware(ABC):
         """
         Fetches global application commands.
 
+        Parameters
+        ==========
         application_id: :class:`int`
         with_localizations: :class:`bool`
         """
@@ -459,6 +498,8 @@ class RESTAware(ABC):
         """
         Fetches the initial interaction response.
 
+        Parameters
+        ==========
         application_id: :class:`int`
         interaction_token: :class:`str`
         """
@@ -478,6 +519,8 @@ class RESTAware(ABC):
         """
         Edits a message.
 
+        Parameters
+        ==========
         channel_id: :class:`SnowflakeT`
         message_id: :class:`SnowflakeT`
         content: :class:`str`
@@ -493,6 +536,8 @@ class RESTAware(ABC):
         """
         Deletes all reactions from a message.
 
+        Parameters
+        ==========
         channel_id: :class:`Snowflake`
         message_id: :class:`Snowflake`
         """
@@ -508,6 +553,8 @@ class RESTAware(ABC):
         """
         Deletes all reactions for a specific emoji from a message.
 
+        Parameters
+        ==========
         guild_id: :class:`SnowflakeT`
         channel_id: :class:`SnowflakeT`
         message_id: :class:`SnowflakeT`
@@ -532,6 +579,8 @@ class RESTAware(ABC):
         """
         Edits the original interaction response.
 
+        Parameters
+        ==========
         application_id: :class:`SnowflakeT`
         interaction_token: :class:`str`
         content: :class:`str`
@@ -552,6 +601,8 @@ class RESTAware(ABC):
         """
         Bulk overwrites global application commands.
 
+        Parameters
+        ==========
         application_id: :class:`SnowflakeT`
         commands: List[:class:`ApplicationCommandObject`]
         """
@@ -566,6 +617,8 @@ class RESTAware(ABC):
         """
         Bulk overwrites guild application commands.
 
+        Parameters
+        ==========
         application_id: :class:`SnowflakeT`
         guild_id: :class:`SnowflakeT`
         commands: List[:class:`ApplicationCommandObject`]
@@ -582,6 +635,8 @@ class RESTAware(ABC):
         """
         Fetches an invite.
 
+        Parameters
+        ==========
         invite_code: :class:`str`
         with_counts: :class:`bool`
         with_expiration: :class:`bool`
@@ -593,6 +648,8 @@ class RESTAware(ABC):
         """
         Deletes an invite.
 
+        Parameters
+        ==========
         invite_code: :class:`str`
         reason: :class:`str`
         """
@@ -602,6 +659,8 @@ class RESTAware(ABC):
         """
         Fetches invites for a guild.
 
+        Parameters
+        ==========
         guild_id: :class:`Snowflake`
         """
 
@@ -615,6 +674,8 @@ class RESTAware(ABC):
         """
         Fetches guild members.
 
+        Parameters
+        ==========
         guild_id: :class:`SnowflakeT`
         limit: :class:`int`
         after: :class:`Snowflake`
@@ -625,6 +686,8 @@ class RESTAware(ABC):
         """
         Fetches guild roles.
 
+        Parameters
+        ==========
         guild_id: :class:`SnowflakeT`
         """
 
@@ -633,6 +696,8 @@ class RESTAware(ABC):
         """
         Fetches a user.
 
+        Parameters
+        ==========
         user_id: :class:`SnowflakeT`
         """
 
@@ -641,6 +706,8 @@ class RESTAware(ABC):
         """
         Fetches a guild member.
 
+        Parameters
+        ==========
         guild_id: :class:`SnowflakeT`
         user_id: :class:`SnowflakeT`
         """
@@ -662,6 +729,8 @@ class RESTAware(ABC):
         """
         Modifies a guild member.
 
+        Parameters
+        ==========
         user_id: :class:`SnowflakeT`
         guild_id: :class:`SnowflakeT`
         nick: :class:`str`
@@ -684,6 +753,8 @@ class RESTAware(ABC):
         """
         Adds a role to a guild member.
 
+        Parameters
+        ==========
         guild_id: :class:`SnowflakeT`
         user_id: :class:`SnowflakeT`
         role_id: :class:`SnowflakeT`
@@ -707,6 +778,8 @@ class RESTAware(ABC):
         """
         Gets poll answers.
 
+        Parameters
+        ==========
         channel_id: :class:`SnowflakeT`
         message_id: :class:`SnowflakeT`
         answer_id: :class:`int`
@@ -720,6 +793,8 @@ class RESTAware(ABC):
 
         Ends poll
 
+        Parameters
+        ==========
         channel_id: :class:`SnowflakeT`
         message_id: :class:`SnowflakeT`
         """
