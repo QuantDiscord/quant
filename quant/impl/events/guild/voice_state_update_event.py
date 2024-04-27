@@ -38,8 +38,15 @@ from quant.impl.events.event import DiscordEvent
 @attrs.define(kw_only=True)
 class VoiceStateUpdateEvent(DiscordEvent):
     event_api_name: EventTypes = attrs.field(default=EventTypes.VOICE_STATE_UPDATE)
-    state: VoiceState = attrs.field(default=None)
+    old_state: VoiceState = attrs.field(default=None)
+    new_state: VoiceState = attrs.field(default=None)
 
     def emit(self, *args, **kwargs) -> Self:
-        self.state = self.entity_factory.deserialize_voice_state(kwargs)
+        self.new_state = self.entity_factory.deserialize_voice_state(kwargs)
+        state = self.cache_manager.get_voice_state(guild_id=self.new_state.guild_id, user_id=self.new_state.user_id)
+
+        if state is None:
+            return
+
+        self.old_state = state
         return self

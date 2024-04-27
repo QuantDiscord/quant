@@ -121,7 +121,7 @@ class EventFactory:
     ) -> events.VoiceStateUpdateEvent:
         return events.VoiceStateUpdateEvent(
             cache_manager=self.cache,
-            state=entities.VoiceState(
+            new_state=entities.VoiceState(
                 guild_id=guild_id,
                 channel_id=channel_id,
                 user_id=user_id,
