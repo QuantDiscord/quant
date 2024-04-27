@@ -4,98 +4,98 @@ from enum import Enum
 class DiscordLocale(str, Enum):
     """Provides discord locales"""
 
-    """Indonesian"""
     ID = "id"
+    """Indonesian"""
 
-    """Danish"""
     DA = "da"
+    """Danish"""
 
-    """German"""
     DE = "de"
+    """German"""
 
-    """English, UK"""
     EN_GB = "en-GB"
+    """English, UK"""
 
-    """English, US"""
     EN_US = "en-US"
+    """English, US"""
 
-    """Spanish"""
     ES_ES = "es-ES"
+    """Spanish"""
 
-    """Spanish, LATAM"""
     ES_419 = "es-419"
+    """Spanish, LATAM"""
 
-    """French"""
     FR = "fr"
+    """French"""
 
-    """Croatian"""
     HR = "hr"
+    """Croatian"""
 
-    """Italian"""
     IT = "it"
+    """Italian"""
 
-    """Lithuanian"""
     LT = "lt"
+    """Lithuanian"""
 
-    """Hungarian"""
     HU = "hu"
+    """Hungarian"""
 
-    """Dutch"""
     NL = "nl"
+    """Dutch"""
 
-    """Norwegian"""
     NO = "no"
+    """Norwegian"""
 
-    """Polish"""
     PL = "pl"
+    """Polish"""
 
-    """Portuguese, Brazilian"""
     PT_BR = "pt-BR"
+    """Portuguese, Brazilian"""
 
-    """Romanian, Romania"""
     RO = "ro"
+    """Romanian, Romania"""
 
-    """Finnish"""
     FI = "fi"
+    """Finnish"""
 
-    """Swedish"""
     SV_SE = "sv-SE"
+    """Swedish"""
 
-    """Vietnamese"""
     VI = "vi"
+    """Vietnamese"""
 
-    """Turkish"""
     TR = "tr"
+    """Turkish"""
 
-    """Czech"""
     CS = "cs"
+    """Czech"""
 
-    """	Greek"""
     EL = "el"
+    """	Greek"""
 
-    """	Bulgarian"""
     BG = "bg"
+    """Bulgarian"""
 
-    """	Russian"""
     RU = "ru"
+    """Russian"""
 
-    """Ukrainian"""
     UK = "uk"
+    """Ukrainian"""
 
-    """Hindi"""
     HI = "hi"
+    """Hindi"""
 
-    """Thai"""
     TH = "th"
+    """Thai"""
 
-    """Chinese, China"""
     ZH_CN = "zh-CN"
+    """Chinese, China"""
 
-    """Japanese"""
     JA = "ja"
+    """Japanese"""
 
-    """Chinese, Taiwan"""
     ZH_TW = "zh-TW"
+    """Chinese, Taiwan"""
 
-    """Korean"""
     KO = "ko"
+    """Korean"""
