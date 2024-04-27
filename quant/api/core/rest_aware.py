@@ -30,28 +30,30 @@ from typing import List, Any, Dict, TYPE_CHECKING, TypeVar
 if TYPE_CHECKING:
     from quant.impl.core.commands import ApplicationCommandObject, ApplicationCommandContexts
     from quant.entities.action_row import ActionRow
+    from quant.entities.gateway import GatewayInfo
+    from quant.entities.interactions.application_command import ApplicationCommandTypes
+    from quant.entities.message import MessageReference
+    from quant.entities.interactions.slash_option import ApplicationCommandOption
+    from quant.entities.member import GuildMember
+    from quant.entities.guild import Guild
+    from quant.entities.user import User
+    from quant.entities.roles import GuildRole
+    from quant.entities.emoji import Emoji
+    from quant.entities.invite import Invite
+    from quant.entities.integration import IntegrationTypes
+    from quant.entities.modal.modal import ModalInteractionCallbackData
+    from quant.entities.interactions.interaction import InteractionCallbackData, InteractionCallbackType
+    from quant.entities.allowed_mentions import AllowedMentions
+    from quant.entities.message import Message
+    from quant.entities.embeds import Embed
+    from quant.entities.webhook import Webhook
+    from quant.entities.poll import Poll
+    from quant.entities.locales import DiscordLocale
+
 
 from quant.impl.files import AttachableURL, File
-from quant.entities.gateway import GatewayInfo
-from quant.entities.interactions.application_command import ApplicationCommandTypes
-from quant.entities.message import MessageReference
-from quant.entities.interactions.slash_option import ApplicationCommandOption
 from quant.entities.snowflake import Snowflake
-from quant.entities.member import GuildMember
-from quant.entities.guild import Guild
-from quant.entities.user import User
-from quant.entities.roles import GuildRole
-from quant.entities.emoji import Emoji
-from quant.entities.invite import Invite
-from quant.entities.integration import IntegrationTypes
-from quant.entities.modal.modal import ModalInteractionCallbackData
-from quant.entities.interactions.interaction import InteractionCallbackData, InteractionCallbackType
-from quant.entities.allowed_mentions import AllowedMentions
-from quant.entities.message import Message, Attachment
-from quant.entities.embeds import Embed
-from quant.entities.webhook import Webhook
-from quant.entities.poll import Poll
-from quant.entities.locales import DiscordLocale
+from quant.entities.message import Attachment
 
 SnowflakeT = TypeVar("SnowflakeT", bound=int | Snowflake)
 AttachmentT = TypeVar("AttachmentT", bound=AttachableURL | File | Attachment)

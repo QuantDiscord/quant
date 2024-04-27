@@ -1,8 +1,8 @@
-.. py:currentmodule:: quant
+.. py:currentmodule:: quant.api.core
 
 REST implementation
 -----
 
-.. attributetable:: RESTImpl
+.. attributetable:: RESTAware
 
 .. autoclass:: RESTAware
