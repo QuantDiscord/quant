@@ -59,7 +59,7 @@ class GuildMember(BaseModel):
 
     @property
     def mention(self) -> str:
-        return f"<@{self.user.id}>"
+        return self.user.mention
 
     @property
     def id(self) -> Snowflake:

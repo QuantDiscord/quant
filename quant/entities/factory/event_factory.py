@@ -267,9 +267,10 @@ class EventFactory:
         )
 
     def deserialize_guild_member_remove_event(self, payload: Dict) -> events.MemberLeaveEvent:
+        user_payload = payload["user"]
         return events.MemberLeaveEvent(
             cache_manager=self.cache,
             entity_factory=self.entity_factory,
-            user=self.entity_factory.deserialize_user(payload),
+            user=self.entity_factory.deserialize_user(user_payload),
             guild_id=payload.get("guild_id"),
         )
