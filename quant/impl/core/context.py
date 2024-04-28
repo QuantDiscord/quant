@@ -35,6 +35,7 @@ if TYPE_CHECKING:
     from quant.entities.action_row import ActionRow
     from quant.entities.modal.modal import ModalInteractionCallbackData
     from quant.entities.modal.text_input import TextInput
+    from quant.entities.modal.modal import Modal
 
 from quant.entities.message import Attachment
 from quant.impl.files import AttachableURL, File
@@ -152,6 +153,9 @@ class InteractionContext:
             components=components,
             attachments=attachments
         )
+
+    async def respond_modal(self, modal: Modal) -> None:
+        await self.interaction.respond_modal(modal=modal)
 
 
 class ButtonContext(InteractionContext):

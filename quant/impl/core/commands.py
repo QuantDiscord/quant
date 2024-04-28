@@ -55,7 +55,7 @@ class ApplicationCommandObject(_Command):
     default_permission: bool = attrs.field(default=False)
     nsfw: bool = attrs.field(default=False)
     cmd_type: ApplicationCommandTypes = attrs.field(default=ApplicationCommandTypes.CHAT_INPUT)
-    guild_id: Snowflake = attrs.field(default=Snowflake(0)),
+    guild_id: Snowflake = attrs.field(default=None),
     options: List[ApplicationCommandOption] = attrs.field(default=None),
     default_member_permissions: Permissions = attrs.field(default=Permissions.NONE),
     integration_types: List[IntegrationTypes] | None = attrs.field(default=None)

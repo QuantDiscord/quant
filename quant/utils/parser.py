@@ -56,6 +56,10 @@ async def parse_option_type(
 
 def parse_permissions(permission_value: int) -> Permissions:
     decoded_permissions = Permissions(0)
+
+    if isinstance(permission_value, str):
+        permission_value = int(permission_value)
+
     for permission in Permissions:
         try:
             value = permission.value
