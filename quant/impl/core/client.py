@@ -469,6 +469,10 @@ class Client:
 
         if custom_id in self.modals.keys():
             modal = self.modals[custom_id]
+
+            if modal.callback is not modal.callback_func:
+                modal.set_callback(modal.callback)
+
             await modal.callback_func(context)
 
     async def handle_message_components(self, interaction: Interaction) -> None:
@@ -479,6 +483,10 @@ class Client:
             case ComponentType.BUTTON:
                 if custom_id in self.buttons.keys():
                     button = self.buttons[custom_id]
+
+                    if button.callback is not button.callback_func:
+                        button.set_callback(button.callback)
+
                     await button.callback_func(ButtonContext(self, interaction, button))
 
     async def _listen_interaction_create(self, event: InteractionCreateEvent):

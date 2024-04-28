@@ -360,9 +360,19 @@ class RESTImpl(RESTAware):
             InteractionCallbackData: self.entity_factory.serialize_interaction_callback_data
         }
 
-        if interaction_data is not None:
-            if converter := data_converter.get(type(interaction_data)):
-                interaction_payload["data"] = converter(interaction_data)
+        if interaction_data is None:
+            return
+
+        route = InteractionRoute.CREATE_INTERACTION_RESPONSE.build(
+            interaction_id=interaction_id, interaction_token=interaction_token
+        )
+
+        if converter := data_converter.get(type(interaction_data)):
+            interaction_payload["data"] = converter(interaction_data)  # type: ignore
+
+        if isinstance(interaction_data, ModalInteractionCallbackData):
+            await self._request(route=route, data=interaction_payload)
+            return
 
         payload, form_data = await self._build_message_payload(
             content=interaction_data.content,
@@ -373,9 +383,6 @@ class RESTImpl(RESTAware):
             attachments=interaction_data.attachments,
             flags=interaction_data.flags,
             payload_json=interaction_payload
-        )
-        route = InteractionRoute.CREATE_INTERACTION_RESPONSE.build(
-            interaction_id=interaction_id, interaction_token=interaction_token
         )
 
         await self._request(
