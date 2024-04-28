@@ -24,6 +24,7 @@ SOFTWARE.
 from __future__ import annotations
 
 import datetime
+import typing
 from typing import List, Any, TYPE_CHECKING
 
 import attrs
@@ -115,6 +116,9 @@ class Guild(BaseModel):
 
     async def delete(self) -> None:
         await self.client.rest.delete_guild(self.id)
+
+    def get_member(self, member_id: Snowflake | int) -> GuildMember:
+        return self.client.cache.get_member(self.id, member_id)
 
     async def fetch_member(self, member_id: Snowflake | int) -> GuildMember:
         return await self.client.rest.fetch_guild_member(guild_id=self.id, user_id=member_id)

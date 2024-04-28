@@ -88,10 +88,10 @@ class CacheManager:
 
     def get_member(self, guild_id: SnowflakeOrInt, member_id: SnowflakeOrInt):
         """Get member from guild"""
-        member_list = self.get_guild(guild_id=guild_id).members
-        for member in member_list:
-            if member.id == member_id:
-                return member
+        guild = self.get_guild(guild_id=guild_id)
+        matched_member = (member for member in guild.members if member.id == member_id)
+
+        return list(matched_member)[0]
 
     def get_users(self) -> List[User]:
         """Get all cached users."""
