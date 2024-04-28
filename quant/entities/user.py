@@ -56,6 +56,10 @@ class User(BaseModel):
     _email: str = attrs.field(default=None, alias="email", repr=False)
     member: Any = attrs.field(default=None)
 
+    @property
+    def mention(self) -> str:
+        return f"<@{self.id}>"
+
     def get_avatar(self, size: int = 1024) -> str:
         return f"https://cdn.discordapp.com/avatars/{self.id}/{self.avatar}.png?size={size}"
 
