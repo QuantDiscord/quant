@@ -30,6 +30,7 @@ from quant.impl.core.route import GET, POST
 from quant.impl.core.rest import RESTImpl
 from quant.utils.asyncio_utils import kill_loop
 from quant.utils.cache.cache_manager import CacheManager
+from quant.utils.cache.cacheable import CacheableType
 from quant.entities.interactions.interaction import InteractionType, InteractionCallbackType
 from quant.entities.factory.event_factory import EventFactory
 from quant.entities.factory.event_controller import EventController
@@ -39,11 +40,12 @@ class HTTPBot:
     """
     An interaction only bot implementation
     """
-    def __init__(self, token: str) -> None:
+    def __init__(self, token: str, cacheable: CacheableType = CacheableType.ALL) -> None:
         warnings.warn("It's will be fully added in future. Now it's useless.")
         quit(1)
 
         self.cache = CacheManager()
+        self.cache = CacheManager(cacheable=cacheable)
         self.rest = RESTImpl(token=token, cache=self.cache)
         self.event_factory = EventFactory(cache_manager=self.cache)
         self.event_controller = EventController(factory=self.event_factory)
@@ -56,24 +58,19 @@ class HTTPBot:
             return web.Response(status=http.HTTPStatus.BAD_REQUEST)
 
         data: dict = await request.json()
-        interaction_type = InteractionType(data.get("type", 0))
+        data_type = data.get("type")
 
-        if interaction_type == InteractionType.PING:
+        if data_type == InteractionType.PING.value:
             return web.json_response({"type": InteractionCallbackType.PONG})
 
-        if interaction_type in (
-            InteractionType.APPLICATION_COMMAND,
-            InteractionType.MESSAGE_COMPONENT,
-            InteractionType.MODAL_SUBMIT
-        ):
-            ...
+        # okay it's future . . .
 
     def _setup_routes(self) -> None:
         self._application.add_routes([
             web.route(POST, "/interactions", self._interaction_handler)
         ])
 
-    def run_server(self, host: str = "localhost", port: int = 8080, ) -> None:
+    def run_server(self, host: str = "localhost", port: int = 8080) -> None:
         self._setup_routes()
 
         web.run_app(
