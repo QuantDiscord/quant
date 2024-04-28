@@ -155,7 +155,7 @@ class RESTImpl(RESTAware):
 
             return self.entity_factory.deserialize_emoji(await response.json())
 
-        return self.entity_factory.deserialize_emoji({"name": emoji, "id": Snowflake(0)})
+        return self.entity_factory.deserialize_emoji({"name": emoji, "id": Snowflake()})
 
     async def create_reaction(
         self,
@@ -729,7 +729,7 @@ class RESTImpl(RESTAware):
         self,
         guild_id: SnowflakeT,
         limit: int = 1,
-        after: Snowflake = Snowflake(0)
+        after: Snowflake = Snowflake()
     ) -> List[GuildMember]:
         route = GuildRoute.GET_GUILD_MEMBERS.build(
             query_params={"limit": limit, "after": after},
@@ -822,7 +822,7 @@ class RESTImpl(RESTAware):
         channel_id: SnowflakeT,
         message_id: SnowflakeT,
         answer_id: int,
-        after: Snowflake | None = Snowflake(0),
+        after: Snowflake | None = Snowflake(),
         limit: int = 100
     ) -> List[User]:
         response = await self._request(route=MessageRoute.GET_POLL_ANSWER_VOTES.build(

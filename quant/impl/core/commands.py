@@ -49,8 +49,8 @@ class _Command(CallbackBackend[ContextT]):
 class ApplicationCommandObject(_Command):
     name_localizations: Dict[DiscordLocale, str] = attrs.field(default=None)
     description_localizations: Dict[DiscordLocale, str] = attrs.field(default=None)
-    cmd_id: Snowflake = attrs.field(default=Snowflake(0))
-    application_id: Snowflake = attrs.field(default=Snowflake(0))
+    cmd_id: Snowflake = attrs.field(default=Snowflake())
+    application_id: Snowflake = attrs.field(default=Snowflake())
     dm_permissions: bool = attrs.field(default=False)
     default_permission: bool = attrs.field(default=False)
     nsfw: bool = attrs.field(default=False)

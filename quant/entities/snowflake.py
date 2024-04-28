@@ -32,13 +32,13 @@ class SnowflakeException(Exception):
 class Snowflake(int):
     DISCORD_EPOCH = 14_200_704_000_00
 
-    def __new__(cls, object_id: int | str | None):
+    def __new__(cls, object_id: int | str | None = None):
         if object_id is None:
             return Snowflake(0)
 
         return super().__new__(cls, int(object_id))
 
-    def __init__(self, object_id: int | str | None) -> None:
+    def __init__(self, object_id: int | str | None = None) -> None:
         if object_id is None:
             object_id = 0
 

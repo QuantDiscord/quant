@@ -790,7 +790,7 @@ class RESTAware(ABC):
         self,
         guild_id: SnowflakeT,
         limit: int = 1,
-        after: Snowflake = Snowflake(0)
+        after: Snowflake = Snowflake()
     ) -> List[GuildMember]:
         """
         Fetches guild members.
@@ -907,7 +907,7 @@ class RESTAware(ABC):
         channel_id: SnowflakeT,
         message_id: SnowflakeT,
         answer_id: int,
-        after: Snowflake | None = Snowflake(0),
+        after: Snowflake | None = Snowflake(),
         limit: int = 100
     ) -> List[User]:
         """

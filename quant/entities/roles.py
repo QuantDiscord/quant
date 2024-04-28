@@ -51,7 +51,7 @@ class GuildRole:
 
 def empty_role() -> GuildRole:
     return GuildRole(
-        id=Snowflake(0),
+        id=Snowflake(),
         name="",
         color=0,
         hoist=False,

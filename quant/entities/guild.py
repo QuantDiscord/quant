@@ -123,7 +123,7 @@ class Guild(BaseModel):
     async def fetch_member(self, member_id: Snowflake | int) -> GuildMember:
         return await self.client.rest.fetch_guild_member(guild_id=self.id, user_id=member_id)
 
-    async def fetch_members(self, limit: int = 1000, after: Snowflake | int = Snowflake(0)) -> List[GuildMember]:
+    async def fetch_members(self, limit: int = 1000, after: Snowflake | int = Snowflake()) -> List[GuildMember]:
         return await self.client.rest.fetch_guild_members(guild_id=self.id, limit=limit, after=after)
 
     async def ban(

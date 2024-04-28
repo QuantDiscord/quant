@@ -17,7 +17,7 @@ from quant.impl.events.event import DiscordEvent
 @attrs.define(kw_only=True)
 class MemberJoinEvent(DiscordEvent):
     event_api_name: EventTypes = attrs.field(default=EventTypes.GUILD_MEMBER_ADD)
-    guild_id: Snowflake = attrs.field(default=Snowflake(0))
+    guild_id: Snowflake = attrs.field(default=Snowflake())
     member: GuildMember = attrs.field(default=None)
 
     def emit(self, *args, **kwargs) -> Self:
@@ -30,7 +30,7 @@ class MemberJoinEvent(DiscordEvent):
 @attrs.define(kw_only=True)
 class MemberLeaveEvent(DiscordEvent):
     event_api_name: EventTypes = attrs.field(default=EventTypes.GUILD_MEMBER_REMOVE)
-    guild_id: Snowflake = attrs.field(default=Snowflake(0))
+    guild_id: Snowflake = attrs.field(default=Snowflake())
     user: User = attrs.field(default=None)
 
     def emit(self, *args, **kwargs) -> Self:
