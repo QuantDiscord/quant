@@ -70,7 +70,6 @@ class RESTAware(ABC):
         embeds: List[Embed] = None,
         allowed_mentions: AllowedMentions = None,
         components: List[Any] = None,
-        files: List[Any] = None,
         payload_json: str = None,
         attachments: List[AttachmentT] | None = None,
         flags: int = None,
@@ -82,7 +81,7 @@ class RESTAware(ABC):
         Parameters
         ==========
         webhook_url: :class:`str`
-        
+
         content: :class:`str`
 
         username: :class:`str`
@@ -98,8 +97,6 @@ class RESTAware(ABC):
         allowed_mentions: :class:`AllowedMentions`
 
         components: List[:class:`Any`]
-
-        files: List[:class:`Any`]
 
         payload_json: :class:`str`
 
@@ -191,7 +188,6 @@ class RESTAware(ABC):
         message_reference: MessageReference = None,
         components: ActionRow | None = None,
         sticker_ids: List = None,
-        files: List[Any] | None = None,
         payload_json: str | None = None,
         attachments: List[AttachmentT] | None = None,
         flags: int | None = None,
@@ -221,8 +217,6 @@ class RESTAware(ABC):
         components: :class:`ActionRow` | None
 
         sticker_ids: :class:`List`
-
-        files: List[:class:`Any`] | None
 
         payload_json: :class:`str` | None
 
@@ -684,7 +678,6 @@ class RESTAware(ABC):
         embeds: List[Embed] | None = None,
         allowed_mentions: AllowedMentions | None = None,
         components: ActionRow | None = None,
-        files: List[Any] | None = None,
         payload_json: str | None = None,
         attachments: List[AttachmentT] | None = None,
         thread_id: SnowflakeT = None
@@ -707,8 +700,6 @@ class RESTAware(ABC):
         allowed_mentions: :class:`AllowedMentions`
 
         components: :class:`ActionRow`
-
-        files: :class:`List[Any]`
 
         payload_json: :class:`str`
 

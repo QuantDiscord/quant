@@ -58,8 +58,9 @@ from quant.entities.interactions.slash_option import SlashOptionType, Applicatio
 from quant.entities.interactions.component_types import ComponentType
 from quant.entities.snowflake import Snowflake
 from quant.entities.integration import IntegrationTypes
-from quant.entities.poll import Poll, PollResults, PollAnswer, PollMedia, PollMediaType
-from quant.utils.parser import iso_to_datetime, parse_permissions, string_to_emoji
+from quant.entities.poll import Poll, PollAnswer
+from quant.utils.parser import iso_to_datetime, parse_permissions
+from quant.entities.permissions import Permissions
 
 
 class EntityFactory:
@@ -104,14 +105,41 @@ class EntityFactory:
             unusual_dm_activity_until=payload.get("unusual_dm_activity_until")
         )
 
-    def serialize_application_command(self, command: ApplicationCommandObject) -> Dict[str, Any] | None:
+    @staticmethod
+    def serialize_application_command(command: ApplicationCommandObject) -> Dict[str, Any] | None:
         if command is None:
             return
 
-        return {
-            "name": command.name,
-            "description": command.description
-        }
+        body = {"name": command.name, "description": command.description}
+
+        if command.guild_id is not None and not isinstance(command.guild_id, tuple):
+            body["guild_id"] = command.guild_id
+
+        if command.options is not None:
+            body["options"] = command.options
+
+        if command.integration_types is not None:
+            body["integration_types"] = command.integration_types
+
+        if command.contexts is not None:
+            body["contexts"] = command.contexts
+
+        if command.name_localizations is not None:
+            body["name_localizations"] = command.name_localizations
+
+        if command.description_localizations is not None:
+            body["description_localizations"] = command.description_localizations
+
+        if command.dm_permissions:
+            body["dm_permissions"] = command.dm_permissions
+
+        if command.default_member_permissions is not None and not isinstance(command.default_member_permissions, tuple):
+            body["default_member_permissions"] = command.default_member_permissions.value
+
+        if command.nsfw is not None:
+            body["nsfw"] = command.nsfw
+
+        return body
 
     def serialize_action_row(self, row: ActionRow) -> Dict[str, Any] | None:
         from quant.entities.button import Button

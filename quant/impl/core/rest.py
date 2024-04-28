@@ -70,6 +70,7 @@ from quant.entities.embeds import Embed
 from quant.entities.webhook import Webhook
 from quant.entities.poll import Poll
 from quant.entities.locales import DiscordLocale
+from quant.entities.permissions import Permissions
 from quant.utils.cache.cache_manager import CacheManager
 
 X_AUDIT_LOG_REASON: Final[str] = "X-Audit-Log-Reason"
@@ -98,7 +99,6 @@ class RESTImpl(RESTAware):
         embeds: List[Embed] = None,
         allowed_mentions: AllowedMentions = None,
         components: List[Any] = None,
-        files: List[Any] = None,
         payload_json: str = None,
         attachments: List[AttachmentT] | None = None,
         flags: int = None,
@@ -187,22 +187,12 @@ class RESTImpl(RESTAware):
 
     async def delete_message(self, channel_id: int, message_id: int, reason: str = None) -> None:
         headers = {}
-        method, url = self._build_url(
-            route=MessageRoute.DELETE_MESSAGE,
-            data={
-                "channel_id": channel_id,
-                "message_id": message_id
-            }
-        )
+        route = MessageRoute.DELETE_MESSAGE.build(channel_id=channel_id, message_id=message_id)
 
         if reason is not None:
             headers.update({X_AUDIT_LOG_REASON: reason})
 
-        await self.http.request(
-            method=method,
-            url=url,
-            headers=headers
-        )
+        await self._request(route=route, headers=headers)
 
     async def create_message(
         self,
@@ -216,7 +206,6 @@ class RESTImpl(RESTAware):
         message_reference: MessageReference = None,
         components: ActionRow | None = None,
         sticker_ids: List = None,
-        files: List[Any] | None = None,
         payload_json: str | None = None,
         attachments: List[AttachmentT] | None = None,
         flags: int | None = None,
@@ -628,7 +617,6 @@ class RESTImpl(RESTAware):
         embeds: List[Embed] | None = None,
         allowed_mentions: AllowedMentions | None = None,
         components: ActionRow | None = None,
-        files: List[Any] | None = None,
         payload_json: str | None = None,
         attachments: List[AttachmentT] | None = None,
         thread_id: SnowflakeT = None
@@ -967,7 +955,7 @@ class RESTImpl(RESTAware):
         app_cmd_type: ApplicationCommandTypes = ApplicationCommandTypes.CHAT_INPUT,
         default_permissions: bool = False,
         dm_permissions: bool = False,
-        default_member_permissions: str = None,
+        default_member_permissions: Permissions = None,
         options: List[ApplicationCommandOption] = None,
         nsfw: bool = False,
         integration_types: List[IntegrationTypes] = None,
