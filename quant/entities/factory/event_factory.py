@@ -257,3 +257,19 @@ class EventFactory:
 
     def deserialize_ready_event(self, _: Dict) -> events.ReadyEvent:
         return events.ReadyEvent(cache_manager=self.cache, entity_factory=self.entity_factory)
+
+    def deserialize_guild_member_add_event(self, payload: Dict) -> events.MemberJoinEvent:
+        return events.MemberJoinEvent(
+            cache_manager=self.cache,
+            entity_factory=self.entity_factory,
+            member=self.entity_factory.deserialize_member(payload),
+            guild_id=payload.get("guild_id")
+        )
+
+    def deserialize_guild_member_remove_event(self, payload: Dict) -> events.MemberLeaveEvent:
+        return events.MemberLeaveEvent(
+            cache_manager=self.cache,
+            entity_factory=self.entity_factory,
+            user=self.entity_factory.deserialize_user(payload),
+            guild_id=payload.get("guild_id"),
+        )

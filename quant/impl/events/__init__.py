@@ -41,5 +41,7 @@ __all__ = (
     "MessageEditEvent",
     "InteractionCreateEvent",
     "ReadyEvent",
-    "RawDispatchEvent"
+    "RawDispatchEvent",
+    "MemberJoinEvent",
+    "MemberLeaveEvent"
 )

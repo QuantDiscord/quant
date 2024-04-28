@@ -33,6 +33,7 @@ EventNameT = TypeVar("EventNameT", bound=str)
 class EventController:
     def __init__(self, factory: EventFactory) -> None:
         self.factory = factory
+        # Event names same as discord events
         self._builtin_events = {
             "when_ready": self.factory.deserialize_ready_event,
             "when_guild_create": self.factory.deserialize_guild_create_event,
@@ -42,7 +43,9 @@ class EventController:
             "when_message_update": self.factory.deserialize_message_edit_event,
             "when_voice_state_update": self.factory.deserialize_voice_state_update_event,
             "when_voice_server_update": self.factory.deserialize_voice_server_update_event,
-            "when_channel_create": self.factory.entity_factory.deserialize_channel
+            "when_channel_create": self.factory.entity_factory.deserialize_channel,
+            "when_guild_member_add": self.factory.deserialize_guild_member_add_event,
+            "when_guild_member_remove": self.factory.deserialize_guild_member_remove_event
         }
 
         for event_name, callback in self._builtin_events.items():

@@ -27,6 +27,7 @@ from .reaction_event import ReactionAddEvent, ReactionRemoveEvent
 from .voice_server_update_event import VoiceServerUpdateEvent
 from .voice_state_update_event import VoiceStateUpdateEvent
 from .channel_create_event import ChannelCreateEvent
+from .member_event import MemberLeaveEvent, MemberJoinEvent
 
 
 __all__ = (
@@ -38,5 +39,7 @@ __all__ = (
     "ReactionRemoveEvent",
     "VoiceStateUpdateEvent",
     "VoiceServerUpdateEvent",
-    "ChannelCreateEvent"
+    "ChannelCreateEvent",
+    "MemberLeaveEvent",
+    "MemberJoinEvent"
 )

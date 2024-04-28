@@ -55,3 +55,4 @@ class EventTypes(_DynamicEnum):
     PRESENCE_UPDATE: Final[str] = "PRESENCE_UPDATE"
     TYPING_START: Final[str] = "TYPING_START"
     GUILD_MEMBER_ADD: Final[str] = "GUILD_MEMBER_ADD"
+    GUILD_MEMBER_REMOVE: Final[str] = "GUILD_MEMBER_REMOVE"
