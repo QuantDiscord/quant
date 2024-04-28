@@ -35,7 +35,7 @@ from typing import (
     overload,
     TypeVar,
     TYPE_CHECKING,
-    cast
+    Generator
 )
 
 if TYPE_CHECKING:
@@ -357,16 +357,10 @@ class Client:
             if not inspect.iscoroutinefunction(command.callback_func):
                 raise DiscordException("Callback function must be coroutine")
 
-            command_data = {
-                "application_id": app_id,
-                "name": command.name,
-                "description": command.description,
-                "options": command.options,
-                "integration_types": command.integration_types,
-                "contexts": command.contexts,
-                "name_localizations": command.name_localizations,
-                "description_localizations": command.description_localizations
-            }
+            command_data = self.rest.entity_factory.serialize_application_command(command)
+
+            if app_id is not None:
+                command_data["application_id"] = app_id
 
             application_command: ApplicationCommandObject | None = None
             guild_ids = command.guild_ids
