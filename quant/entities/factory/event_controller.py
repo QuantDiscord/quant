@@ -33,26 +33,27 @@ EventNameT = TypeVar("EventNameT", bound=str)
 class EventController:
     def __init__(self, factory: EventFactory) -> None:
         self.factory = factory
-        # Event names same as discord events
         self._builtin_events = {
-            "when_ready": self.factory.deserialize_ready_event,
-            "when_guild_create": self.factory.deserialize_guild_create_event,
-            "when_interaction_create": self.factory.deserialize_interaction_event,
-            "when_message_create": self.factory.deserialize_message_create_event,
-            "when_message_delete": self.factory.deserialize_message_delete_event,
-            "when_message_update": self.factory.deserialize_message_edit_event,
-            "when_voice_state_update": self.factory.deserialize_voice_state_update_event,
-            "when_voice_server_update": self.factory.deserialize_voice_server_update_event,
-            "when_channel_create": self.factory.entity_factory.deserialize_channel,
-            "when_guild_member_add": self.factory.deserialize_guild_member_add_event,
-            "when_guild_member_remove": self.factory.deserialize_guild_member_remove_event
+            EventTypes.READY_EVENT: self.factory.deserialize_ready_event,
+            EventTypes.GUILD_CREATE: self.factory.deserialize_guild_create_event,
+            EventTypes.INTERACTION_CREATE: self.factory.deserialize_interaction_event,
+            EventTypes.MESSAGE_CREATE: self.factory.deserialize_message_create_event,
+            EventTypes.MESSAGE_DELETE: self.factory.deserialize_message_delete_event,
+            EventTypes.MESSAGE_UPDATE: self.factory.deserialize_message_edit_event,
+            EventTypes.VOICE_STATE_UPDATE: self.factory.deserialize_voice_state_update_event,
+            EventTypes.VOICE_SERVER_UPDATE: self.factory.deserialize_voice_server_update_event,
+            EventTypes.CHANNEL_CREATE: self.factory.entity_factory.deserialize_channel,
+            EventTypes.GUILD_MEMBER_ADD: self.factory.deserialize_guild_member_add_event,
+            EventTypes.GUILD_MEMBER_REMOVE: self.factory.deserialize_guild_member_remove_event
         }
 
+        event_func_prefix = "when_"
+
         for event_name, callback in self._builtin_events.items():
-            setattr(self, event_name, callback)
+            setattr(self, event_func_prefix + event_name.lower(), callback)
 
         self.available: List[str] = [
-            member[0][5:].upper() for member in inspect.getmembers(self) if member[0].startswith("when_")
+            member[0][5:].upper() for member in inspect.getmembers(self) if member[0].startswith(event_func_prefix)
         ]
         self._waiting_events: Set[EventTypes, Callable] = set[EventTypes, Callable]()
 
