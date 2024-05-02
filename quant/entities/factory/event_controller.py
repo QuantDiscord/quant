@@ -53,12 +53,10 @@ class EventController:
             setattr(self, event_func_prefix + event_name.lower(), callback)
 
         self.available: List[str] = [
-            member[0][5:].upper() for member in inspect.getmembers(self) if member[0].startswith(event_func_prefix)
+            member[0][len(event_func_prefix):].upper()
+            for member in inspect.getmembers(self)
+            if member[0].startswith(event_func_prefix)
         ]
-        self._waiting_events: Set[EventTypes, Callable] = set[EventTypes, Callable]()
-
-    async def wait(self, event_type: EventTypes, condition: bool, timeout: int = 5) -> None:
-        ...
 
     @overload
     async def dispatch(self, event: EventT) -> None:
