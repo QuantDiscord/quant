@@ -69,6 +69,13 @@ class ActivityType(enum.IntEnum):
     COMPETING = 5
 
 
+class ClientStatus(enum.Enum):
+    """Discord client statuses"""
+    DESKTOP = "desktop"
+    MOBILE = "mobile"
+    WEB = "web"
+
+
 @attrs.define(hash=True)
 class Activity:
     """Represents a discord activity
