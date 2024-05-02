@@ -35,18 +35,19 @@ from typing import (
     overload,
     TypeVar,
     TYPE_CHECKING,
-    Generator
+    get_type_hints,
+    Type
 )
 
 if TYPE_CHECKING:
     from quant.impl.core.commands import ApplicationCommandObject
     from quant.entities.button import Button
+    from quant.impl.events.event import EventTypes
 
 import quant.utils.asyncio_utils as asyncio_utils
 from quant.entities.factory import EventFactory
 from quant.entities.factory.event_controller import EventController
 from quant.utils.cache.cache_manager import CacheManager
-from quant.utils.cache.cacheable import CacheableType
 from quant.utils import logger
 from quant.entities.interactions.slash_option import ApplicationCommandOption
 from quant.entities.gateway import GatewayInfo
@@ -300,9 +301,9 @@ class Client:
         if inspect.iscoroutine(coro):
             raise DiscordException("Callback function must be coroutine")
 
-        annotations = inspect.getmembers(coro)[0]
         try:
-            event_type = list(annotations[1].values())[0]
+            type_hints = get_type_hints(coro)
+            event_type = list(type_hints.values())[0]
 
             if isinstance(event_type, str):
                 raise DiscordException("Can't handle an event class. Try .add_listener(EventType, function)")
@@ -334,7 +335,41 @@ class Client:
     def _add_client_slash_command(self, command: ApplicationCommandObject) -> None:
         self.slash_commands[command.name] = command
 
-    def add_slash_command(self, commands: List[SlashCommand], app_id: Snowflake | int = None) -> None:
+    def _register_command(self, command: SlashCommand, synced_guilds: List[int], app_id: int) -> None:
+        self._add_client_slash_command(command)
+
+        if not inspect.iscoroutinefunction(command.callback_func):
+            raise DiscordException("Callback function must be coroutine")
+
+        command_data = self.rest.entity_factory.serialize_application_command(command)
+
+        if app_id is not None:
+            command_data["application_id"] = app_id
+
+        application_command: ApplicationCommandObject | None = None
+        guild_ids = command.guild_ids
+        if guild_ids:
+            for guild_id in guild_ids:
+                if guild_id not in synced_guilds:
+                    self.loop.run_until_complete(self._sync_application_commands(guild_id=guild_id))
+                    synced_guilds.append(guild_id)
+
+                application_command: ApplicationCommandObject = self.loop.run_until_complete(
+                    self.rest.create_guild_application_command(
+                        **command_data,
+                        guild_id=guild_id
+                    )
+                )
+        else:
+            application_command: ApplicationCommandObject = self.loop.run_until_complete(
+                self.rest.create_application_command(**command_data)
+            )
+
+        application_command.options = command.options
+        application_command.set_callback(command.callback_func)
+        self._add_client_slash_command(application_command)
+
+    def add_slash_command(self, commands: List[SlashCommand] | SlashCommand, app_id: Snowflake | int = None) -> None:
         """Adds your slash commands
 
         Parameters
@@ -351,39 +386,16 @@ class Client:
         synced_guilds = []
 
         self.loop.run_until_complete(self._sync_application_commands())
-        for command in commands:
-            self._add_client_slash_command(command)
 
-            if not inspect.iscoroutinefunction(command.callback_func):
-                raise DiscordException("Callback function must be coroutine")
+        if isinstance(commands, SlashCommand):
+            self._register_command(commands, app_id=app_id, synced_guilds=synced_guilds)
 
-            command_data = self.rest.entity_factory.serialize_application_command(command)
+        elif isinstance(commands, list):
+            for command in commands:
+                self._register_command(command=command, app_id=app_id, synced_guilds=synced_guilds)
 
-            if app_id is not None:
-                command_data["application_id"] = app_id
-
-            application_command: ApplicationCommandObject | None = None
-            guild_ids = command.guild_ids
-            if guild_ids:
-                for guild_id in guild_ids:
-                    if guild_id not in synced_guilds:
-                        self.loop.run_until_complete(self._sync_application_commands(guild_id=guild_id))
-                        synced_guilds.append(guild_id)
-
-                    application_command: ApplicationCommandObject = self.loop.run_until_complete(
-                        self.rest.create_guild_application_command(
-                            **command_data,
-                            guild_id=guild_id
-                        )
-                    )
-            else:
-                application_command: ApplicationCommandObject = self.loop.run_until_complete(
-                    self.rest.create_application_command(**command_data)
-                )
-
-            application_command.options = command.options
-            application_command.set_callback(command.callback_func)
-            self._add_client_slash_command(application_command)
+        else:
+            raise DiscordException(f"Can't add commands because of invalid type")
 
     async def _sync_application_commands(self, guild_id: Snowflake | None = None) -> None:
         if self.sync_commands is False:
