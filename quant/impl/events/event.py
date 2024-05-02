@@ -30,10 +30,9 @@ import attrs
 
 if TYPE_CHECKING:
     from typing_extensions import Self
-
-from quant.impl.events.types import EventTypes
-from quant.entities.factory.entity_factory import EntityFactory
-from quant.utils.cache.cache_manager import CacheManager
+    from quant.entities.factory.entity_factory import EntityFactory
+    from quant.impl.events.types import EventTypes
+    from quant.utils.cache.cache_manager import CacheManager
 
 
 class Event:

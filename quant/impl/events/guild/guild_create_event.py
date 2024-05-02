@@ -29,10 +29,10 @@ import attrs
 
 if TYPE_CHECKING:
     from typing_extensions import Self
+    from quant.entities.guild import Guild
 
 from quant.impl.events.types import EventTypes
 from quant.impl.events.event import DiscordEvent
-from quant.entities.guild import Guild
 
 
 @attrs.define(kw_only=True)
