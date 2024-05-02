@@ -31,8 +31,16 @@ from quant.impl.events.event import InternalEvent
 
 
 @attrs.define(kw_only=True)
+class _GatewayData:
+    event_name: str = attrs.field(alias="t")
+    sequence: int = attrs.field(alias="s")
+    opcode: int = attrs.field(alias="op")
+    data: Dict = attrs.field(alias="d")
+
+
+@attrs.define(kw_only=True)
 class RawDispatchEvent(InternalEvent):
-    data: Dict = attrs.field(default=None)
+    data: _GatewayData = attrs.field()
 
     def emit(self, *args, **kwargs):
         return self

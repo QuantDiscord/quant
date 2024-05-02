@@ -42,9 +42,10 @@ import aiohttp
 
 if TYPE_CHECKING:
     from quant.impl.core.client import Client
-    from quant.entities.snowflake import Snowflake
+    from quant.entities.snowflake import Snowflake, SnowflakeOrInt
 
-from quant.impl.events.bot.raw_event import RawDispatchEvent
+from quant.impl.core.exceptions.library_exception import DiscordException
+from quant.impl.events.bot.raw_event import RawDispatchEvent, _GatewayData
 from quant.entities.activity import Activity, ActivityStatus
 from quant.impl.core.route import Gateway as GatewayRoute
 from quant.entities.intents import Intents
@@ -170,7 +171,7 @@ class Gateway:
             performed_message.get("d")
         )
 
-        await self.client.event_controller.dispatch(RawDispatchEvent(data=performed_message))
+        await self.client.event_controller.dispatch(RawDispatchEvent(data=_GatewayData(**performed_message)))
 
         match opcode:
             case OpCode.DISPATCH:
@@ -203,7 +204,8 @@ class Gateway:
     async def _send(self, data) -> None:
         try:
             await self.websocket.send_str(data)
-        except ConnectionResetError:
+        except ConnectionResetError as exception:
+            logger.error("Error in send: %s", exception)
             await self.close(code=4000)
 
     async def _send_heartbeat(self, interval: float) -> None:
@@ -311,6 +313,39 @@ class Gateway:
                 "self_mute": self_mute,
                 "self_deaf": self_deaf
             }
+        )
+
+        await self._send(payload)
+
+    async def request_guild_members(
+        self,
+        guild_id: SnowflakeOrInt,
+        query: str | None = None,
+        limit: int = 100,
+        presences: bool = False,
+        user_ids: List[Snowflake] | None = None,
+        nonce: str | None = None
+    ) -> None:
+        body = {"guild_id": guild_id, "limit": limit}
+
+        if Intents.GUILD_PRESENCES & self.client.intents:
+            body["presences"] = presences
+
+        if query == "" and limit <= 0:
+            if not Intents.GUILD_MEMBERS & self.client.intents:
+                raise DiscordException("You need GUILD_MEMBERS intent")
+
+            body.update({"query": query, "limit": limit})
+
+        if nonce is not None:
+            body["nonce"] = nonce
+
+        if user_ids is not None:
+            body["user_ids"] = user_ids
+
+        payload = self.payload(
+            opcode=OpCode.REQUEST_GUILD_MEMBERS,
+            data=body
         )
 
         await self._send(payload)
