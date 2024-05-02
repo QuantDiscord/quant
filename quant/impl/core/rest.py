@@ -884,7 +884,7 @@ class RESTImpl(RESTAware):
         form_data = aiohttp.FormData()
 
         if content is not None:
-            body["content"] = content
+            body["content"] = str(content)
 
         if nonce is not None:
             body["nonce"] = nonce
