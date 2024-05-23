@@ -255,8 +255,12 @@ class EventFactory:
             entity_factory=self.entity_factory
         )
 
-    def deserialize_ready_event(self, _: Dict) -> events.ReadyEvent:
-        return events.ReadyEvent(cache_manager=self.cache, entity_factory=self.entity_factory)
+    def deserialize_ready_event(self, payload: Dict) -> events.ReadyEvent:
+        return events.ReadyEvent(
+            cache_manager=self.cache,
+            entity_factory=self.entity_factory,
+            resume_url=payload.get("resume_gateway_url")
+        )
 
     def deserialize_guild_member_add_event(self, payload: Dict) -> events.MemberJoinEvent:
         return events.MemberJoinEvent(
