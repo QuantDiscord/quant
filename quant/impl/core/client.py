@@ -546,7 +546,8 @@ class Client:
         if (button := self.buttons.get(custom_id)) is not None:
             return button
 
-    async def _set_client_user_on_ready(self, _: ReadyEvent) -> None:
+    async def _set_client_user_on_ready(self, event: ReadyEvent) -> None:
+        self.gateway.ws_url = event.resume_url
         self.me = self.cache.get_users()[0]
 
     @property

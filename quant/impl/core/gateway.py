@@ -118,11 +118,12 @@ class Gateway:
         self._session_id: int | None = None
         self._heartbeat = 0
 
-    async def connect(self) -> NoReturn:
-        ws_url = GatewayRoute.DISCORD_WS_URL.uri.url_string.format(10)
+        self.ws_url: str = GatewayRoute.DISCORD_WS_URL.uri.url_string.format(10)
+        self.resume_url: str | None = None
 
+    async def connect(self) -> NoReturn:
         self.session = aiohttp.ClientSession()
-        self.websocket = await self.session.ws_connect(url=ws_url)
+        self.websocket = await self.session.ws_connect(url=self.ws_url)
 
         logger.info(
             "Connecting to shard with ID %s (total shard count: %s)",
@@ -233,6 +234,11 @@ class Gateway:
         ))
 
     async def _send_resume(self) -> None:
+        if self.ws_url != self.resume_url:
+            await self.close(code=4000)
+            self.ws_url = self.resume_url
+            await self.connect()
+
         payload = self.payload(
             opcode=OpCode.RESUME,
             data={
@@ -253,34 +259,39 @@ class Gateway:
     async def send_presence(
         self,
         activity: Activity | None = None,
-        status: ActivityStatus | None = None,
+        status: ActivityStatus = ActivityStatus.ONLINE,
         since: int | None = None,
         afk: bool = False
     ) -> None:
-        if activity.type == activity.type.CUSTOM:
-            activity.name = "Custom Status"  # Must be here because discord moment
-
-            if activity.state is None and activity.emoji is None:
-                logger.warn("state argument expected but not given. Presence not set.")
-                return
-
         presence = {
-            "activities": [
-                {
-                    "name": activity.name,
-                    "type": activity.type.value,
-                    "url": activity.url,
-                    "emoji": activity.emoji,
-                    "details": activity.details,
-                    "state": activity.state,
-                    "created_at": activity.created_at,
-                    "application_id": activity.application_id
-                }
-            ],
             "status": status.value,
             "since": since,
             "afk": afk
         }
+
+        if activity is not None:
+            if activity.type == activity.type.CUSTOM:
+                activity.name = "Custom Status"  # Must be here because discord moment
+
+                if activity.state is None and activity.emoji is None:
+                    logger.warn("state argument expected but not given. Presence not set.")
+                    return
+
+            presence.update({
+                "activities": [
+                    {
+                        "name": activity.name,
+                        "type": activity.type.value,
+                        "url": activity.url,
+                        "emoji": activity.emoji,
+                        "details": activity.details,
+                        "state": activity.state,
+                        "created_at": activity.created_at,
+                        "application_id": activity.application_id
+                    }
+                ],
+            })
+
         payload = self.payload(
             opcode=OpCode.PRESENCE_UPDATE,
             data=presence
