@@ -31,7 +31,6 @@ import attrs
 if TYPE_CHECKING:
     from quant.entities.action_row import ActionRow
     from quant.entities.message import Message, Attachment
-    from quant.entities.guild import Guild
     from quant.entities.modal.modal import Modal, ModalInteractionCallbackData
 
 from quant.utils import logger
