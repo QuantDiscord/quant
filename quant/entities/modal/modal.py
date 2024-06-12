@@ -73,6 +73,9 @@ class Modal(CallbackBackend[ModalContext]):
         from quant.entities.action_row import ActionRow
 
         if len(args) == 1:
+            if not isinstance(args[0], TextInput):
+                return
+
             text_input = args[0]
         else:
             text_input = TextInput(style=TextInputStyle.SHORT.value, **kwargs)
@@ -96,6 +99,9 @@ class Modal(CallbackBackend[ModalContext]):
         from quant.entities.action_row import ActionRow
 
         if len(args) == 1:
+            if not isinstance(args[0], TextInput):
+                return
+
             text_input = args[0]
         else:
             text_input = TextInput(style=TextInputStyle.PARAGRAPH.value, **kwargs)
