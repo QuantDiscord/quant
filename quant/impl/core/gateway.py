@@ -52,8 +52,11 @@ from quant.entities.intents import Intents
 from quant.utils import logger
 
 _ZLIB_SUFFIX = b"\x00\x00\xff\xff"
+_CUSTOM_STATUS = "Custom Status"
 
 WSMessageT = TypeVar("WSMessageT", bound=str | bytes)
+
+READY = "READY"
 
 
 class OpCode(enum.IntEnum):
@@ -123,7 +126,7 @@ class Gateway:
 
     async def connect(self) -> NoReturn:
         self.session = aiohttp.ClientSession()
-        self.websocket = await self.session.ws_connect(url=self.ws_url)
+        self.websocket = await self.session.ws_connect(url=self.ws_url if self.resume_url is None else self.resume_url)
 
         logger.info(
             "Connecting to shard with ID %s (total shard count: %s)",
@@ -140,7 +143,9 @@ class Gateway:
     async def close(self, code: int = 4000):
         logger.info("Connection closing, code: %s", code)
 
+        await self.session.close()
         if not self.websocket:
+            self._buffer.clear()
             return
 
         await self.websocket.close(code=code)
@@ -181,6 +186,9 @@ class Gateway:
 
                 self.client.event_factory.cache_item(received_event_type, **event_details)
                 await self.client.event_controller.dispatch(received_event_type, event_details)
+
+                if received_event_type == READY:
+                    self.resume_url = event_details.get("resume_gateway_url")
             case OpCode.INVALID_SESSION:
                 logger.warn("Invalid session. Reconnecting.")
 
@@ -234,11 +242,6 @@ class Gateway:
         ))
 
     async def _send_resume(self) -> None:
-        if self.ws_url != self.resume_url:
-            await self.close(code=4000)
-            self.ws_url = self.resume_url
-            await self.connect()
-
         payload = self.payload(
             opcode=OpCode.RESUME,
             data={
@@ -271,7 +274,7 @@ class Gateway:
 
         if activity is not None:
             if activity.type == activity.type.CUSTOM:
-                activity.name = "Custom Status"  # Must be here because discord moment
+                activity.name = _CUSTOM_STATUS
 
                 if activity.state is None and activity.emoji is None:
                     logger.warn("state argument expected but not given. Presence not set.")
