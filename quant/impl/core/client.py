@@ -157,7 +157,30 @@ class Client:
         }
 
         self.add_listener(InteractionCreateEvent, self._listen_interaction_create)
-        self.add_listener(ReadyEvent, self._set_client_user_on_ready)
+
+    @property
+    def slash_commands(self) -> Dict[str, ApplicationCommandObject | CoroutineT]:
+        return self._slash_commands
+
+    @property
+    def modals(self) -> Dict[str, Modal]:
+        return self._modals
+
+    @property
+    def buttons(self) -> Dict[str, Button]:
+        return self._buttons
+
+    @property
+    def gateway_info(self) -> GatewayInfo:
+        return self._gateway_info
+
+    @property
+    def me(self) -> User:
+        return self.me
+
+    @me.setter
+    def me(self, value: User) -> None:
+        self.me = value
 
     def _decode_token_to_id(self) -> int:
         first_token_part = self.token.split('.')[0]
@@ -539,22 +562,3 @@ class Client:
 
         if (button := self.buttons.get(custom_id)) is not None:
             return button
-
-    async def _set_client_user_on_ready(self, _: ReadyEvent) -> None:
-        self.me = self.cache.get_users()[0]
-
-    @property
-    def slash_commands(self) -> Dict[str, ApplicationCommandObject | CoroutineT]:
-        return self._slash_commands
-
-    @property
-    def modals(self) -> Dict[str, Modal]:
-        return self._modals
-
-    @property
-    def buttons(self) -> Dict[str, Button]:
-        return self._buttons
-
-    @property
-    def gateway_info(self) -> GatewayInfo:
-        return self._gateway_info

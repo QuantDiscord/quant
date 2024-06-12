@@ -189,6 +189,8 @@ class Gateway:
 
                 if received_event_type == READY:
                     self.resume_url = event_details.get("resume_gateway_url")
+
+                    self.client.me = self.client.cache.get_users()[0]
             case OpCode.INVALID_SESSION:
                 logger.warn("Invalid session. Reconnecting.")
 
