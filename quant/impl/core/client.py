@@ -130,7 +130,7 @@ class Client:
         sync_commands: bool = True,
         cacheable: CacheableType = CacheableType.ALL
     ) -> None:
-        self.me: User | None = None
+        self._me: User | None = None
         self.shards: List[Shard] = []
         self.token = token
         self.intents = intents
@@ -176,11 +176,11 @@ class Client:
 
     @property
     def me(self) -> User:
-        return self.me
+        return self._me
 
     @me.setter
     def me(self, value: User) -> None:
-        self.me = value
+        self._me = value
 
     def _decode_token_to_id(self) -> int:
         first_token_part = self.token.split('.')[0]
