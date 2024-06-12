@@ -45,7 +45,6 @@ class GuildMember(BaseModel):
     pending: bool = attrs.field(repr=False)
     permissions: Permissions | None = attrs.field(repr=False)
     nick: str | None = attrs.field()
-    avatar: str | None = attrs.field()
     roles: List[GuildRole] | None = attrs.field(repr=False)
     joined_at: datetime.datetime = attrs.field()
     premium_since: int | None = attrs.field()
@@ -65,8 +64,12 @@ class GuildMember(BaseModel):
     def id(self) -> Snowflake:
         return self.user.id
 
-    def get_avatar(self, size: int = 1024) -> str:
-        return f"https://cdn.discordapp.com/avatars/{self.id}/{self.avatar}.png?size={size}"
+    @property
+    def avatar_hash(self) -> str:
+        return self.user.avatar
+
+    def get_avatar(self, extension: str = "png", size: int = 1024) -> str:
+        return self.user.get_avatar(extension=extension, size=size)
 
     async def add_role(self, role: GuildRole | Snowflake | int) -> None:
         if isinstance(role, GuildRole):

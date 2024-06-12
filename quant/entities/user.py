@@ -23,11 +23,13 @@ SOFTWARE.
 """
 from __future__ import annotations as _
 
+import urllib.parse
 from typing import Any
 
 import attrs
 
 from quant.entities.model import BaseModel
+from quant.impl.core.route import CDN_AVATARS
 
 from .snowflake import Snowflake
 
@@ -60,8 +62,12 @@ class User(BaseModel):
     def mention(self) -> str:
         return f"<@{self.id}>"
 
-    def get_avatar(self, size: int = 1024) -> str:
-        return f"https://cdn.discordapp.com/avatars/{self.id}/{self.avatar}.png?size={size}"
+    def get_avatar(self, extension: str = "png", size: int = 1024) -> str:
+        as_params = {"size": size}
+        base = CDN_AVATARS.format(self.id, self.avatar, extension)
+        encoded_params = urllib.parse.urlencode(as_params)
+
+        return f"{base}?{encoded_params}"
 
     async def fetch(self) -> User:
         return await self.client.rest.fetch_user(user_id=self.id)

@@ -97,7 +97,6 @@ class EntityFactory:
             pending=payload.get("pending"),
             permissions=parse_permissions(int(payload.get("permissions", 0))),
             nick=payload.get("nick"),
-            avatar=payload.get("avatar"),
             roles=roles,
             joined_at=iso_to_datetime(payload.get("joined_at")),
             premium_since=payload.get("premium_since", 0),
