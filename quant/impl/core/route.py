@@ -72,12 +72,15 @@ POST: Final[str] = "POST"
 
 _ROUTE_FIELDS = attrs.fields(Route)
 
+CDN_AVATARS: Final[str] = "https://cdn.discordapp.com/avatars/{0}/{1}.{2}"
+
 
 class Gateway:
+    OPTIONS: str = "?v={}&encoding=json&compress=zlib-stream".format(_ROUTE_FIELDS.api_version.default)
     DISCORD_MAIN_API_URL: Final[str] = "https://discord.com/api/v{}".format(_ROUTE_FIELDS.api_version.default)
     DISCORD_WS_URL: Final[Route] = Route(
         "GET", URI(
-            "wss://gateway.discord.gg/?v={}&encoding=json&compress=zlib-stream".format(_ROUTE_FIELDS.api_version.default),
+            "wss://gateway.discord.gg/{}".format(OPTIONS),
             auto_format=False
         )
     )
