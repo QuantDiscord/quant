@@ -450,27 +450,21 @@ class Client:
 
         command = self.slash_commands[command_name]
 
-        if interaction.data.options is None:
-            await command.callback_func(context)
-            return
+        if interaction.data.options is not None:
+            used_subcommand = interaction.data.options[0]
 
-        used_subcommand = interaction.data.options[0]
+            for option in command.options:
+                if used_subcommand.name != option.name:
+                    continue
 
-        for option in command.options:
-            if used_subcommand.name == option.name:
                 match option.type:
                     case SlashOptionType.SUB_COMMAND:
                         await option.callback_func(context)
                     case SlashOptionType.SUB_COMMAND_GROUP:
                         callback = self._handle_sub_command(option.options)
-                        await callback(context)
+                        command.callback_func = callback
 
-                if option.type == SlashOptionType.SUB_COMMAND:
-                    await option.callback_func(context)
-
-                if option.type == SlashOptionType.SUB_COMMAND_GROUP:
-                    callback = self._handle_sub_command(option.options)
-                    await callback(context)
+        await command.callback_func(context)
 
     async def handle_modal_submit(self, interaction: Interaction) -> None:
         if interaction.data is None:
@@ -546,8 +540,7 @@ class Client:
         if (button := self.buttons.get(custom_id)) is not None:
             return button
 
-    async def _set_client_user_on_ready(self, event: ReadyEvent) -> None:
-        self.gateway.ws_url = event.resume_url
+    async def _set_client_user_on_ready(self, _: ReadyEvent) -> None:
         self.me = self.cache.get_users()[0]
 
     @property
