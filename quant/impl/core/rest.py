@@ -84,6 +84,10 @@ class RESTImpl(RESTAware):
     def __init__(self, token: str, cache: CacheManager) -> None:
         self.http = HttpManagerImpl(authorization=token)
         self.token = token
+
+        if not self.token.startswith("Bot"):
+            self.token = f"Bot {self.token.strip()}"
+
         self.entity_factory = EntityFactory(cache)
 
         AUTHORIZATION_HEADER["Authorization"] = self.token
