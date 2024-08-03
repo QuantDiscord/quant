@@ -16,10 +16,10 @@ class MusicModule:
 
     async def on_voice_state_update(self, event: VoiceStateUpdateEvent) -> None:
         self.bot.lavalink.raw_handle_event_voice_state_update(
-            event.state.guild_id,
-            event.state.user_id,
-            event.state.session_id,
-            event.state.channel_id
+            event.new_state.guild_id,
+            event.new_state.user_id,
+            event.new_state.session_id,
+            event.new_state.channel_id
         )
 
     async def on_voice_server_update(self, event: VoiceServerUpdateEvent) -> None:

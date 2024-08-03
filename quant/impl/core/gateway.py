@@ -218,6 +218,7 @@ class Gateway:
         except ConnectionResetError as exception:
             logger.error("Error in send: %s", exception)
             await self.close(code=4000)
+            await self.connect()
 
     async def _send_heartbeat(self, interval: float) -> None:
         payload = self.payload(opcode=OpCode.HEARTBEAT, sequence=self._sequence)
