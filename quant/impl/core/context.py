@@ -111,14 +111,14 @@ class InteractionContext:
     def author(self) -> GuildMember:
         return self.interaction.member
 
-    async def get_option(self, name: str) -> OptionT:
+    async def get_option(self, name: str, default: Any | None = None) -> OptionT:
         interaction_options = self.interaction.data.options
         if interaction_options is None:
-            return
+            return default
 
         options = list(filter(lambda x: x.name.lower() == name.lower(), interaction_options))
         if len(options) == 0:
-            return
+            return default
 
         option = options[0]
         return await parse_option_type(self.client, self.interaction, option.type, option.value)
