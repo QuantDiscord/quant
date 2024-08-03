@@ -80,6 +80,15 @@ class PartialInteraction:
     id: Snowflake = attrs.field()
     application_id: Snowflake = attrs.field()
     type: InteractionType = attrs.field()
+    token: str = attrs.field()
+    version: int = attrs.field()
+    authorizing_integration_owners: Dict[Any, Any] = attrs.field()
+    """Not supported yet"""
+    context: IntegrationTypes | None = attrs.field()
+
+
+@attrs.define(kw_only=True)
+class CommandInteraction(PartialInteraction):
     data: InteractionData | None = attrs.field()
     guild: Guild | None = attrs.field()
     guild_id: Snowflake | None = attrs.field()
@@ -87,16 +96,9 @@ class PartialInteraction:
     channel_id: Snowflake | None = attrs.field()
     member: GuildMember | None = attrs.field()
     user: User | None = attrs.field()
-    token: str = attrs.field()
-    version: int = attrs.field()
     message: Message | None = attrs.field()
     app_permissions: Permissions = attrs.field()
     locale: DiscordLocale | None = attrs.field()
     guild_locale: DiscordLocale | None = attrs.field()
     entitlements: Any = attrs.field()
     """Not supported yet"""
-
-    authorizing_integration_owners: Dict[Any, Any] = attrs.field()
-    """Not supported yet"""
-
-    context: IntegrationTypes | None = attrs.field()
