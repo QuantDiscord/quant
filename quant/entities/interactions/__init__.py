@@ -21,21 +21,7 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
-from .application_command import *
-from .interaction import *
-from .choice_response import *
-from .slash_option import *
 
 __all__ = (
-    "ApplicationCommandOptionType",
-    "InteractionDataOption",
-    "Interaction",
-    "InteractionCallbackData",
-    "InteractionCallbackType",
-    "InteractionType",
-    "InteractionResponse",
-    "InteractionData",
-    "ApplicationCommandOption",
-    "SlashOptionType",
-    "ApplicationCommandContexts"
+
 )
